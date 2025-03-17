@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - SpellsManager
+  - Spell
+  - InputUI
+  - PlayerCastPoint
+  - EnemyAi
+  - SphereShield
+  - ActiveShield
+  - Environment
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Floor
+  - Water
+  - UI
+  - Aoe
+  - FloorWallsAndObstacles
+  - Spell
+  - ActiveShield
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: BaseOutline
+    uniqueID: 4102740021
+    locked: 0
+  - name: TimerOutline
+    uniqueID: 184419487
+    locked: 0

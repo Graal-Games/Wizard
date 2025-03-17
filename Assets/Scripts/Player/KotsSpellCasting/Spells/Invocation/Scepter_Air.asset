@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
+  m_Name: Scepter_Air
+  m_EditorClassIdentifier: 
+  spellType: 5
+  element: 3
+  spellAttribute: 2
+  castProcedure: 1
+  incapacitationName: 0
+  visionImpairmentType: 0
+  castMultiplier: 1
+  moveSpeed: 0
+  spellDuration: 60
+  incapacitationDuration: 0
+  visionImpairmentDuration: 0
+  directDamageAmount: 8
+  damageOverTimeAmount: 0
+  damageOverTimeDuration: 0
+  pushForce: 0
+  pullForce: 0
+  health: 100
+  damageLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  destroyOnCollision: 0
+  destroyOnPlayerCollision: 0
+  friendlyFire: 0
+  pushback: 0
+  prefab: {fileID: 705924895072455061, guid: df7a705659de33b4eb8f6d5c937d1a93, type: 3}
+  childPrefab: {fileID: 4716045805267283745, guid: c174efd721ec6f94194bb87c373d2990, type: 3}
