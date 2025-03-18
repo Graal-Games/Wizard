@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 885bfba1842791949bad7ec46ce1d704
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - hurtBox: {instanceID: 0}
+  - spellData: {instanceID: 0}
+  - rb: {instanceID: 0}
+  - caster: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
