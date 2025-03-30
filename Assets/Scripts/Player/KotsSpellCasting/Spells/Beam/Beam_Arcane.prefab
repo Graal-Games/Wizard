@@ -35,6 +35,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5343794831908224919}
+  - {fileID: 1621047272578453994}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6843730428241410388
@@ -175,12 +176,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4056477983391451490}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.49977523, y: 0.49977523, z: 0.50022465, w: 0.50022465}
-  m_LocalPosition: {x: -0.001, y: -0.9992, z: 0.004}
-  m_LocalScale: {x: 0.10285254, y: 2.4999993, z: 2.5}
+  m_LocalRotation: {x: -0, y: 0.70678896, z: -0, w: 0.7074245}
+  m_LocalPosition: {x: 0.02280426, y: 0.0010032654, z: 0.004}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5343794831908224919}
+  m_Father: {fileID: 2481666484281715587}
   m_LocalEulerAnglesHint: {x: -89.948, y: 0, z: 90}
 --- !u!2083052967 &4215810481829214695
 VisualEffect:
@@ -199,13 +200,31 @@ VisualEffect:
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
-      m_Array: []
+      m_Array:
+      - m_Value: 6
+        m_Name: ParticleLifetime
+        m_Overridden: 1
     m_Vector2f:
       m_Array: []
     m_Vector3f:
       m_Array:
-      - m_Value: {x: 25, y: 1, z: 1}
+      - m_Value: {x: 25, y: 20, z: 60}
         m_Name: BeamScale
+        m_Overridden: 1
+      - m_Value: {x: 3, y: 3, z: 12}
+        m_Name: CenterBeamScale
+        m_Overridden: 1
+      - m_Value: {x: 6, y: 6, z: 12}
+        m_Name: OuterBeamScale1
+        m_Overridden: 1
+      - m_Value: {x: 6.02, y: 6.02, z: 12}
+        m_Name: OuterBeamScale2
+        m_Overridden: 1
+      - m_Value: {x: 6.03, y: 6.03, z: 12}
+        m_Name: OuterBeamScale3
+        m_Overridden: 1
+      - m_Value: {x: 6.04, y: 6.04, z: 12}
+        m_Name: OuterBeamScale4
         m_Overridden: 1
     m_Vector4f:
       m_Array: []
@@ -216,13 +235,112 @@ VisualEffect:
     m_Matrix4x4f:
       m_Array: []
     m_AnimationCurve:
-      m_Array: []
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0.005
+            value: 0
+            inSlope: 7.995255
+            outSlope: 7.995255
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.026245117
+            value: 1.0023499
+            inSlope: 0.033195805
+            outSlope: 0.033195805
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: CylinderGrowZ
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.68877596
+            value: 0.51207614
+            inSlope: -1.7776713
+            outSlope: -1.7776713
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: ParticleStop
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.5
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: ParticleRot
+        m_Overridden: 1
     m_Gradient:
       m_Array: []
     m_NamedObject:
       m_Array: []
     m_Bool:
-      m_Array: []
+      m_Array:
+      - m_Value: 0
+        m_Name: ShouldDie
+        m_Overridden: 0
 --- !u!73398921 &8012691110050179281
 VFXRenderer:
   serializedVersion: 1
@@ -295,8 +413,7 @@ Transform:
   m_LocalPosition: {x: 24.31, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 24.306637, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1621047272578453994}
+  m_Children: []
   m_Father: {fileID: 2481666484281715587}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!33 &709025251790671055
