@@ -581,8 +581,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4454155518266441410, guid: 2cb4454033c413549ac2fb7b4d666332, type: 3}
     - target: {fileID: 4046705451634755656, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: m_Radius
+      value: 0.35598996
+      objectReference: {fileID: 0}
+    - target: {fileID: 4046705451634755656, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4046705451634755656, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: m_Center.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4046705451634755656, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: m_Center.z
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4260520519055377420, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_Controller
