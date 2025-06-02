@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+ <html xmlns:msxsl="urn:schemas-microsoft-com:xslt"><head><meta content="en-us" http-equiv="Content-Language" /><meta content="text/html; charset=utf-16" http-equiv="Content-Type" /><title _locID="ConversionReport0">
+          Informe de migración
+        </title><style> 
+                    /* Body style, for the entire document */
+                    body
+                    {
+                        background: #F3F3F4;
+                        color: #1E1E1F;
+                        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                        padding: 0;
+                        margin: 0;
+                    }
+
+                    /* Header1 style, used for the main title */
+                    h1
+                    {
+                        padding: 10px 0px 10px 10px;
+                        font-size: 21pt;
+                        background-color: #E2E2E2;
+                        border-bottom: 1px #C1C1C2 solid; 
+                        color: #201F20;
+                        margin: 0;
+                        font-weight: normal;
+                    }
+
+                    /* Header2 style, used for "Overview" and other sections */
+                    h2
+                    {
+                        font-size: 18pt;
+                        font-weight: normal;
+                        padding: 15px 0 5px 0;
+                        margin: 0;
+                    }
+
+                    /* Header3 style, used for sub-sections, such as project name */
+                    h3
+                    {
+                        font-weight: normal;
+                        font-size: 15pt;
+                        margin: 0;
+                        padding: 15px 0 5px 0;
+                        background-color: transparent;
+                    }
+
+                    /* Color all hyperlinks one color */
+                    a
+                    {
+                        color: #1382CE;
+                    }
+
+                    /* Table styles */ 
+                    table
+                    {
+                        border-spacing: 0 0;
+                        border-collapse: collapse;
+                        font-size: 10pt;
+                    }
+
+                    table th
+                    {
+                        background: #E7E7E8;
+                        text-align: left;
+                        text-decoration: none;
+                        font-weight: normal;
+                        padding: 3px 6px 3px 6px;
+                    }
+
+                    table td
+                    {
+                        vertical-align: top;
+                        padding: 3px 6px 5px 5px;
+                        margin: 0px;
+                        border: 1px solid #E7E7E8;
+                        background: #F7F7F8;
+                    }
+
+                    /* Local link is a style for hyperlinks that link to file:/// content, there are lots so color them as 'normal' text until the user mouse overs */
+                    .localLink
+                    {
+                        color: #1E1E1F;
+                        background: #EEEEED;
+                        text-decoration: none;
+                    }
+
+                    .localLink:hover
+                    {
+                        color: #1382CE;
+                        background: #FFFF99;
+                        text-decoration: none;
+                    }
+
+                    /* Center text, used in the over views cells that contain message level counts */ 
+                    .textCentered
+                    {
+                        text-align: center;
+                    }
+
+                    /* The message cells in message tables should take up all avaliable space */
+                    .messageCell
+                    {
+                        width: 100%;
+                    }
+
+                    /* Padding around the content after the h1 */ 
+                    #content 
+                    {
+	                    padding: 0px 12px 12px 12px; 
+                    }
+
+                    /* The overview table expands to width, with a max width of 97% */ 
+                    #overview table
+                    {
+                        width: auto;
+                        max-width: 75%; 
+                    }
+
+                    /* The messages tables are always 97% width */
+                    #messages table
+                    {
+                        width: 97%;
+                    }
+
+                    /* All Icons */
+                    .IconSuccessEncoded, .IconInfoEncoded, .IconWarningEncoded, .IconErrorEncoded
+                    {
+                        min-width:18px;
+                        min-height:18px; 
+                        background-repeat:no-repeat;
+                        background-position:center;
+                    }
+
+                    /* Success icon encoded */
+                    .IconSuccessEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconSuccess#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABcElEQVR4Xq2TsUsCURzHv15g8ZJcBWlyiYYgCIWcb9DFRRwMW5TA2c0/QEFwFkxxUQdxVlBwCYWOi6IhWgQhBLHJUCkhLr/BW8S7gvrAg+N+v8/v+x68Z8MGy+XSCyABQAXgBgHGALoASkIIDWSLeLBetdHryMjd5IxQPWT4rn1c/P7+xxp72Cs9m5SZ0Bq2vPnbPFafK2zDvmNHypdC0BPkLlQhxJsCAhQoZwdZU5mwxh720qGo8MzTxTTKZDPCx2HoVzp6lz0Q9tKhyx0kGs8Ny+TkWRKk8lCROwEduhyg9l/6lunOPSfmH3NUH6uQ0KHLAe7JYvJjevm+DAMGJHToKtigE+vwvIidxLamb8IBY9e+C5LiXREkfho3TSd06HJA13/oh6T51MTsfQbHrsMynQ5dDihFjiK8JJAU9AKIWTp76dCVN7HWHrajmUEGvyF9nkbAE6gLIS7kTUyuf2gscLoJrElZo/Mvj+nPz/kLTmfnEwP3tB0AAAAASUVORK5CYII=);
+                    }
+
+                    /* Information icon encoded */
+                    .IconInfoEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconInformation#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABHElEQVR4Xs2TsUoDQRRF7wwoziokjZUKadInhdhukR9YP8DMX1hYW+QvdsXa/QHBbcXC7W0CamWTQnclFutceIQJwwaWNLlwm5k5d94M76mmaeCrrmsLYOocY12FcxZFUeozCqKqqgYA8uevv1H6VuPxcwlfk5N92KHBxfFeCSAxxswlYAW/Xr989x/mv9gkhtyMDhcAxgzRsp7flj8B/HF1RsMXq+NZMkopaHe7lbKxQUEIGbKsYNoGn969060hZBkQex/W8oRQwsQaW2o3Ago2SVcJUzAgY3N0lTCZZm+zPS8HB51gMmS1DEYyOz9acKO1D8JWTlafKIMxdhvlfdyT94Vv5h7P8Ky7nQzACmhvKq3zk3PjW9asz9D/1oigecsioooAAAAASUVORK5CYII=);
+                    }
+
+                    /* Warning icon encoded */
+                    .IconWarningEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconWarning#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAx0lEQVR4XpWSMQ7CMAxFf4xAyBMLCxMrO8dhaBcuwdCJS3RJBw7SA/QGTCxdWJgiQYWKXJWKIXHIlyw5lqr34tQgEOdcBsCOx5yZK3hCCKdYXneQkh4pEfqzLfu+wVDSyyzFoJjfz9NB+pAF+eizx2Vruts0k15mPgvS6GYvpVtQhB61IB/dk6AF6fS4Ben0uIX5odtFe8Q/eW1KvFeH4e8khT6+gm5B+t3juyDt7n0jpe+CANTd+oTUjN/U3yVaABnSUjFz/gFq44JaVSCXeQAAAABJRU5ErkJggg==);
+                    }
+
+                    /* Error icon encoded */
+                    .IconErrorEncoded
+                    {
+                        /* Note: Do not delete the comment below. It is used to verify the correctness of the encoded image resource below before the product is released */
+                        /* [---XsltValidateInternal-Base64EncodedImage:IconError#Begin#background-image: url(data:image/png;base64,#Separator#);#End#] */
+                        background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABQElEQVR4XqWTvUoEQRCE6wYPZUA80AfwAQz23uCMjA7MDRQEIzPBVEyNTQUFIw00vcQTTMzuAh/AxEQQT8HF/3G/oGGnEUGuoNnd6qoZuqltyKEsyzVJq5I6rnUp6SjGeGhESikzzlc1eL7opfuVbrqbU1Zw9NCgtQMaZpY0eNnaaL2fHusvTK5vKu7sjSS1Y4y3QUA6K3e3Mau5UFDyMP7tYF9o8cAHZv68vipoIJg971PZIZ5HiwdvYGGvFVFHmGmZ2MxwmQYPXubPl9Up0tfoMQGetXd6mRbvhBw+boZ6WF7Mbv1+GsHRk0fQmPAH1GfmZirbCfDJ61tw3Px8/8pZsPAG4jlVhcPgZ7adwNWBB68lkRQWFiTgFlbnLY3DGGM7izIJIyT/jjIvEJw6fdJTc6krDzh6aMwMP9bvDH4ADSsa9uSWVJkAAAAASUVORK5CYII=);
+                    }
+                 </style><script type="text/javascript" language="javascript"> 
+          
+            // Startup 
+            // Hook up the the loaded event for the document/window, to linkify the document content
+            var startupFunction = function() { linkifyElement("messages"); };
+            
+            if(window.attachEvent)
+            {
+              window.attachEvent('onload', startupFunction);
+            }
+            else if (window.addEventListener) 
+            {
+              window.addEventListener('load', startupFunction, false);
+            }
+            else 
+            {
+              document.addEventListener('load', startupFunction, false);
+            } 
+            
+            // Toggles the visibility of table rows with the specified name 
+            function toggleTableRowsByName(name)
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  if(!!currentName && currentName.indexOf(name) == 0)
+                  {
+                      var isVisible = allRows[i].style.display == ''; 
+                      isVisible ? allRows[i].style.display = 'none' : allRows[i].style.display = '';
+                  }
+               }
+            }
+            
+            function scrollToFirstVisibleRow(name) 
+            {
+               var allRows = document.getElementsByTagName('tr');
+               for (i=0; i < allRows.length; i++)
+               {
+                  var currentName = allRows[i].getAttribute('name');
+                  var isVisible = allRows[i].style.display == ''; 
+                  if(!!currentName && currentName.indexOf(name) == 0 && isVisible)
+                  {
+                     allRows[i].scrollIntoView(true); 
+                     return true; 
+                  }
+               }
+               
+               return false;
+            }
+            
+            // Linkifies the specified text content, replaces candidate links with html links 
+            function linkify(text)
+            {
+                 if(!text || 0 === text.length)
+                 {
+                     return text; 
+                 }
+
+                 // Find http, https and ftp links and replace them with hyper links 
+                 var urlLink = /(http|https|ftp)\:\/\/[a-zA-Z0-9\-\.]+(:[a-zA-Z0-9]*)?\/?([a-zA-Z0-9\-\._\?\,\/\\\+&%\$#\=~;\{\}])*/gi;
+                 
+                 return text.replace(urlLink, '<a href="$&">$&</a>') ;
+            }
+            
+            // Linkifies the specified element by ID
+            function linkifyElement(id)
+            {
+                var element = document.getElementById(id);
+                if(!!element)
+                {
+                  element.innerHTML = linkify(element.innerHTML); 
+                }
+            }
+            
+            function ToggleMessageVisibility(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              toggleTableRowsByName("MessageRowClass" + projectName);
+              toggleTableRowsByName('MessageRowHeaderShow' + projectName);
+              toggleTableRowsByName('MessageRowHeaderHide' + projectName); 
+            }
+            
+            function ScrollToFirstVisibleMessage(projectName)
+            {
+              if(!projectName || 0 === projectName.length)
+              {
+                return; 
+              }
+              
+              // First try the 'Show messages' row
+              if(!scrollToFirstVisibleRow('MessageRowHeaderShow' + projectName))
+              {
+                // Failed to find a visible row for 'Show messages', try an actual message row 
+                scrollToFirstVisibleRow('MessageRowClass' + projectName); 
+              }
+            }
+           </script></head><body><h1 _locID="ConversionReport">
+          Informe de migración - </h1><div id="content"><h2 _locID="OverviewTitle">Información general</h2><div id="overview"><table><tr><th></th><th _locID="ProjectTableHeader">Proyecto</th><th _locID="PathTableHeader">Ruta de acceso</th><th _locID="ErrorsTableHeader">Errores</th><th _locID="WarningsTableHeader">Advertencias</th><th _locID="MessagesTableHeader">Mensajes</th></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Assembly-CSharp">Assembly-CSharp</a></strong></td><td>Assembly-CSharp.csproj</td><td class="textCentered"><a href="#Assembly-CSharpError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#IngameDebugConsole.Editor">IngameDebugConsole.Editor</a></strong></td><td>IngameDebugConsole.Editor.csproj</td><td class="textCentered"><a href="#IngameDebugConsole.EditorError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#IngameDebugConsole.Runtime">IngameDebugConsole.Runtime</a></strong></td><td>IngameDebugConsole.Runtime.csproj</td><td class="textCentered"><a href="#IngameDebugConsole.RuntimeError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Managers">Managers</a></strong></td><td>Managers.csproj</td><td class="textCentered"><a href="#ManagersError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Meryel.CodeAssist.Editor">Meryel.CodeAssist.Editor</a></strong></td><td>Meryel.CodeAssist.Editor.csproj</td><td class="textCentered"><a href="#Meryel.CodeAssist.EditorError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Networking">Networking</a></strong></td><td>Networking.csproj</td><td class="textCentered"><a href="#NetworkingError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Overlays">Overlays</a></strong></td><td>Overlays.csproj</td><td class="textCentered"><a href="#OverlaysError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#ParrelSync">ParrelSync</a></strong></td><td>ParrelSync.csproj</td><td class="textCentered"><a href="#ParrelSyncError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Player">Player</a></strong></td><td>Player.csproj</td><td class="textCentered"><a href="#PlayerError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#PlayerCastPoints">PlayerCastPoints</a></strong></td><td>PlayerCastPoints.csproj</td><td class="textCentered"><a href="#PlayerCastPointsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#PlayerControls">PlayerControls</a></strong></td><td>PlayerControls.csproj</td><td class="textCentered"><a href="#PlayerControlsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#PlayerUi">PlayerUi</a></strong></td><td>PlayerUi.csproj</td><td class="textCentered"><a href="#PlayerUiError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Singleton">Singleton</a></strong></td><td>Singleton.csproj</td><td class="textCentered"><a href="#SingletonError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconErrorEncoded" /><td><strong><a href="#Spells">Spells</a></strong></td><td>Spells.csproj</td><td class="textCentered"><a href="#SpellsError">1</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#">0</a></td></tr><tr><td class="IconSuccessEncoded" /><td><strong><a href="#Solution"><span _locID="OverviewSolutionSpan">Solución</span></a></strong></td><td>Wizard.sln</td><td class="textCentered"><a>0</a></td><td class="textCentered"><a>0</a></td><td class="textCentered"><a href="#" onclick="ScrollToFirstVisibleMessage('Solution'); return false;">1</a></td></tr></table></div><h2 _locID="SolutionAndProjectsTitle">Solución y proyectos</h2><div id="messages"><a name="Assembly-CSharp" /><h3>Assembly-CSharp</h3><table><tr id="Assembly-CSharpHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassAssembly-CSharp"><td class="IconErrorEncoded"><a name="Assembly-CSharpError" /></td><td class="messageCell"><strong>Assembly-CSharp.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="IngameDebugConsole.Editor" /><h3>IngameDebugConsole.Editor</h3><table><tr id="IngameDebugConsole.EditorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassIngameDebugConsole.Editor"><td class="IconErrorEncoded"><a name="IngameDebugConsole.EditorError" /></td><td class="messageCell"><strong>IngameDebugConsole.Editor.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="IngameDebugConsole.Runtime" /><h3>IngameDebugConsole.Runtime</h3><table><tr id="IngameDebugConsole.RuntimeHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassIngameDebugConsole.Runtime"><td class="IconErrorEncoded"><a name="IngameDebugConsole.RuntimeError" /></td><td class="messageCell"><strong>IngameDebugConsole.Runtime.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Managers" /><h3>Managers</h3><table><tr id="ManagersHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassManagers"><td class="IconErrorEncoded"><a name="ManagersError" /></td><td class="messageCell"><strong>Managers.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Meryel.CodeAssist.Editor" /><h3>Meryel.CodeAssist.Editor</h3><table><tr id="Meryel.CodeAssist.EditorHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassMeryel.CodeAssist.Editor"><td class="IconErrorEncoded"><a name="Meryel.CodeAssist.EditorError" /></td><td class="messageCell"><strong>Meryel.CodeAssist.Editor.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Networking" /><h3>Networking</h3><table><tr id="NetworkingHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassNetworking"><td class="IconErrorEncoded"><a name="NetworkingError" /></td><td class="messageCell"><strong>Networking.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Overlays" /><h3>Overlays</h3><table><tr id="OverlaysHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassOverlays"><td class="IconErrorEncoded"><a name="OverlaysError" /></td><td class="messageCell"><strong>Overlays.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="ParrelSync" /><h3>ParrelSync</h3><table><tr id="ParrelSyncHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassParrelSync"><td class="IconErrorEncoded"><a name="ParrelSyncError" /></td><td class="messageCell"><strong>ParrelSync.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Player" /><h3>Player</h3><table><tr id="PlayerHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassPlayer"><td class="IconErrorEncoded"><a name="PlayerError" /></td><td class="messageCell"><strong>Player.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="PlayerCastPoints" /><h3>PlayerCastPoints</h3><table><tr id="PlayerCastPointsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassPlayerCastPoints"><td class="IconErrorEncoded"><a name="PlayerCastPointsError" /></td><td class="messageCell"><strong>PlayerCastPoints.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="PlayerControls" /><h3>PlayerControls</h3><table><tr id="PlayerControlsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassPlayerControls"><td class="IconErrorEncoded"><a name="PlayerControlsError" /></td><td class="messageCell"><strong>PlayerControls.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="PlayerUi" /><h3>PlayerUi</h3><table><tr id="PlayerUiHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassPlayerUi"><td class="IconErrorEncoded"><a name="PlayerUiError" /></td><td class="messageCell"><strong>PlayerUi.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Singleton" /><h3>Singleton</h3><table><tr id="SingletonHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassSingleton"><td class="IconErrorEncoded"><a name="SingletonError" /></td><td class="messageCell"><strong>Singleton.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Spells" /><h3>Spells</h3><table><tr id="SpellsHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="ErrorRowClassSpells"><td class="IconErrorEncoded"><a name="SpellsError" /></td><td class="messageCell"><strong>Spells.csproj:
+        </strong><span>No se encontró la aplicación en la que se basa este tipo de proyecto. Siga este vínculo para obtener más información: http://go.microsoft.com/fwlink/?LinkID=299083&amp;projecttype=E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1</span></td></tr></table><a name="Solution" /><h3 _locID="ProjectDisplayNameHeader">Solución</h3><table><tr id="SolutionHeaderRow"><th></th><th class="messageCell" _locID="MessageTableHeader">Mensaje</th></tr><tr name="MessageRowHeaderShowSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="ShowAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          Mostrar 1 mensajes adicionales
+        </a></td></tr><tr name="MessageRowClassSolution" style="display: none"><td class="IconInfoEncoded"><a name="SolutionMessage" /></td><td class="messageCell"><strong>Wizard.sln:
+        </strong><span>El archivo de soluciones no requiere migración.</span></td></tr><tr style="display: none" name="MessageRowHeaderHideSolution"><td class="IconInfoEncoded" /><td class="messageCell"><a _locID="HideAdditionalMessages" href="#" name="SolutionMessage" onclick="ToggleMessageVisibility('Solution'); return false;">
+          Ocultar 1 mensajes adicionales
+        </a></td></tr></table></div></div></body></html>

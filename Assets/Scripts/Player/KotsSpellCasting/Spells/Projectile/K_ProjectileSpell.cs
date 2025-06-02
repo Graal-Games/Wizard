@@ -31,28 +31,28 @@ public class K_ProjectileSpell : K_Spell
     //public NetworkVariable<Vector3> previousPosition = new NetworkVariable<Vector3>(default,
     //    NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    Vector3 currentPosition;
-    Vector3 previousPosition;
+   // Vector3 currentPosition;
+   // Vector3 previousPosition;
 
-    public float rayDistance = 5f; // Distance the ray will travel
-   // public LayerMask collisionMask; // Optional: Set specific layers to interact with
+   // public float rayDistance = 5f; // Distance the ray will travel
+   //// public LayerMask collisionMask; // Optional: Set specific layers to interact with
 
-    // Array of 12 directions (unit vectors)
-    private static readonly Vector3[] directions = new Vector3[]
-    {
-        Vector3.up,               // +Y
-        Vector3.down,             // -Y
-        Vector3.left,             // -X
-        Vector3.right,            // +X
-        Vector3.forward,          // +Z
-        Vector3.back,             // -Z
-        new Vector3(1, 1, 0).normalized,    // Diagonal (XY)
-        new Vector3(-1, 1, 0).normalized,   // Diagonal (-XY)
-        new Vector3(1, -1, 0).normalized,   // Diagonal (X-Y)
-        new Vector3(-1, -1, 0).normalized,  // Diagonal (-X-Y)
-        new Vector3(0, 1, 1).normalized,    // Diagonal (YZ)
-        new Vector3(0, 1, -1).normalized    // Diagonal (Y-Z)
-    };
+   // // Array of 12 directions (unit vectors)
+   // private static readonly Vector3[] directions = new Vector3[]
+   // {
+   //     Vector3.up,               // +Y
+   //     Vector3.down,             // -Y
+   //     Vector3.left,             // -X
+   //     Vector3.right,            // +X
+   //     Vector3.forward,          // +Z
+   //     Vector3.back,             // -Z
+   //     new Vector3(1, 1, 0).normalized,    // Diagonal (XY)
+   //     new Vector3(-1, 1, 0).normalized,   // Diagonal (-XY)
+   //     new Vector3(1, -1, 0).normalized,   // Diagonal (X-Y)
+   //     new Vector3(-1, -1, 0).normalized,  // Diagonal (-X-Y)
+   //     new Vector3(0, 1, 1).normalized,    // Diagonal (YZ)
+   //     new Vector3(0, 1, -1).normalized    // Diagonal (Y-Z)
+   // };
 
 
     private void Start()
@@ -65,7 +65,7 @@ public class K_ProjectileSpell : K_Spell
 
         //InitializePrevPosRpc();
         // Initialize the previous position
-        previousPosition = transform.position;
+        //previousPosition = transform.position;
     }
 
     public override void OnNetworkSpawn()
@@ -178,95 +178,99 @@ public class K_ProjectileSpell : K_Spell
     //do not fly correctly
     public void FixedUpdate()
     {
-        if (IsSpawned)
-        {
-
-            if (!IsOwner) return;
-
-            Debug.Log($"projectile update");
 
 
-            if (currentPosition != transform.position)
-            {
-                Debug.Log($"222 projectile update 222");
+        if (!spellHasSpawned) return;
 
-                currentPosition = transform.position;
+        //if (IsSpawned)
+        //{
+        //    if (!IsServer) return;
+        //    if (!IsOwner) return;
 
-                // Raycast from previous position to current position
-                Ray ray = new Ray(previousPosition, currentPosition - previousPosition);
-                float distance = Vector3.Distance(previousPosition, currentPosition);
-
-                if (Physics.Raycast(ray, out RaycastHit hitInfo, distance))
-                {
-                    // Log the hit info
-                    //Debug.Log($"Raycast hit: {hitInfo.collider.name} at {hitInfo.point}");
-
-                    if (hitInfo.collider.name.Contains("Player"))
-                    {
-
-                        Debug.Log($"oooooooooooooooProjectile owner {OwnerClientId}");
-                        Debug.Log($"333333333333333Hit {hitInfo.collider.name} owner {hitInfo.collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId}, Damage: {SpellDataScriptableObject.directDamageAmount} units in direction ");
+        //    Debug.Log($"projectile update");
 
 
-                        // This is so that the player cannot hurt himself with his own spell
-                        if (this.OwnerClientId == hitInfo.transform.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId) return;
+        //    if (currentPosition != transform.position)
+        //    {
+        //        Debug.Log($"222 projectile update 222");
 
-                        hitInfo.collider.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
+        //        currentPosition = transform.position;
 
-                        // hit.transform.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
+        //        // Raycast from previous position to current position
+        //        Ray ray = new Ray(previousPosition, currentPosition - previousPosition);
+        //        float distance = Vector3.Distance(previousPosition, currentPosition);
 
-                        //other.gameObject.GetComponent<K_ProjectileSpell>().DestroySpellRpc();
+        //        if (Physics.Raycast(ray, out RaycastHit hitInfo, distance))
+        //        {
+        //            // Log the hit info
+        //            //Debug.Log($"Raycast hit: {hitInfo.collider.name} at {hitInfo.point}");
 
-                        // If a collision with the player has been made, apply damage
+        //            if (hitInfo.collider.name.Contains("Player"))
+        //            {
 
-                        // Assign the values to the payload to be sent with the event emission upon hitting the player
-                        //SpellPayloadConstructor
-                        //(
-                        //    this.gameObject.GetInstanceID(),
-                        //    hitInfo.transform.gameObject.GetComponent<NetworkObject>().OwnerClientId,
-                        //    SpellDataScriptableObject.element.ToString(),
-                        //    SpellDataScriptableObject.incapacitationName,
-                        //    SpellDataScriptableObject.incapacitationDuration,
-                        //    SpellDataScriptableObject.visionImpairmentType,
-                        //    SpellDataScriptableObject.visionImpairmentDuration,
-                        //    SpellDataScriptableObject.directDamageAmount,
-                        //    SpellDataScriptableObject.damageOverTimeAmount,
-                        //    SpellDataScriptableObject.damageOverTimeDuration,
-                        //    SpellDataScriptableObject.spellAttribute,
-                        //    SpellDataScriptableObject.pushback
-                        //);
+        //                Debug.Log($"oooooooooooooooProjectile owner {OwnerClientId}");
+        //                Debug.Log($"333333333333333Hit {hitInfo.collider.name} owner {hitInfo.collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId}, Damage: {SpellDataScriptableObject.directDamageAmount} units in direction ");
 
 
-                        //PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
-                        //HasHitPlayer = true;
+        //                // This is so that the player cannot hurt himself with his own spell
+        //                if (this.OwnerClientId == hitInfo.transform.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId) return;
 
-                        //DestroySpellRpc();
+        //                hitInfo.collider.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
 
-                    }
-                }
+        //                // hit.transform.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
 
-                // Visualize the ray in the editor
-                Debug.DrawLine(previousPosition, currentPosition, Color.blue, 1f);
+        //                //other.gameObject.GetComponent<K_ProjectileSpell>().DestroySpellRpc();
 
-                // Update the previous position
-                //previousPosition.Value = currentPosition.Value;
-            }
+        //                // If a collision with the player has been made, apply damage
+
+        //                // Assign the values to the payload to be sent with the event emission upon hitting the player
+        //                //SpellPayloadConstructor
+        //                //(
+        //                //    this.gameObject.GetInstanceID(),
+        //                //    hitInfo.transform.gameObject.GetComponent<NetworkObject>().OwnerClientId,
+        //                //    SpellDataScriptableObject.element.ToString(),
+        //                //    SpellDataScriptableObject.incapacitationName,
+        //                //    SpellDataScriptableObject.incapacitationDuration,
+        //                //    SpellDataScriptableObject.visionImpairmentType,
+        //                //    SpellDataScriptableObject.visionImpairmentDuration,
+        //                //    SpellDataScriptableObject.directDamageAmount,
+        //                //    SpellDataScriptableObject.damageOverTimeAmount,
+        //                //    SpellDataScriptableObject.damageOverTimeDuration,
+        //                //    SpellDataScriptableObject.spellAttribute,
+        //                //    SpellDataScriptableObject.pushback
+        //                //);
+
+
+        //                //PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
+        //                //HasHitPlayer = true;
+
+        //                //DestroySpellRpc();
+
+        //            }
+        //        }
+
+        //        // Visualize the ray in the editor
+        //        Debug.DrawLine(previousPosition, currentPosition, Color.blue, 1f);
+
+        //        // Update the previous position
+        //        //previousPosition.Value = currentPosition.Value;
+        //    }
 
 
 
 
 
-            if (spellHasSpawned)
-            {
+        //    if (spellHasSpawned)
+        //    {
                 // Direction here has to match the direction that the wand tip gameobject is looking in
                 //transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
-                Debug.Log($"333 projectile update 333");
-                // Calculate the new position
-                Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
-                //rb.MovePosition(rb.position + moveDirection);
-                //rb.AddForce(rb.position + moveDirection);
-                transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
-            }
+                //Debug.Log($"333 projectile update 333");
+                //// Calculate the new position
+                //Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
+                ////rb.MovePosition(rb.position + moveDirection);
+                ////rb.AddForce(rb.position + moveDirection);
+                //transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
+            //}
 
             // Destroy the GO after it applies force to player
             if (CanDestroy)
@@ -274,15 +278,19 @@ public class K_ProjectileSpell : K_Spell
                 StartCoroutine(DelayedDestruction());
 
             }
-        }
+        //}
 
-        else
-        {
-            Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
-            //rb.MovePosition(rb.position + moveDirection);
-            //rb.AddForce(rb.position + moveDirection);
-            transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
-        }
+        //else
+        //{
+            //Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
+            ////rb.MovePosition(rb.position + moveDirection);
+            ////rb.AddForce(rb.position + moveDirection);
+            //transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
+        //}
+
+
+        Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+        rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
     }
 
 

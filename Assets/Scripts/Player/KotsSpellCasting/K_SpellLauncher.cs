@@ -128,7 +128,9 @@ public class K_SpellLauncher : NetworkBehaviour
     public Dictionary<FixedString128Bytes, GameObject> localSpellInstances = new Dictionary<FixedString128Bytes, GameObject>();
 
     // public Dictionary<string, K_SpellData> spellDictionary = new Dictionary<string, K_SpellData>();
-    public Dictionary<string, GameObject> prefabReferences = new Dictionary<string, GameObject>();
+
+    // Holds all the prefabs for all the spells
+    public Dictionary<string, GameObject> spellPrefabsReferences = new Dictionary<string, GameObject>(); // =================  SPELL PREFAB REFERENCES
 
     // This will be injected with the DR status for each spell category
     public Dictionary<string, bool> ignoreSpellDRLock = new Dictionary<string, bool>();
@@ -213,7 +215,7 @@ public class K_SpellLauncher : NetworkBehaviour
         // This saves a copy of the spell key to prefab, and is used later to spawn the spell object
         foreach (var spellData in this.GetComponent<K_SpellBuilder>().spellDictionary)
         {
-            prefabReferences.Add(spellData.Key.ToString(), spellData.Value.prefab);
+            spellPrefabsReferences.Add(spellData.Key.ToString(), spellData.Value.prefab);
         }
 
         // Checking whenever we are casting spell and shoud ignore 
@@ -259,7 +261,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (isInDRLockMode)
         {
             //if (CastModeSpeedChange != null) CastModeSpeedChange(castModeMoveSpeedSlow);
-            // Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");
+            Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");
             HandleDRLockInput();
             return;
         } else
@@ -367,15 +369,15 @@ public class K_SpellLauncher : NetworkBehaviour
         // Checks if any of the stored keys have been pressed
         // WARNING: Make sure to add letters in K_SpellKeys if adding spells with new letters
         KeyCode key = SpellKeyPressed();
-        Debug.LogFormat($"<color=red> 1 </color>");
+        //Debug.LogFormat($"<color=red> 1 </color>");
 
         if (key != KeyCode.None)
         {
-            Debug.LogFormat($"<color=red> 2 </color>");
+            //Debug.LogFormat($"<color=red> 2 </color>");
             // The nested method here checks if the DR lock sequence should be activated
             if (K_SpellKeys.spellTypes.Contains(key)) // Check if the button pressed is present in the pre defined list of spell categories
             {
-                Debug.LogFormat($"<color=red> 3 {spellSequence} </color>");
+                //Debug.LogFormat($"<color=red> 3 {spellSequence} </color>");
                 currentSpellType = key;
 
                 // This method checks if DR should be activated and does so if yes
@@ -383,7 +385,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
                 if (isInDRLockMode)
                 {
-                    Debug.LogFormat($"<color=red> 4 {spellSequence} </color>");
+                    //Debug.LogFormat($"<color=red> 4 {spellSequence} </color>");
 
                     /// Note: The following two lines were placed in this block to save
                     ///the spell sequence input BEFORE DR Lock is activated
@@ -394,8 +396,7 @@ public class K_SpellLauncher : NetworkBehaviour
                     // This writes the spell string sequence input on the top left corner of the screen
                     spellText.text = K_SpellKeys.cast.ToString() + spellSequence;
 
-                    Debug.LogFormat($"<color=red> 4.5 {spellSequence} </color>");
-
+                    //Debug.LogFormat($"<color=red> 4.5 {spellSequence} </color>");
 
                     // If the DR Lock was activated, return
                     //making way for the DR letters sequence activation and player input
@@ -403,7 +404,7 @@ public class K_SpellLauncher : NetworkBehaviour
                     return;
                 }
 
-                Debug.LogFormat($"<color=red> 5 </color>");
+                //Debug.LogFormat($"<color=red> 5 </color>");
 
                 // This method checks if SpellCharging should be activated
                 spellChargingManager.HandleSpellChargingActivation();
@@ -416,7 +417,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
             }
 
-            Debug.LogFormat($"<color=red> 6 </color>");
+            //Debug.LogFormat($"<color=red> 6 </color>");
 
             // handle parry letters generation here
             parryLetters.Value = "R";
@@ -435,7 +436,7 @@ public class K_SpellLauncher : NetworkBehaviour
             if (!spellBuilder.SpellExists(spellSequence))
             {
                 //Debug.LogFormat($"<color=red> Spell does not exist </color>");
-                Debug.LogFormat($"<color=red> 7 {spellSequence} </color>");
+                //Debug.LogFormat($"<color=red> 7 {spellSequence} </color>");
 
                 // Note: No need to cancel anim here since the anim is not active here yet
                 StopCastBuffer();
@@ -449,14 +450,14 @@ public class K_SpellLauncher : NetworkBehaviour
             // If the animation is already active, deactivate it first
             if (castKey.Anim.GetCurrentAnimatorStateInfo(0).IsName("BufferOnce"))
             {
-                Debug.LogFormat($"<color=red> 8 </color>");
+                //Debug.LogFormat($"<color=red> 8 </color>");
 
-                Debug.LogFormat($"<color=red> Anim is playing > Stop playing </color>");
+                //Debug.LogFormat($"<color=red> Anim is playing > Stop playing </color>");
 
                 // The animation is not currently playing, so start it ?
                 castKey.StopCastBufferAnim();
             }
-            Debug.LogFormat($"<color=red> 9 </color>");
+            //Debug.LogFormat($"<color=red> 9 </color>");
 
 
             InitCastProcedure(); // (exists in one other place in this script) This can be replaced by InitiateCastProcedure(spellSequence);
@@ -577,7 +578,7 @@ public class K_SpellLauncher : NetworkBehaviour
         switch (spellType)
         {
             case "Projectile":
-                //localSpellInstance = Instantiate(prefabReferences[spellSequence], wandTip.transform.position, wandTip.transform.rotation);
+                //localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], wandTip.transform.position, wandTip.transform.rotation);
 
                 //var localSpellId = localSpellInstance.GetComponent<K_ProjectileSpell>().localSpellId;
 
@@ -587,7 +588,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position);
                 break;
             case "Sphere":
-                localSpellInstance = Instantiate(prefabReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
+                localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
 
                 //NetworkObjectReference spellInstanceReference = spellInstance.GetComponent<NetworkObject>();
 
@@ -653,7 +654,7 @@ public class K_SpellLauncher : NetworkBehaviour
     {
         //Debug.LogFormat($"<color=orange> Scepter SPAWN SPOT {spawnSpot.Value} </color>");
 
-        GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], spawnPosition, Quaternion.identity);
+        GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], spawnPosition, Quaternion.identity);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
         // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
@@ -667,7 +668,7 @@ public class K_SpellLauncher : NetworkBehaviour
         Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
         Debug.Log("OwnerClientId (" + OwnerClientId + ")");
 
-        GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], position, rotation);
+        GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
         netObj.SpawnWithOwnership(OwnerClientId);
@@ -700,7 +701,7 @@ public class K_SpellLauncher : NetworkBehaviour
         Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
         Debug.Log("NetworkManager.LocalClientId (" + OwnerClientId + ")");
 
-        // GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], playerCenter.transform.position, rotation);
+        // GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], playerCenter.transform.position, rotation);
 
         //if (spellInstanceReference.TryGet(out NetworkObject targetObject))
         //{
@@ -717,10 +718,10 @@ public class K_SpellLauncher : NetworkBehaviour
         //}
 
         //NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        //NetworkObject netObj = NetworkManager.SpawnManager.InstantiateAndSpawn(prefabReferences[spellSequenceParam].GetComponent<NetworkObject>());
+        //NetworkObject netObj = NetworkManager.SpawnManager.InstantiateAndSpawn(spellPrefabsReferences[spellSequenceParam].GetComponent<NetworkObject>());
 
 
-        GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], playerCenterGO.transform.position, rotation);
+        GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], playerCenterGO.transform.position, rotation);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
         // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
@@ -738,7 +739,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
         //netObj.TrySetParent(gameObject.transform);
 
-        //Debug.Log("SPHERE SCRIPT>: " + prefabReferences[spellSequenceParam].GetComponent<K_SphereSpell>());
+        //Debug.Log("SPHERE SCRIPT>: " + spellPrefabsReferences[spellSequenceParam].GetComponent<K_SphereSpell>());
 
 
 
@@ -767,7 +768,7 @@ public class K_SpellLauncher : NetworkBehaviour
     {
         Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
-        GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], position, rotation);
+        GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         //Physics.IgnoreCollision(spellInstance.GetComponent<Collider>(), GetComponent<Collider>(), true);
 
@@ -780,7 +781,7 @@ public class K_SpellLauncher : NetworkBehaviour
         //netObj.SpawnWithOwnership(OwnerClientId);
         netObj.Spawn();
 
-        HideForOwnerRpc(netObj);
+        //HideForOwnerRpc(netObj);
 
         //netObj.TrySetParent(gameObject.transform);
         inSpellCastModeOrWaitingSpellCategory = false;
@@ -797,7 +798,7 @@ public class K_SpellLauncher : NetworkBehaviour
     {
         Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
-        GameObject spellInstance = Instantiate(prefabReferences[spellSequenceParam], position, rotation);
+        GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
@@ -818,7 +819,7 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void AoeSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position)
     {
-        GameObject aoeInstance = Instantiate(prefabReferences[spellSequenceParam], position, rotation);
+        GameObject aoeInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         NetworkObject netObj = aoeInstance.GetComponent<NetworkObject>();
 
