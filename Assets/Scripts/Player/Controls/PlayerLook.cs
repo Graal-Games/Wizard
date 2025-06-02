@@ -2,11 +2,9 @@ using UnityEngine;
 using Unity.Netcode;
 using Singletons;
 
-
-/// THIS IS NO LONGER BEING USED. QUEUED FOR DELETION.
 public class PlayerLook : Singleton<PlayerLook>
 {
-    float sensitivity = 100f; // Mouse sensitivity
+    float sensitivity = 1f; // Mouse sensitivity
 
     private Transform player; // Reference to player transform
     private float xRotation = 0f; // Current rotation around the x-axis

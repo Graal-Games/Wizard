@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5794811638648290366}
-  - component: {fileID: 6990258978128803490}
   - component: {fileID: 2722634488849591023}
+  - component: {fileID: 6990258978128803490}
   m_Layer: 5
   m_Name: Shaders
   m_TagString: Untagged
@@ -37,29 +37,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6990258978128803490
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6157311742506184524}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 611ef66a99eca7741a081b9c8badb3c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  customPassVolume: {fileID: 2722634488849591023}
-  triggerObject1: {fileID: 0}
-  triggerObject2: {fileID: 0}
-  fadeRadius: 6
-  fullScreenShader: {fileID: -876546973899608171, guid: e68e61c5aa9688449919c13600d3a039, type: 3}
-  activateBlood: 1
-  deactivateBlood: 0
-  activateDistortion: 0.01
-  deactivateDistortion: 0
-  activateWater: {x: 0.3, y: 0.3}
-  deactivateWater: {x: 0, y: 0}
 --- !u!114 &2722634488849591023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,3 +89,26 @@ MonoBehaviour:
         materialPassIndex: 0
         materialPassName: Custom Pass 0
         fetchColorBuffer: 0
+--- !u!114 &6990258978128803490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6157311742506184524}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 611ef66a99eca7741a081b9c8badb3c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  customPassVolume: {fileID: 2722634488849591023}
+  triggerObject1: {fileID: 0}
+  triggerObject2: {fileID: 0}
+  fadeRadius: 6
+  fullScreenShader: {fileID: -876546973899608171, guid: e68e61c5aa9688449919c13600d3a039, type: 3}
+  activateBlood: 1
+  deactivateBlood: 0
+  activateDistortion: 0.01
+  deactivateDistortion: 0
+  activateWater: {x: 0.3, y: 0.3}
+  deactivateWater: {x: 0, y: 0}

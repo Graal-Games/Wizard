@@ -20,12 +20,12 @@ MonoBehaviour:
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 50
+  spellDuration: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 0
   damageOverTimeAmount: 6
-  damageOverTimeDuration: 3
+  damageOverTimeDuration: 10
   pushForce: 0
   pullForce: 0
   health: 50
