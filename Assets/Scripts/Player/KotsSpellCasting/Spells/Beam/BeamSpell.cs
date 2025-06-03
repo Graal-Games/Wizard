@@ -44,6 +44,13 @@ public class BeamSpell : K_Spell
 
     }
 
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        if (beamStatus != null) beamStatus(OwnerClientId, this.NetworkObject, this.GetNetworkBehaviour(this.NetworkBehaviourId), false);
+    }
+
     //IEnumerator DestroyBeamObject()
     //{
     //    yield return new WaitForSeconds(SpellDataScriptableObject.spellDuration);

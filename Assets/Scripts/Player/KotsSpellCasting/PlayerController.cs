@@ -184,6 +184,7 @@ public class PlayerController : NetworkBehaviour
         moveSpeed = (_baseMoveSpeedCache / 2);
     }
 
+    // Resets the player speed back to normal
     private void CastModeSpeedReset()
     {
         moveSpeed = _baseMoveSpeedCache;

@@ -170,18 +170,15 @@ public class K_SpellLauncher : NetworkBehaviour
 
     // SpallUnlockManager
 
-
-    public override void OnNetworkSpawn()
+    public void Start()
     {
-        base.OnNetworkSpawn();
-
         //// PlayerBehavior itself????
         // subscribe to the event that handles incapacitating the player movement or casting when hit by an incapacitating effect spell
         Incapacitation.playerIncapacitation += HandleIncapacitation;
 
-        K_DRKey.onPlayerFailedToSyncInputToBuffer += HandleBufferFailed;   
-        
-        
+        K_DRKey.onPlayerFailedToSyncInputToBuffer += HandleBufferFailed;
+
+
         K_ProjectileSpell.projectileInstance += HandleDestroyProjectile;
 
         newPlayerBehaviorScript = this.GetComponent<NewPlayerBehavior>();
@@ -234,10 +231,21 @@ public class K_SpellLauncher : NetworkBehaviour
 
         //// END SpellUnlockManager
         ///
-       
+
         spellChargingManager = new SpellChargingManager(this);
 
         Debug.LogFormat($"<color=red> IsLocalPlayer {IsLocalPlayer} OwnerClientId {OwnerClientId} </color>");
+    }
+
+
+    public override void OnNetworkSpawn()
+    {
+        //if (!IsLocalPlayer) return;
+
+
+        base.OnNetworkSpawn();
+
+        
     }
 
     private void Update()
@@ -680,8 +688,7 @@ public class K_SpellLauncher : NetworkBehaviour
         // Call a custom RPC to handle parenting across the network
         //SetParentRpc(netObj.NetworkObjectId, gameObject.GetComponent<NetworkObject>().NetworkObjectId);
 
-        inSpellCastModeOrWaitingSpellCategory = false;
-        ignoreSpellDRLock[currentSpellType.ToString()] = false;
+        ResetPlayerCastStateAndDRRPC();
 
         ResetSpellSequence();
     }
@@ -743,9 +750,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
 
-        inSpellCastModeOrWaitingSpellCategory = false;
-
-        ignoreSpellDRLock[currentSpellType.ToString()] = false;
+        ResetPlayerCastStateAndDRRPC();
 
         ResetSpellSequence();
     }
@@ -784,13 +789,18 @@ public class K_SpellLauncher : NetworkBehaviour
         //HideForOwnerRpc(netObj);
 
         //netObj.TrySetParent(gameObject.transform);
+        ResetPlayerCastStateAndDRRPC();
+
+        ResetSpellSequence();
+    }
+
+    [Rpc(SendTo.Owner)]
+    void ResetPlayerCastStateAndDRRPC()
+    {
         inSpellCastModeOrWaitingSpellCategory = false;
 
         ignoreSpellDRLock[currentSpellType.ToString()] = false;
-
-        ResetSpellSequence();
-    }    
-
+    }
     
     
     [Rpc(SendTo.Server)]
@@ -806,9 +816,7 @@ public class K_SpellLauncher : NetworkBehaviour
         netObj.Spawn();
 
         //netObj.TrySetParent(gameObject.transform);
-        inSpellCastModeOrWaitingSpellCategory = false;
-
-        ignoreSpellDRLock[currentSpellType.ToString()] = false;
+        ResetPlayerCastStateAndDRRPC();
 
         ResetSpellSequence();
     }
@@ -825,9 +833,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
         netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
 
-        inSpellCastModeOrWaitingSpellCategory = false;
-
-        ignoreSpellDRLock[currentSpellType.ToString()] = false;
+        ResetPlayerCastStateAndDRRPC();
 
         ResetSpellSequence();
     }
@@ -1059,6 +1065,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 //for whose spell category he just solved for
 
                 spellChargingManager.HandleSpellChargingActivation();
+
                 if (!isInSpellChargingMode)
                 {
                     inSpellCastModeOrWaitingSpellCategory = true;
