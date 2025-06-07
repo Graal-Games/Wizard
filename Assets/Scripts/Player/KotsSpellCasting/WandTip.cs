@@ -114,7 +114,7 @@ public class WandTip : NetworkBehaviour
 
                     // ?? Does this function need to also be inside update?
                     AoePlacement();
-                    aoeSpawnPosition = new Vector3(hit.point.x, -1f, hit.point.z);
+                    aoeSpawnPosition = new Vector3(hit.point.x, hit.point.y + 0.0001f, hit.point.z);
                 }
 
             }

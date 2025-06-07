@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.InputSystem.HID;
 
 public class AoeSpell : K_Spell
 {
@@ -47,7 +48,7 @@ public class AoeSpell : K_Spell
         StartCoroutine(TimeUntilDestroyed());
         StartCoroutine(EffectsActivation());
         //StartCoroutine(ActivateEffect());
-        this.gameObject.transform.position = new Vector3(this.gameObject.transform.position.x, -1f, this.gameObject.transform.position.z); // This still needed?
+        this.gameObject.transform.position = new Vector3(this.gameObject.transform.position.x, this.gameObject.transform.position.y + 0.0001f, this.gameObject.transform.position.z); // This still needed?
     }
 
 

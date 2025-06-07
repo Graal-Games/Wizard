@@ -329,7 +329,7 @@ public abstract class K_Spell : NetworkBehaviour
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
-                    other.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+                    other.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
                     //DestroySpellRpc();
                 }
 

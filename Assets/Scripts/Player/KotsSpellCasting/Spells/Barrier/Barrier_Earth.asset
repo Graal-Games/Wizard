@@ -20,7 +20,7 @@ MonoBehaviour:
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0
+  spellDuration: 30
   incapacitationDuration: 4
   visionImpairmentDuration: 0
   directDamageAmount: 38
