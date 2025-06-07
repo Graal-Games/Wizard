@@ -94,8 +94,13 @@ public class InvocationSpell : K_Spell
 
         // If a target is available
         if (aimAtOpposingPlayerScript.TargetFound)
+        {
             SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
-        
+        }
+        else 
+        {             
+            Debug.Log("No target found, cannot spawn projectile."); 
+        }
     }
 
 
