@@ -22,6 +22,7 @@ public class Matchmaking : MonoBehaviour
     private UnityTransport _transport;
     private QueryResponse _lobbies;
     private const string JoinCodeKey = "j";
+    private const string SceneNameKey = "s";
     private string _playerId;
 
 
@@ -30,11 +31,11 @@ public class Matchmaking : MonoBehaviour
 
 
 
-    public async void CreateOrJoinLobby()
+    public async void CreateOrJoinLobby(string sceneToLoad)
     {
         await Authenticate();
 
-        _connectedLobby = await QuickJoinLobby() ?? await CreateLobby();
+        _connectedLobby = await QuickJoinLobby() ?? await CreateLobby(sceneToLoad);
     }
 
 
@@ -79,7 +80,8 @@ public class Matchmaking : MonoBehaviour
 
             SetTransformAsClient(a);
 
-            //SceneManager.LoadSceneAsync("Arena");
+            string sceneName = lobby.Data[SceneNameKey].Value;
+            await LoadScene(sceneName);
 
             NetworkManager.Singleton.StartClient();
 
@@ -93,7 +95,7 @@ public class Matchmaking : MonoBehaviour
 
 
 
-    private async Task<Lobby> CreateLobby()
+    private async Task<Lobby> CreateLobby(string sceneToLoad)
     {
         try {
             // Set max number of players to allocate resources
@@ -110,7 +112,10 @@ public class Matchmaking : MonoBehaviour
 
             // 6 - Define a lobby 'Options' variable to use to create a lobby with the acquired joinCode  
             var options = new CreateLobbyOptions {
-                Data = new Dictionary<string, DataObject> { { JoinCodeKey, new DataObject(DataObject.VisibilityOptions.Public, joinCode) } }
+                Data = new Dictionary<string, DataObject> { 
+                    { JoinCodeKey, new DataObject(DataObject.VisibilityOptions.Public, joinCode) },
+                    { SceneNameKey, new DataObject(DataObject.VisibilityOptions.Public, sceneToLoad) }
+                }
             };
             // 7 - Create the lobby with the lobby options specified 
             var lobby = await Lobbies.Instance.CreateLobbyAsync("Lobby name", maxPlayers, options);
@@ -125,7 +130,7 @@ public class Matchmaking : MonoBehaviour
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
             // 11 - Load scene before starting the host / Spawning the player
-            await LoadScene();
+            await LoadScene(sceneToLoad);
 
             // 12 - Start the host
             NetworkManager.Singleton.StartHost();
@@ -139,10 +144,10 @@ public class Matchmaking : MonoBehaviour
 
 
 
-    private async Task LoadScene()
+    private async Task LoadScene(string sceneToLoad)
     {
         // Scene to be loaded
-        AsyncOperation loadScene = SceneManager.LoadSceneAsync("Arena");
+        AsyncOperation loadScene = SceneManager.LoadSceneAsync(sceneToLoad);
 
         // Not sure - I think this is what makes sure the scene is loaded before step 12 
         while (!loadScene.isDone)
