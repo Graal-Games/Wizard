@@ -10,6 +10,7 @@ public class MainMenu : MonoBehaviour
 {
     [SerializeField] private Button exitGame;
     [SerializeField] private Button joinGame;
+    [SerializeField] private Button joinTestMap;
     Matchmaking matchmaking;
     
 
@@ -24,7 +25,16 @@ public class MainMenu : MonoBehaviour
         joinGame.onClick.AddListener(() => {
             if (matchmaking != null)
             {
-                matchmaking.CreateOrJoinLobby();
+                matchmaking.CreateOrJoinLobby("Arena");
+            } else {
+                return;
+            }
+        });
+
+        joinTestMap.onClick.AddListener(() => {
+            if (matchmaking != null)
+            {
+                matchmaking.CreateOrJoinLobby("TestMap");
             } else {
                 return;
             }
