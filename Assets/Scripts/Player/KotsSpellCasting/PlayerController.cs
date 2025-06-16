@@ -324,6 +324,11 @@ public class PlayerController : NetworkBehaviour
         return isJumping;
     }
 
+    // Record input from the player
+    // Move the player character locally
+    // Broadcast movement to the server
+    // CP SR
+
     public void HandleMovement()
     {
 

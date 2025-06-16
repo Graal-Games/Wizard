@@ -22,9 +22,13 @@ public class K_ProjectileSpell : K_Spell
 
     // This NV saves the GUID on the NetworkedObject instance of the same spell and is used to destroy the local instance of the projectile
     public NetworkVariable<FixedString128Bytes> spellId = new NetworkVariable<FixedString128Bytes>();
+    
+    public NetworkVariable<float> spellMoveSpeed= new NetworkVariable<float>();
 
     public delegate void DestroyLocalProjectileInstance(FixedString128Bytes spellId);
     public static event DestroyLocalProjectileInstance projectileInstance;
+
+
 
     //public NetworkVariable<Vector3> currentPosition = new NetworkVariable<Vector3>(default,
     //    NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -71,6 +75,8 @@ public class K_ProjectileSpell : K_Spell
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+
+        spellMoveSpeed.Value = SpellDataScriptableObject.moveSpeed;
 
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         rb.useGravity = false;
@@ -289,7 +295,7 @@ public class K_ProjectileSpell : K_Spell
         //}
 
 
-        Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+        Vector3 forceDirection = transform.forward * spellMoveSpeed.Value;
         rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
     }
 
@@ -345,6 +351,8 @@ public class K_ProjectileSpell : K_Spell
 
     public override void OnTriggerEnter(Collider other)
     {
+        //if (!IsServer) return;
+
         base.OnTriggerEnter(other);
 
         Debug.LogFormat("<color=orange> >>> PROJECTILE HIT >>> (" + other.gameObject.name + ")</color>");

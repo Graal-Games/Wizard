@@ -661,12 +661,11 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Server)]
     private void SpawnAtLocationRpc(Vector3 spawnPosition, string spellSequenceParam)
     {
-        //Debug.LogFormat($"<color=orange> Scepter SPAWN SPOT {spawnSpot.Value} </color>");
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], spawnPosition, Quaternion.identity);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
+
         netObj.SpawnWithOwnership(OwnerClientId);
     }
 
