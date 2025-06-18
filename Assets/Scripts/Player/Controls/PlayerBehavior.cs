@@ -14,7 +14,7 @@ public class PlayerBehavior : NetworkBehaviour
     //public DotTimer dotTimer;
 
     [Header("Player Status")]
-    PlayerMovement playerMovement;
+    IMovementEffects movementEffects;
     public bool isIncapacitated = false;
     private float incapacitatedDuration;
 
@@ -125,7 +125,7 @@ public class PlayerBehavior : NetworkBehaviour
 
         playerInput = GetComponentInChildren<PlayerInput>();
 
-        playerMovement = GetComponent<PlayerMovement>();
+        movementEffects = GetComponent<IMovementEffects>();
 
         //mistOverlayObject.SetActive(false);
 
@@ -218,8 +218,9 @@ public class PlayerBehavior : NetworkBehaviour
         {
             if (isAlive && isIncapacitated == false)
             {
-                playerMovement.Movement();
-                playerMovement.Dodge();
+                // Movement is now handled by CharacterControllerMovement component
+                //movementEffects.Movement();
+                //movementEffects.Dodge();
                 //playerMovement.WASDmovement();
             }
         }
@@ -762,10 +763,11 @@ public class PlayerBehavior : NetworkBehaviour
                         }
                         else
                         {
-                            playerMovement.MovementSlowAmount = other.GetComponent<ArcaneAoe>().movementSlowAmount;
-                            playerMovement.MovementSlowTime = other.GetComponent<ArcaneAoe>().slowTime;
-
-                            playerMovement.IsSlowed = true;
+                            float slowAmount = other.GetComponent<ArcaneAoe>().movementSlowAmount;
+                            float slowTime = other.GetComponent<ArcaneAoe>().slowTime;
+                            
+                            // Apply movement slow through interface
+                            movementEffects.ApplyMovementSlow(slowAmount / 100f, slowTime); // Convert percentage to decimal
                             HandleDamageTaken(objectId, arcaneAoeDamage, localId);
                         }
 

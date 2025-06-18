@@ -88,7 +88,7 @@ public class PlayerInput : NetworkBehaviour
     UiReferences uiReferencesScript;
     SpellKeys spellKeys;
     ActiveTimer activeTimer;
-    PlayerMovement playerMovement;
+    IMovementEffects movementEffects;
 
 
 
@@ -130,7 +130,7 @@ public class PlayerInput : NetworkBehaviour
 
         activeTimer = GetComponentInChildren<ActiveTimer>();
 
-        playerMovement = GetComponentInParent<PlayerMovement>();
+        movementEffects = GetComponentInParent<IMovementEffects>();
 
         ActionSquareState.actionSquareAnimationState += ActionSquareAnimationState;
     }

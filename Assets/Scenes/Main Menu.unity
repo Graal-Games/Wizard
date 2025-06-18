@@ -1437,6 +1437,63 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 848243791}
   m_CullTransparentMesh: 1
+--- !u!1 &893065464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 893065465}
+  - component: {fileID: 893065467}
+  - component: {fileID: 893065466}
+  m_Layer: 0
+  m_Name: GameInput
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &893065465
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893065464}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 14.409332, y: 8.717318, z: 18.63699}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &893065466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893065464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dc83eeff4634ef47b19921e0a2742db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &893065467
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893065464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac0f8a3c0a41f5c4cb09028fcb485b7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &952481920
 GameObject:
   m_ObjectHideFlags: 0
@@ -3005,7 +3062,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc30e8f0bf4d3b744a9a58cca7bab3d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <IsLocalPlayer>k__BackingField: 0
+  <IsOwner>k__BackingField: 0
+  <IsServer>k__BackingField: 0
+  <ServerIsHost>k__BackingField: 0
+  <IsClient>k__BackingField: 0
+  <IsHost>k__BackingField: 0
+  <IsOwnedByServer>k__BackingField: 0
+  <IsSpawned>k__BackingField: 0
+  m_NetworkObject: {fileID: 0}
+  <NetworkObjectId>k__BackingField: 0
+  <NetworkBehaviourId>k__BackingField: 0
+  NetworkBehaviourIdCache: 0
+  <OwnerClientId>k__BackingField: 0
+  m_VarInit: 0
+  <m_TargetIdBeingSynchronized>k__BackingField: 0
+  movementSlowAmount: 0
+  movementSlowTime: 0
+  isSlowed: 0
+  leftButton: 0
+  rightButton: 0
+  forwardsButton: 0
+  timerLimit: 0
+  leftTimer: 0
+  rightTimer: 0
+  mainCharSpeed: 4
+  moveForward: 1
+  scrollWheel: 0
+  forceMagnitude: 5
+  playerBehavior: {fileID: 0}
   animationStateController: {fileID: 0}
+  isAnimationTriggered: 0
 --- !u!1 &1833616708
 GameObject:
   m_ObjectHideFlags: 0
@@ -3378,3 +3465,4 @@ SceneRoots:
   - {fileID: 1095631329}
   - {fileID: 723553342}
   - {fileID: 138409892}
+  - {fileID: 893065465}

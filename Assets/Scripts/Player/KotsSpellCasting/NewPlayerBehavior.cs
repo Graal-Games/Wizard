@@ -63,7 +63,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     PlayerClass playerClass; // To continue implementation? This is to track the player stats on the server. To revise later.
     HealthBarUi _healthBar;
     Scoreboard scoreboardScript;
-    PlayerController _playerController;
+    CharacterControllerMovement _characterControllerMovement;
     K_SpellLauncher _spellLauncherScript;
 
     [SerializeField]
@@ -159,7 +159,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         SpawnPlayerAtStartingLocation();
 
-        _playerController = GetComponent<PlayerController>();
+        _characterControllerMovement = GetComponent<CharacterControllerMovement>();
 
         isSlowed.Value = false;
 

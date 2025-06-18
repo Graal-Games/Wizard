@@ -443,7 +443,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cd64f0296fa4d74bbc6d2d1a986f32b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 2526438231950417250}
+  characterControllerMovement: {fileID: 0}
 --- !u!114 &8209620696669955485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -866,7 +866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1803049746
+      value: 3471792998
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2
@@ -1016,7 +1016,8 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 0453542210820d64bb67d70b3c438261, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5572734248240117687, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
     m_RemovedGameObjects:
     - {fileID: 5734205734715665329, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
     - {fileID: 1748100499899974212, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
@@ -1040,7 +1041,7 @@ PrefabInstance:
       addedObject: {fileID: 9051818481307221976}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
-      insertIndex: 8
+      insertIndex: 7
       addedObject: {fileID: -171204414962751956}
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
@@ -1051,6 +1052,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4824925264119677618}
+    - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7433713620653316469}
     - targetCorrespondingSourceObject: {fileID: 999568757803109219, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2193960103145206821}
@@ -1063,17 +1067,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6959629822310721590, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
   m_PrefabInstance: {fileID: 7951635563543505621}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2526438231950417250 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5572734248240117687, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
-  m_PrefabInstance: {fileID: 7951635563543505621}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4170498834935349083}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2420947bedc45844eb9cde5d6b2db668, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2698406356412321120 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5416502290154743733, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
@@ -1192,7 +1185,7 @@ CharacterController:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Height: 2
   m_Radius: 0.5
@@ -1200,7 +1193,32 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &7433713620653316469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4170498834935349083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f8a5b6c9d2e4f849b3a8c7e5d1f2a3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+  sprintSpeed: 8
+  jumpHeight: 2
+  gravity: -19.62
+  groundCheckDistance: 0.1
+  mouseSensitivity: 2
+  maxLookAngle: 80
+  cameraTransform: {fileID: 0}
+  playerBody: {fileID: 0}
+  gameInputObject: {fileID: 0}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 136
 --- !u!114 &4180561960647442126 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6079213664827151387, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}

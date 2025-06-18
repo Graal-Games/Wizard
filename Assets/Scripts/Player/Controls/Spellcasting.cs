@@ -19,7 +19,7 @@ public class Spellcasting : NetworkBehaviour
     DRActivationLogic dRActivationLogic;
     DischargedSpellcast dischargedSpellcast;
     LocalSpells localSpells;
-    PlayerMovement playerMovement;
+    IMovementEffects movementEffects;
     PlayerBehavior playerBehavior;
     BarrierSpellCast barrierSpellCast;
     AoeCast aoeCast;
@@ -62,7 +62,7 @@ public class Spellcasting : NetworkBehaviour
         spellKeys = GetComponentInChildren<SpellKeys>();
         dRRouter = GetComponent<DRRouter>();
         dRActivationLogic = GetComponent<DRActivationLogic>();
-        playerMovement = GetComponent<PlayerMovement>();
+        movementEffects = GetComponent<IMovementEffects>();
         playerBehavior = GetComponent<PlayerBehavior>();
         barrierSpellCast = GetComponentInChildren<BarrierSpellCast>();
         localSpells = localSpellsCastPoint.GetComponent<LocalSpells>();
@@ -153,7 +153,7 @@ public class Spellcasting : NetworkBehaviour
         castingIcon.gameObject.SetActive(true);
 
         // To remove parameters
-        playerMovement.EnterCastMovementSlow(2, 0.3f);
+        movementEffects.EnterCastMovementSlow(2, 0.3f);
         isInCastMode = true;
 
         return;
@@ -179,7 +179,7 @@ public class Spellcasting : NetworkBehaviour
             //mainActionSquare.isInterrupted = false;
         }
         
-        playerMovement.ExitCastMovementSlow();
+        movementEffects.ExitCastMovementSlow();
 
         SoundManager.Instance.StopCastModeSound();
         //if (castSuccessfull)
@@ -287,7 +287,7 @@ public class Spellcasting : NetworkBehaviour
             playerInput.CastSpell(passedSpell);
 
             playerInput.ResetTimerSquareAndLetterList();
-            playerMovement.EnterCastMovementSlow(5, 1);
+            movementEffects.EnterCastMovementSlow(5, 1);
             Debug.LogFormat($"<color=red>3333 CastProjectile Func End</color>");
             return;
         }
@@ -506,13 +506,13 @@ public class Spellcasting : NetworkBehaviour
             /// >>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
             case 1:
                 
-                //playerMovement.MainCharSpeed = 2;
+                //movementEffects.MainCharSpeed = 2;
                 // AccessBaseSpells();
                 if (lettersCache[0] == spellKeys.BeginCast)
                 {
                     SoundManager.Instance.PlaySound(castMode_SFX);
                     
-                    playerMovement.EnterCastMovementSlow(2, 0.3f);
+                    movementEffects.EnterCastMovementSlow(2, 0.3f);
 
 
                     // If the player presses the BeginCast button again mid DR lock
@@ -643,7 +643,7 @@ public class Spellcasting : NetworkBehaviour
                         //lettersCache.Clear();
 
                         // ** Change this so that there is a single method for each new speed
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
 
                         return;
 
@@ -667,7 +667,7 @@ public class Spellcasting : NetworkBehaviour
                             //castingIcon.gameObject.SetActive(false);
                             //lettersCache.Clear();
 
-                            playerMovement.EnterCastMovementSlow(5, 1);
+                            movementEffects.EnterCastMovementSlow(5, 1);
                         } else
                         {
                             return;
@@ -714,7 +714,7 @@ public class Spellcasting : NetworkBehaviour
                         //castingIcon.gameObject.SetActive(false);
                         //lettersCache.Clear();
 
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
                         //SoundManager.Instance.PlayCastBuffer(castBufferSquare_SFX);
                         SoundManager.Instance.PlayCastUnsuccessful(castUnsuccessful_SFX);
                     }
@@ -725,7 +725,7 @@ public class Spellcasting : NetworkBehaviour
                     //SoundManager.Instance.StopPlayCastMode();
                     //castingIcon.gameObject.SetActive(false);
                     //lettersCache.Clear();
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     
                     //SoundManager.Instance.PlayCastBuffer(castBufferSquare_SFX);
@@ -759,7 +759,7 @@ public class Spellcasting : NetworkBehaviour
                     playerInput.CastSpell(lettersCache[1]);
 
                     playerInput.ResetTimerSquareAndLetterList();
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
                     return;
 
                 }
@@ -793,7 +793,7 @@ public class Spellcasting : NetworkBehaviour
                     {
                         dischargedSpellcast.StopAoePlacement();
                         dRActivationLogic.IsAoeCastInterrupted = true;
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
                         Debug.LogFormat($"<color=orange>Sixth point five</color>");
                     }
 
@@ -804,7 +804,7 @@ public class Spellcasting : NetworkBehaviour
                     {
                         dRActivationLogic.IsSphereCastInterrupted = true;
                         // playerInput.ResetTimerSquareAndLetterList();
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
                         Debug.LogFormat($"<color=orange>Sixth</color>");
                         return;
                     }
@@ -924,7 +924,7 @@ public class Spellcasting : NetworkBehaviour
 
                     castingIcon.gameObject.SetActive(false);
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     Debug.LogFormat($"<color=orange>Second 2</color>");
 
@@ -933,7 +933,7 @@ public class Spellcasting : NetworkBehaviour
                 }
 
                 playerInput.ResetTimerSquareAndLetterList();
-                playerMovement.EnterCastMovementSlow(5, 1);
+                movementEffects.EnterCastMovementSlow(5, 1);
                 SoundManager.Instance.StopCastBuffer();
                 //SoundManager.Instance.PlayCastBuffer(castBufferSquare_SFX);
 
@@ -971,7 +971,7 @@ public class Spellcasting : NetworkBehaviour
                     playerInput.ResetTimerSquareAndLetterList();
                     Debug.LogFormat($"<color=green>CASE 4: base cast</color>");
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     return;
 
@@ -981,7 +981,7 @@ public class Spellcasting : NetworkBehaviour
                     if (lettersCache[1] == "F")
                     {
                         dRActivationLogic.IsAoeCastInterrupted = true;
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
                         Debug.LogFormat($"<color=orange>Sixth point five</color>");
 
                         // If player was casting charm aoe, this stops it
@@ -1031,7 +1031,7 @@ public class Spellcasting : NetworkBehaviour
                     {
                         dischargedSpellcast.StopAoePlacement();
                         //dRActivationLogic.IsCharmCastInterrupted = true;
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
                         Debug.LogFormat($"<color=orange>Sixth point five</color>");
                         // playerInput.ResetTimerSquareAndLetterList();
                         letters.Clear();
@@ -1049,7 +1049,7 @@ public class Spellcasting : NetworkBehaviour
                     //ClearLettersAndDeactivateCastIcon();
                     playerInput.ResetTimerSquareAndLetterList();
                     // >> reset player speed here
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     Debug.LogFormat($"<color=brown>CASE 4: default</color>");
                     SoundManager.Instance.StopCastModeSound();
@@ -1071,7 +1071,7 @@ public class Spellcasting : NetworkBehaviour
 
                 //    //>> mainActionSquare.StopAnimation();
                 //    // reset player speed here
-                //    playerMovement.CastingMovementSlow(5, 1);
+                //    movementEffects.CastingMovementSlow(5, 1);
 
                 //    //SoundManager.Instance.PlayCastBuffer(castBufferSquare_SFX);
                 //    SoundManager.Instance.PlayCastUnsuccessful(castUnsuccessful_SFX);
@@ -1083,7 +1083,7 @@ public class Spellcasting : NetworkBehaviour
                 //else if (lettersCache[1] == "F")
                 //{
                 //    dRActivationLogic.IsAoeCastInterrupted = true;
-                //    playerMovement.CastingMovementSlow(5, 1);
+                //    movementEffects.CastingMovementSlow(5, 1);
                 //    Debug.LogFormat($"<color=orange>Sixth point five</color>");
                 //}
 
@@ -1106,7 +1106,7 @@ public class Spellcasting : NetworkBehaviour
                 ////>>keyUi.StopAnimation();
                 ////castingSquare.gameObject.SetActive(false);
                 ////>>lettersCache.Clear();
-                //playerMovement.CastingMovementSlow(5, 1);
+                //movementEffects.CastingMovementSlow(5, 1);
                 //Debug.LogFormat($"<color=brown>CASE 4: last else</color>");
                 //// This stops the cast mode sound
                 //SoundManager.Instance.StopPlayCastMode();
@@ -1120,7 +1120,7 @@ public class Spellcasting : NetworkBehaviour
                 //ClearLettersAndDeactivateCastIcon();
                 playerInput.ResetTimerSquareAndLetterList();
                 // >> reset player speed here
-                playerMovement.EnterCastMovementSlow(5, 1);
+                movementEffects.EnterCastMovementSlow(5, 1);
 
                 Debug.LogFormat($"<color=brown>CASE 4: default</color>");
                 SoundManager.Instance.StopCastModeSound();
@@ -1158,7 +1158,7 @@ public class Spellcasting : NetworkBehaviour
                     //ClearLettersAndDeactivateCastIcon();
                     playerInput.ResetTimerSquareAndLetterList();
                     // >> reset player speed here
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     Debug.LogFormat($"<color=brown>CASE 5: Charm</color>");
                     return;
@@ -1183,7 +1183,7 @@ public class Spellcasting : NetworkBehaviour
                     dischargedSpellcast.StopAoePlacement();
                     playerInput.ResetTimerSquareAndLetterList();
                     // >> reset player speed here
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
                     return;
                 } 
                 else if (lettersCache[1] == spellKeys.Charm
@@ -1238,7 +1238,7 @@ public class Spellcasting : NetworkBehaviour
                 {
                     Debug.LogFormat($"<color=brown>CASE 5: BARRIER Charm - INTERRUPTED {letters[4]}</color>");
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     // If player was casting charm aoe, this stops it
                     dischargedSpellcast.StopAoePlacement();
@@ -1257,7 +1257,7 @@ public class Spellcasting : NetworkBehaviour
 
                     //castingSquare.gameObject.SetActive(false);
                     //lettersCache.Clear();
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     // If player was casting charm aoe, this stops it
                     dischargedSpellcast.StopAoePlacement();
@@ -1296,7 +1296,7 @@ public class Spellcasting : NetworkBehaviour
 
                     playerInput.ResetTimerSquareAndLetterList();
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
                     Debug.LogFormat($"<color=red>ELEMENTAL BARRIER</color>");
                     return;
                 }
@@ -1317,7 +1317,7 @@ public class Spellcasting : NetworkBehaviour
 
                     playerInput.ResetTimerSquareAndLetterList();
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     return;
                 }
@@ -1345,7 +1345,7 @@ public class Spellcasting : NetworkBehaviour
                 {
                     Debug.LogFormat($"<color=red>CASE 6: LONG BARRIER Charm Cancelled</color>");
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     // If player was casting charm aoe, this stops it
                     dischargedSpellcast.StopAoePlacement();
@@ -1383,7 +1383,7 @@ public class Spellcasting : NetworkBehaviour
 
                     playerInput.ResetTimerSquareAndLetterList();
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     return;
                 }
@@ -1391,7 +1391,7 @@ public class Spellcasting : NetworkBehaviour
                 {
                     Debug.LogFormat($"<color=red>CASE 6: LONG BARRIER Charm Cancelled</color>");
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     // If player was casting charm aoe, this stops it
                     dischargedSpellcast.StopAoePlacement();
@@ -1428,7 +1428,7 @@ public class Spellcasting : NetworkBehaviour
 
                     playerInput.ResetTimerSquareAndLetterList();
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     return;
                 }
@@ -1436,7 +1436,7 @@ public class Spellcasting : NetworkBehaviour
                 {
                     Debug.LogFormat($"<color=red>CASE 6: LONG BARRIER Charm Cancelled</color>");
 
-                    playerMovement.EnterCastMovementSlow(5, 1);
+                    movementEffects.EnterCastMovementSlow(5, 1);
 
                     // If player was casting charm aoe, this stops it
                     dischargedSpellcast.StopAoePlacement();

@@ -19,7 +19,7 @@ public class DiminishingReturn : NetworkBehaviour
     bool isAnyActive = true;
     HashSet<int> usedIndexes;
     HashSet<int> usedIndexesCopy = new HashSet<int>();
-    PlayerMovement playerMovement;
+    IMovementEffects movementEffects;
     bool gateOmitFirstInputString = true;
 
     DRActivationLogic dRActivationLogic;
@@ -29,7 +29,7 @@ public class DiminishingReturn : NetworkBehaviour
     {
         playerInput = GetComponentInChildren<PlayerInput>();
         uiReferences = GetComponent<UiReferences>();
-        playerMovement = GetComponent<PlayerMovement>();
+        movementEffects = GetComponent<IMovementEffects>();
         dRActivationLogic = GetComponent<DRActivationLogic>();
     }
 
@@ -135,7 +135,7 @@ public class DiminishingReturn : NetworkBehaviour
                     {
                         isAnyActive = false;
 
-                        playerMovement.EnterCastMovementSlow(5, 1);
+                        movementEffects.EnterCastMovementSlow(5, 1);
 
                         // Do the gates reset here need to be specific to the currently active one?
                         playerInput.isBeamDRActive = false;
