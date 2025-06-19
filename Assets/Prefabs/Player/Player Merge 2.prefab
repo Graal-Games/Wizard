@@ -866,7 +866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3471792998
+      value: 1803049746
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2
@@ -1018,6 +1018,9 @@ PrefabInstance:
       objectReference: {fileID: 9100000, guid: 0453542210820d64bb67d70b3c438261, type: 2}
     m_RemovedComponents:
     - {fileID: 5572734248240117687, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+    - {fileID: 7394865109570506353, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+    - {fileID: 2867765643211167193, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+    - {fileID: 4046705451634755656, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
     m_RemovedGameObjects:
     - {fileID: 5734205734715665329, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
     - {fileID: 1748100499899974212, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
@@ -1041,7 +1044,7 @@ PrefabInstance:
       addedObject: {fileID: 9051818481307221976}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
-      insertIndex: 7
+      insertIndex: -1
       addedObject: {fileID: -171204414962751956}
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
@@ -1055,6 +1058,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7433713620653316469}
+    - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7534202589935760644}
     - targetCorrespondingSourceObject: {fileID: 999568757803109219, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2193960103145206821}
@@ -1192,7 +1198,7 @@ CharacterController:
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
+  m_MinMoveDistance: 0
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &7433713620653316469
 MonoBehaviour:
@@ -1206,19 +1212,44 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f8a5b6c9d2e4f849b3a8c7e5d1f2a3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  sprintSpeed: 8
+  moveSpeed: 4
+  sprintSpeed: 5.5
   jumpHeight: 2
   gravity: -19.62
   groundCheckDistance: 0.1
-  mouseSensitivity: 2
-  maxLookAngle: 80
+  jumpCooldown: 0.2
+  movementMultiplier: 1
+  maxFallSpeed: 20
   cameraTransform: {fileID: 0}
+  maxLookAngle: 80
+  eyeHeight: 0.6
+  autoFindCamera: 1
+  zoomSpeed: 2
+  minZoomDistance: 2
+  maxZoomDistance: 10
+  stabilizationTime: 0.5
+  debugMovement: 1
+  debugRotation: 1
   playerBody: {fileID: 0}
   gameInputObject: {fileID: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 136
+  groundPositionOffset: 0
+--- !u!114 &7534202589935760644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4170498834935349083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bea72b97849823408006d8b096464d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  headHeight: 1.6
+  createRedDebugSphere: 1
 --- !u!114 &4180561960647442126 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6079213664827151387, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}

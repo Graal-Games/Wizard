@@ -17,6 +17,13 @@ public class PlayerAnimator : NetworkBehaviour
     private const string HORIZONTAL_AXIS = "horizontal";
     private const string IS_WALKING = "isWalking";
     
+    // Cache parameter existence
+    private bool hasJumpParam = false;
+    private bool hasJumpRunningParam = false;
+    private bool hasVerticalParam = false;
+    private bool hasHorizontalParam = false;
+    private bool hasIsWalkingParam = false;
+    
     private void Awake()
     {
         animator = GetComponent<Animator>();
@@ -25,61 +32,147 @@ public class PlayerAnimator : NetworkBehaviour
         if (characterControllerMovement == null)
         {
             characterControllerMovement = GetComponent<CharacterControllerMovement>();
-            if (characterControllerMovement == null)
+        }
+        
+        // Check which parameters exist in the animator
+        if (animator != null)
+        {
+            CheckAnimatorParameters();
+        }
+    }
+    
+    private void CheckAnimatorParameters()
+    {
+        if (animator == null) return;
+        
+        // Check each parameter
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            switch (param.name)
             {
-                characterControllerMovement = GetComponentInParent<CharacterControllerMovement>();
+                case JUMP:
+                    hasJumpParam = true;
+                    break;
+                case JUMP_RUNNING:
+                    hasJumpRunningParam = true;
+                    break;
+                case VERTICAL_AXIS:
+                    hasVerticalParam = true;
+                    break;
+                case HORIZONTAL_AXIS:
+                    hasHorizontalParam = true;
+                    break;
+                case IS_WALKING:
+                    hasIsWalkingParam = true;
+                    break;
             }
         }
+        
+        // Log missing parameters for debugging
+        if (!hasJumpParam) Debug.LogWarning($"Animator is missing parameter: {JUMP}");
+        if (!hasJumpRunningParam) Debug.LogWarning($"Animator is missing parameter: {JUMP_RUNNING}");
+        if (!hasVerticalParam) Debug.LogWarning($"Animator is missing parameter: {VERTICAL_AXIS}");
+        if (!hasHorizontalParam) Debug.LogWarning($"Animator is missing parameter: {HORIZONTAL_AXIS}");
+        if (!hasIsWalkingParam) Debug.LogWarning($"Animator is missing parameter: {IS_WALKING}");
     }
     
     private void FixedUpdate()
     {
-        if (!IsOwner)
+        if (!IsOwner) return;
+        
+        // Skip if no animator or movement controller
+        if (animator == null || characterControllerMovement == null) return;
+        
+        // Get movement input safely
+        Vector2 inputVector = GetMovementInput();
+        
+        // Update animator parameters only if they exist
+        if (hasVerticalParam)
+            animator.SetFloat(VERTICAL_AXIS, inputVector.y);
+            
+        if (hasHorizontalParam)
+            animator.SetFloat(HORIZONTAL_AXIS, inputVector.x);
+        
+        // Check if moving
+        bool isWalking = inputVector.magnitude > 0.01f;
+        if (hasIsWalkingParam)
         {
-            return;
+            CheckIfWalkingServerRpc(isWalking);
         }
         
-        // Check if components are available
-        if (characterControllerMovement == null)
+        // Check if jumping - only if we have valid movement data
+        if (characterControllerMovement.IsJumping && (hasJumpParam || hasJumpRunningParam))
         {
-            Debug.LogWarning("CharacterControllerMovement is not assigned in PlayerAnimator!");
-            return;
-        }
-        
-        // Get movement input - with null check for GameInput
-        Vector2 inputVector = Vector2.zero;
-        if (GameInput.Instance != null)
-        {
-            inputVector = GameInput.Instance.GetMovementVector();
-        }
-        else
-        {
-            // Fallback to direct input if GameInput is not available
-            inputVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        }
-        
-        CheckIfJumpingServerRpc(characterControllerMovement.IsJumping, characterControllerMovement.IsWalking);
-        UpdateMovementBlendTreeServerRpc(inputVector.y, inputVector.x, characterControllerMovement.IsWalking);
-    }
-    
-    [Rpc(SendTo.Server)]
-    public void CheckIfJumpingServerRpc(bool isJumping, bool isWalking)
-    {
-        if (animator != null)
-        {
-            animator.SetBool(JUMP, isJumping && !isWalking);
-            animator.SetBool(JUMP_RUNNING, isJumping && isWalking);
+            CheckIfJumpingServerRpc(characterControllerMovement.IsJumping, isWalking);
         }
     }
     
-    [Rpc(SendTo.Server)]
-    public void UpdateMovementBlendTreeServerRpc(float verticalAxis, float horizontalAxis, bool isWalking)
+    private Vector2 GetMovementInput()
     {
-        if (animator != null)
+        // Try to get input from GameInput component first using reflection
+        GameObject gameInputGO = GameObject.Find("GameInput");
+        if (gameInputGO != null)
         {
-            animator.SetFloat(VERTICAL_AXIS, verticalAxis);
-            animator.SetFloat(HORIZONTAL_AXIS, horizontalAxis);
+            var gameInputComponent = gameInputGO.GetComponent("GameInput");
+            if (gameInputComponent != null)
+            {
+                try
+                {
+                    var method = gameInputComponent.GetType().GetMethod("GetMovementVector");
+                    if (method != null)
+                    {
+                        var result = method.Invoke(gameInputComponent, null);
+                        if (result is Vector2)
+                        {
+                            return (Vector2)result;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Fall through to direct input
+                }
+            }
+        }
+        
+        // Fallback to direct input
+        return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    }
+    
+    [ServerRpc]
+    private void CheckIfWalkingServerRpc(bool isWalking)
+    {
+        CheckIfWalkingClientRpc(isWalking);
+    }
+    
+    [ClientRpc]
+    private void CheckIfWalkingClientRpc(bool isWalking)
+    {
+        if (animator != null && hasIsWalkingParam)
+        {
             animator.SetBool(IS_WALKING, isWalking);
         }
     }
+    
+    [ServerRpc]
+    private void CheckIfJumpingServerRpc(bool isJumping, bool isWalking)
+    {
+        CheckIfJumpingClientRpc(isJumping, isWalking);
+    }
+    
+    [ClientRpc]
+    private void CheckIfJumpingClientRpc(bool isJumping, bool isWalking)
+    {
+        if (animator == null) return;
+        
+        if (isWalking && hasJumpRunningParam)
+        {
+            animator.SetBool(JUMP_RUNNING, isJumping);
+        }
+        else if (hasJumpParam)
+        {
+            animator.SetBool(JUMP, isJumping);
+        }
+    }
 }
+

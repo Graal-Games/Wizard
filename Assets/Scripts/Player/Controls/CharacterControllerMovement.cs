@@ -4,54 +4,134 @@ using UnityEngine;
 using Unity.Netcode;
 using System;
 
+// Extension methods for Animator
+public static class AnimatorExtensions
+{
+    public static bool HasParameter(this Animator animator, int parameterHash)
+    {
+        foreach (var parameter in animator.parameters)
+        {
+            if (parameter.nameHash == parameterHash)
+                return true;
+        }
+        return false;
+    }
+}
+
+/// <summary>
+/// Third-person character controller with Cinemachine support.
+/// Features:
+/// - WASD movement relative to camera view
+/// - Space to jump
+/// - Character rotates to face movement direction
+/// - Works with Cinemachine FreeLook for third-person camera
+/// - Network-ready with Netcode for GameObjects
+/// - Movement effects support (slow, knockback, etc.)
+/// </summary>
+[RequireComponent(typeof(CharacterController))]
 public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
 {
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float sprintSpeed = 8f;
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float sprintSpeed = 3.5f;
     [SerializeField] private float jumpHeight = 2f;
-    [SerializeField] private float gravity = -19.62f; // Earth's gravity * 2 for more responsive feel
+    [SerializeField] private float gravity = -9.81f;
     [SerializeField] private float groundCheckDistance = 0.1f;
+    [SerializeField] private float jumpCooldown = 0.2f; // Prevent jump spam
+    [SerializeField] private float movementMultiplier = 1f; // Global movement speed multiplier for easy tuning
+    [SerializeField] private float maxFallSpeed = 20f;  // Maximum falling speed to prevent extreme velocities
     
     [Header("Camera Settings")]
-    [SerializeField] private float mouseSensitivity = 2f;
-    [SerializeField] private float maxLookAngle = 80f;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private float maxLookAngle = 80f; // Maximum vertical look angle
+    [SerializeField] private float eyeHeight = 1.6f; // Height of eyes from character base
     [SerializeField] private bool autoFindCamera = true; // Enable auto-finding camera
-    [SerializeField] private Vector3 cameraOffset = new Vector3(0f, 1.6f, 0f); // Camera position offset when following
+    
+    [Header("Camera Zoom")]
+    [SerializeField] private float zoomSpeed = 2f; // How fast the camera zooms
+    [SerializeField] private float minZoomDistance = 2f; // Minimum zoom distance
+    [SerializeField] private float maxZoomDistance = 10f; // Maximum zoom distance
+    
+    [Header("Startup")]
+    [SerializeField] private float stabilizationTime = 0.3f; // Reduced to see if it helps
+    
+    [Header("Debug")]
+    [SerializeField] private bool debugMovement = false; // Disabled by default
+    [SerializeField] private bool debugRotation = false; // Disabled for production
     
     [Header("References")]
-    [SerializeField] private Transform cameraTransform;
     [SerializeField] private Transform playerBody;
     [SerializeField] private GameObject gameInputObject; // Optional: assign in inspector
     
     [Header("Ground Check")]
     [SerializeField] private LayerMask groundLayer = -1; // Default to Everything
+    [SerializeField] private float groundPositionOffset = 0f; // Manual adjustment for character height
     
-    // Components
+    // Component References
     private CharacterController characterController;
-    private MonoBehaviour gameInputComponent; // Store as MonoBehaviour to avoid compilation issues
     private Animator animator;
-    
-    // Camera state
-    private bool isCameraChild = false;
-    private Transform cameraParent; // Store original camera parent
+    private MonoBehaviour gameInputComponent; // Store as MonoBehaviour to avoid compilation issues
+    private Camera mainCamera; // Cache main camera reference
     
     // Movement state
     private Vector3 velocity;
-    private bool isGrounded;
-    private float verticalRotation = 0f;
+    private float currentSpeed;
+    private bool isGrounded = false;
+    private bool wasGrounded = false; // For landing detection
+    private float lastGroundedTime = 0f;
+    private bool jumpRequested = false;
+    private float lastJumpTime = 0f;
     
-    // Movement effects
+    // Base movement speeds (for restoration after effects)
     private float baseMoveSpeed;
     private float baseSprintSpeed;
+    
+    // Rotation state
+    private float verticalRotation = 0f; // For camera tilt (not used in third person but kept for compatibility)
+    
+    // Movement effects
     private bool isSlowed = false;
     private bool movementStopped = false;
-    private float slowTimer = 0f;
+    private float slowTimer = 0f; // For timed slow effects
     
-    // Network variables for syncing state
-    private NetworkVariable<bool> networkIsGrounded = new NetworkVariable<bool>();
-    private NetworkVariable<bool> networkIsWalking = new NetworkVariable<bool>();
-    private NetworkVariable<bool> networkIsJumping = new NetworkVariable<bool>();
+    // Stabilization
+    private bool isStabilized = false;
+    private float stabilizationTimer = 0f;
+    private float startupTime; // Time when Start() was called
+    
+    // Validation
+    private Vector3 lastValidPosition;
+    private Quaternion lastValidRotation;
+    
+    // Movement calculation
+    private Vector3 pendingMovement = Vector3.zero;
+    
+    // Position stabilization
+    private Vector3 lastStablePosition;
+    private float positionStableTime = 0f;
+    private const float POSITION_STABILITY_THRESHOLD = 0.001f; // Movement smaller than this is ignored
+    private const float STABILITY_TIME_REQUIRED = 0.1f; // Time before locking position
+    
+    // Animation parameters (must match the parameter names in the Animator exactly)
+    private readonly int animIsGrounded = Animator.StringToHash("IsGrounded");
+    private readonly int animIsWalking = Animator.StringToHash("IsWalking");
+    private readonly int animIsJumping = Animator.StringToHash("IsJumping");
+    
+    // For Cinemachine detection
+    private bool isUsingCinemachine = false;
+    
+    // Camera state (for detection and cleanup)
+    private bool isCameraChild = false;
+    private Transform cameraParent; // Store original camera parent
+    private GameObject cameraHolder; // For camera positioning (not used in third person)
+    private GameObject cinemachineTarget; // For Cinemachine follow target
+    
+    // Zoom state
+    private object freeLookCamera; // Store FreeLook camera reference
+    private float currentZoomLevel = 1f; // 0 = min zoom, 1 = max zoom
+    private float[] originalTopRigRadius;
+    private float[] originalMidRigRadius;
+    private float[] originalBottomRigRadius;
     
     // Properties for external access
     public bool IsWalking => networkIsWalking.Value;
@@ -60,20 +140,267 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     public float MoveSpeed => moveSpeed;
     public bool IsSlowed => isSlowed;
     
+    // Network variables for syncing state
+    private NetworkVariable<bool> networkIsGrounded = new NetworkVariable<bool>();
+    private NetworkVariable<bool> networkIsWalking = new NetworkVariable<bool>();
+    private NetworkVariable<bool> networkIsJumping = new NetworkVariable<bool>();
+    
+    private bool IsLocalPlayer
+    {
+        get
+        {
+            try
+            {
+                // For single-player or non-networked games
+                if (!NetworkManager.Singleton || !NetworkManager.Singleton.IsClient)
+                {
+                    return true;
+                }
+                
+                // For networked games
+                return IsOwner;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error checking IsLocalPlayer: {e.Message}. Defaulting to true.");
+                return true;
+            }
+        }
+    }
+    
     private void Awake()
     {
+        Debug.Log($"=== CharacterControllerMovement Awake() on {gameObject.name} ===");
+        
+        // Get required component
         characterController = GetComponent<CharacterController>();
         if (characterController == null)
         {
-            Debug.LogError("CharacterController component is missing!");
+            Debug.LogError($"No CharacterController found on {gameObject.name}! Adding one...");
+            characterController = gameObject.AddComponent<CharacterController>();
+            
+            // Set default values for CharacterController
+            characterController.height = 2f;
+            characterController.center = new Vector3(0, 1f, 0);
+            characterController.radius = 0.5f;
+        }
+        
+        Debug.Log($"CharacterController found/created: Height={characterController.height}, Center={characterController.center}, Radius={characterController.radius}");
+        
+        // Validate CharacterController settings
+        if (characterController.stepOffset > characterController.height * 0.3f)
+        {
+            Debug.LogWarning($"CharacterController Step Offset ({characterController.stepOffset}) seems high. This might cause movement issues.");
+        }
+        
+        if (characterController.minMoveDistance != 0)
+        {
+            Debug.LogWarning($"CharacterController Min Move Distance is {characterController.minMoveDistance}. Setting to 0 is recommended.");
+            characterController.minMoveDistance = 0;
+        }
+        
+        // Check for Rigidbody and ensure it's configured properly
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            // Freeze rotation on Rigidbody to prevent physics-based rotation
+            rb.freezeRotation = true;
+            Debug.Log("Found Rigidbody - freezing rotation to prevent physics interference");
         }
         
         // Try to get animator
         animator = GetComponentInChildren<Animator>();
+        if (animator != null)
+        {
+            Debug.Log($"Found animator on {animator.gameObject.name}");
+            
+            // Log all parameters in the animator
+            Debug.Log($"Animator has {animator.parameters.Length} parameters:");
+            foreach (var param in animator.parameters)
+            {
+                Debug.Log($"  - Parameter: '{param.name}' (hash: {param.nameHash}, type: {param.type})");
+            }
+            
+            // Check for our expected parameters
+            Debug.Log($"Looking for parameters with hashes - IsGrounded: {animIsGrounded}, IsWalking: {animIsWalking}, IsJumping: {animIsJumping}");
+        }
+        else
+        {
+            Debug.LogError("No Animator component found! Walking animations will not work. Make sure the character model has an Animator component.");
+        }
+        
+        // Initialize NetworkVariables with default values
+        networkIsGrounded.Value = false;
+        networkIsWalking.Value = false;
+        networkIsJumping.Value = false;
+        
+        // Disable conflicting scripts on the same GameObject
+        DisableConflictingScripts();
+        
+        Debug.Log("CharacterControllerMovement Awake() completed");
+    }
+    
+    private void DisableConflictingScripts()
+    {
+        // Disable old movement scripts if they exist
+        var oldMovement = GetComponent("PlayerMovement");
+        if (oldMovement != null)
+        {
+            ((MonoBehaviour)oldMovement).enabled = false;
+            Debug.LogWarning("Disabled old PlayerMovement script to prevent conflicts");
+        }
+        
+        var oldController = GetComponent("PlayerController");
+        if (oldController != null)
+        {
+            ((MonoBehaviour)oldController).enabled = false;
+            Debug.LogWarning("Disabled old PlayerController script to prevent conflicts");
+        }
+        
+        // Disable any camera controller that might interfere
+        var cameraController = GetComponent("CameraController");
+        if (cameraController != null)
+        {
+            ((MonoBehaviour)cameraController).enabled = false;
+            Debug.LogWarning("Disabled CameraController script to prevent conflicts");
+        }
+    }
+    
+    private void OnEnable()
+    {
+        // Reset velocity when enabled to prevent accumulated values
+        velocity = Vector3.zero;
+        jumpRequested = false;
+        isStabilized = false;
+        
+        if (debugMovement)
+        {
+            Debug.Log("CharacterControllerMovement enabled - velocity reset to zero");
+        }
+    }
+    
+    private void Start()
+    {
+        Debug.Log("=== CharacterControllerMovement Start() ===");
+        startupTime = Time.time;
+        
+        Debug.Log($"GameObject: {gameObject.name}");
+        Debug.Log($"IsLocalPlayer: {IsLocalPlayer}");
+        Debug.Log($"IsOwner: {IsOwner}");
+        Debug.Log($"NetworkManager exists: {NetworkManager.Singleton != null}");
+        
+        if (!IsLocalPlayer)
+        {
+            Debug.Log("Not local player - disabling component");
+            enabled = false;
+            return;
+        }
+        
+        // Validate initial position
+        ValidateAndFixTransform();
+        
+        // Force position to ground on spawn
+        if (characterController != null)
+        {
+            // Do a quick ground snap
+            RaycastHit hit;
+            // Cast from slightly above the character to ensure we hit the ground
+            Vector3 rayStart = transform.position + Vector3.up * 2f;
+            
+            if (Physics.Raycast(rayStart, Vector3.down, out hit, 10f, groundLayer))
+            {
+                // Calculate the exact position where the bottom of the capsule should be
+                // The capsule's bottom is at: position.y + center.y - height/2
+                // We want this to equal hit.point.y (ground level)
+                // So: position.y = hit.point.y - center.y + height/2
+                
+                float targetY = hit.point.y - characterController.center.y + (characterController.height / 2f) + groundPositionOffset;
+                transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+                
+                if (debugMovement)
+                {
+                    Debug.Log($"=== Ground Snap Debug ===");
+                    Debug.Log($"Hit point Y: {hit.point.y}");
+                    Debug.Log($"CharacterController - Height: {characterController.height}, Center: {characterController.center}");
+                    Debug.Log($"Calculated Y position: {targetY}");
+                    Debug.Log($"Final position: {transform.position}");
+                    Debug.Log($"Bottom of capsule should be at Y: {transform.position.y + characterController.center.y - characterController.height/2f}");
+                    Debug.Log("========================");
+                }
+            }
+            else
+            {
+                Debug.LogError($"Failed to snap to ground! Make sure:");
+                Debug.LogError($"1. Your floor/ground objects have the correct layer");
+                Debug.LogError($"2. Ground Layer Mask is set correctly (current value: {groundLayer.value})");
+                Debug.LogError($"3. The character is spawned above ground, not inside it");
+            }
+        }
+        
+        // Auto-find camera if enabled and not assigned
+        if (autoFindCamera && cameraTransform == null)
+        {
+            FindCamera();
+        }
+        
+        if (!IsLocalPlayer) return;
+        
+        // Log ground layer info
+        if (debugMovement)
+        {
+            Debug.Log($"Ground Layer Mask Value: {groundLayer.value}, Binary: {System.Convert.ToString(groundLayer.value, 2)}");
+            string[] layers = new string[32];
+            for (int i = 0; i < 32; i++)
+            {
+                if ((groundLayer.value & (1 << i)) != 0)
+                {
+                    layers[i] = LayerMask.LayerToName(i);
+                    Debug.Log($"Ground check will include layer {i}: {layers[i]}");
+                }
+            }
+        }
+        
+        // Setup camera for local player
+        SetupCameraForLocalPlayer();
+        
+        // Try to find GameInput
+        FindGameInput();
+        
+        // Subscribe to jump input if GameInput is available
+        SubscribeToJumpInput();
+        
+        // Give Cinemachine time to initialize
+        if (isUsingCinemachine)
+        {
+            StartCoroutine(DelayedCinemachineSetup());
+        }
+        
+        // Initial ground check
+        CheckGrounded();
+        
+        // Start stabilization coroutine
+        StartCoroutine(StabilizationRoutine());
+        
+        // Validate Time settings
+        if (Time.fixedDeltaTime > 0.025f || Time.fixedDeltaTime < 0.015f)
+        {
+            Debug.LogWarning($"Fixed timestep is {Time.fixedDeltaTime}. Recommended value is 0.02 (50Hz). This may affect movement speed!");
+        }
         
         // Store base speeds
         baseMoveSpeed = moveSpeed;
         baseSprintSpeed = sprintSpeed;
+        
+        // Initialize velocity
+        velocity = Vector3.zero;
+        
+        // Initialize rotation values
+        verticalRotation = 0f;
+        
+        // Store initial valid position
+        lastValidPosition = transform.position;
+        lastValidRotation = transform.rotation;
+        lastStablePosition = transform.position; // Initialize stable position
         
         // Set default ground layer if not set
         if (groundLayer == -1)
@@ -85,30 +412,113 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
                 groundLayer = LayerMask.GetMask("Default");
             }
         }
-    }
-    
-    private void Start()
-    {
-        // Auto-find camera if enabled and not assigned
-        if (autoFindCamera && cameraTransform == null)
+        
+        // Cache main camera
+        mainCamera = Camera.main;
+        if (mainCamera == null)
         {
-            FindCamera();
+            mainCamera = FindObjectOfType<Camera>();
+            if (mainCamera != null && mainCamera.tag != "MainCamera")
+            {
+                Debug.LogWarning($"Found camera '{mainCamera.name}' but it's not tagged as MainCamera. Consider tagging it properly.");
+            }
         }
         
-        if (!IsLocalPlayer) return;
+        if (mainCamera == null)
+        {
+            Debug.LogError("No camera found in scene! Movement will use fallback world-space controls.");
+        }
+    }
+    
+    private IEnumerator StabilizationRoutine()
+    {
+        // Wait for stabilization period
+        yield return new WaitForSeconds(stabilizationTime);
         
-        // Setup camera for local player
-        SetupCameraForLocalPlayer();
+        // Final position validation
+        ValidateAndFixTransform();
         
-        // Try to find GameInput
-        FindGameInput();
+        // Reset velocity to ensure clean start
+        velocity = Vector3.zero;
         
-        // Lock cursor for FPS-style camera control
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Ensure we're grounded
+        CheckGrounded();
+        if (isGrounded)
+        {
+            velocity.y = 0f;
+        }
         
-        // Subscribe to jump input if GameInput is available
-        SubscribeToJumpInput();
+        // Mark as stabilized
+        isStabilized = true;
+        
+        Debug.Log($"Character movement stabilized and ready. Position: {transform.position}, Velocity: {velocity}");
+    }
+    
+    private IEnumerator DelayedCinemachineSetup()
+    {
+        // Wait for 1 frame to ensure Cinemachine is fully initialized
+        yield return null;
+        SetCinemachineTarget();
+    }
+    
+    private void ValidateAndFixTransform()
+    {
+        Vector3 currentPos = transform.position;
+        
+        // Check for NaN or extreme positions
+        if (float.IsNaN(currentPos.x) || float.IsNaN(currentPos.y) || float.IsNaN(currentPos.z) ||
+            float.IsInfinity(currentPos.x) || float.IsInfinity(currentPos.y) || float.IsInfinity(currentPos.z))
+        {
+            Debug.LogError($"NaN/Infinity position detected! Resetting to last valid position. Current: {currentPos}");
+            transform.position = lastValidPosition;
+            velocity = Vector3.zero; // Reset velocity when position is invalid
+            return;
+        }
+        
+        // Check for positions that are too far from origin (likely errors)
+        float maxDistance = 1000f;
+        if (currentPos.magnitude > maxDistance)
+        {
+            Debug.LogError($"Position too far from origin: {currentPos}. Resetting to last valid position.");
+            transform.position = lastValidPosition;
+            velocity = Vector3.zero; // Reset velocity when position is extreme
+            return;
+        }
+        
+        // Check for extreme velocity values
+        if (Mathf.Abs(velocity.y) > maxFallSpeed * 2f)
+        {
+            Debug.LogError($"Extreme velocity detected: {velocity}. Resetting velocity.");
+            velocity.y = Mathf.Sign(velocity.y) * maxFallSpeed;
+        }
+        
+        // Additional check for sudden position changes
+        if (lastValidPosition != Vector3.zero)
+        {
+            float distanceMoved = Vector3.Distance(currentPos, lastValidPosition);
+            float maxDistancePerFrame = 50f * Time.deltaTime; // Max 50 units per second
+            
+            if (distanceMoved > maxDistancePerFrame)
+            {
+                Debug.LogWarning($"Sudden position change detected! Distance: {distanceMoved}, Max allowed: {maxDistancePerFrame}");
+                // Don't reset position here as it might be a valid teleport, but log it
+            }
+        }
+        
+        // Update last valid position if current position is reasonable
+        lastValidPosition = currentPos;
+        
+        // Check and fix rotation
+        Quaternion rot = transform.rotation;
+        if (float.IsNaN(rot.x) || float.IsNaN(rot.y) || float.IsNaN(rot.z) || float.IsNaN(rot.w))
+        {
+            Debug.LogWarning($"Invalid rotation detected on {gameObject.name}. Resetting to last valid rotation.");
+            transform.rotation = lastValidRotation;
+        }
+        else
+        {
+            lastValidRotation = rot;
+        }
     }
     
     private void FindCamera()
@@ -120,25 +530,34 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             cameraTransform = childCamera.transform;
             isCameraChild = true;
             Debug.Log($"Found camera as child: {childCamera.name}");
+            
+            // Check if child camera has Cinemachine
+            var cinemachineBrain = childCamera.GetComponent(System.Type.GetType("Cinemachine.CinemachineBrain, Cinemachine"));
+            if (cinemachineBrain != null)
+            {
+                isUsingCinemachine = true;
+            }
             return;
         }
         
-        // If not found as child, find main camera or any freelook camera in scene
+        // Search all cameras and prioritize FreeLook
         Camera[] allCameras = FindObjectsOfType<Camera>();
         Camera targetCamera = null;
+        bool foundFreeLook = false;
         
-        // First priority: FreeLook camera
+        // First priority: FreeLook camera (check all cameras for FreeLook first)
         foreach (var cam in allCameras)
         {
             if (cam.name.ToLower().Contains("freelook") || cam.name.ToLower().Contains("free look"))
             {
                 targetCamera = cam;
+                foundFreeLook = true;
                 Debug.Log($"Found FreeLook camera: {cam.name}");
                 break;
             }
         }
         
-        // Second priority: Main camera
+        // If no FreeLook found, then check for Main camera
         if (targetCamera == null)
         {
             targetCamera = Camera.main;
@@ -160,6 +579,20 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             cameraTransform = targetCamera.transform;
             cameraParent = cameraTransform.parent; // Store original parent
             isCameraChild = false;
+            
+            // Check if we're using Cinemachine (but after we've selected the camera)
+            var cinemachineBrain = FindObjectOfType(System.Type.GetType("Cinemachine.CinemachineBrain, Cinemachine"));
+            if (cinemachineBrain != null)
+            {
+                isUsingCinemachine = true;
+                // If we found a FreeLook camera, that's what we'll use, not the brain camera
+                if (!foundFreeLook)
+                {
+                    // Only use brain camera if we didn't find a FreeLook
+                    cameraTransform = ((Component)cinemachineBrain).transform;
+                }
+                Debug.Log($"Detected Cinemachine setup. Using camera: {cameraTransform.name}");
+            }
         }
         else
         {
@@ -169,45 +602,205 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     
     private void SetupCameraForLocalPlayer()
     {
-        if (cameraTransform == null) return;
+        if (!IsLocalPlayer) return;
         
-        if (!isCameraChild && IsLocalPlayer)
-        {
-            // Make the camera a child of the player for proper following
-            cameraParent = cameraTransform.parent; // Store original parent
-            cameraTransform.SetParent(transform);
-            cameraTransform.localPosition = cameraOffset;
-            cameraTransform.localRotation = Quaternion.identity;
-            Debug.Log("Camera attached to local player for following.");
-        }
+        // For third-person with Cinemachine, we don't parent the camera
+        // Instead, we set up the Cinemachine virtual camera to follow this player
         
-        // Disable other player cameras if this is local player
-        if (IsLocalPlayer)
+        if (isUsingCinemachine)
         {
-            // Find all other players and disable their cameras
-            var allPlayers = FindObjectsOfType<CharacterControllerMovement>();
-            foreach (var player in allPlayers)
+            Debug.Log("Setting up Cinemachine for third-person camera");
+            
+            // Find FreeLook camera and set this player as the follow/look target
+            var freeLookType = System.Type.GetType("Cinemachine.CinemachineFreeLook, Cinemachine");
+            if (freeLookType != null)
             {
-                if (player != this && player.cameraTransform != null)
+                var freeLookCameras = FindObjectsOfType(freeLookType);
+                foreach (var cam in freeLookCameras)
                 {
-                    Camera otherCam = player.cameraTransform.GetComponent<Camera>();
-                    if (otherCam != null)
+                    // Set Follow target
+                    var followProp = cam.GetType().GetProperty("Follow");
+                    if (followProp != null)
                     {
-                        otherCam.enabled = false;
+                        followProp.SetValue(cam, transform);
+                        Debug.Log($"Set FreeLook camera '{((Component)cam).name}' to follow player");
+                    }
+                    
+                    // Set LookAt target (usually the same as Follow for third person)
+                    var lookAtProp = cam.GetType().GetProperty("LookAt");
+                    if (lookAtProp != null)
+                    {
+                        lookAtProp.SetValue(cam, transform);
+                        Debug.Log($"Set FreeLook camera '{((Component)cam).name}' to look at player");
+                    }
+                    
+                    // Store the FreeLook camera reference for zoom
+                    if (freeLookCamera == null)
+                    {
+                        freeLookCamera = cam;
+                        StoreOriginalRadiusValues(cam);
+                    }
+                }
+            }
+            
+            // Also check for regular virtual cameras
+            var virtualCameraType = System.Type.GetType("Cinemachine.CinemachineVirtualCamera, Cinemachine");
+            if (virtualCameraType != null)
+            {
+                var virtualCameras = FindObjectsOfType(virtualCameraType);
+                foreach (var cam in virtualCameras)
+                {
+                    var followProp = cam.GetType().GetProperty("Follow");
+                    if (followProp != null)
+                    {
+                        followProp.SetValue(cam, transform);
+                    }
+                    
+                    var lookAtProp = cam.GetType().GetProperty("LookAt");
+                    if (lookAtProp != null)
+                    {
+                        lookAtProp.SetValue(cam, transform);
                     }
                 }
             }
         }
-        else
+        
+        // Don't lock cursor for third-person games
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+    
+    private void SetCinemachineTarget()
+    {
+        // For third-person, set the player as the Follow and LookAt target
+        // This is called after Cinemachine has initialized
+        
+        Debug.Log("Setting Cinemachine targets for third-person camera");
+        
+        // Set FreeLook cameras
+        var freeLookType = System.Type.GetType("Cinemachine.CinemachineFreeLook, Cinemachine");
+        if (freeLookType != null)
         {
-            // Disable camera for non-local players
-            if (cameraTransform != null)
+            var freeLookCameras = FindObjectsOfType(freeLookType);
+            foreach (var cam in freeLookCameras)
             {
-                Camera cam = cameraTransform.GetComponent<Camera>();
-                if (cam != null)
+                var followProp = cam.GetType().GetProperty("Follow");
+                if (followProp != null)
                 {
-                    cam.enabled = false;
+                    followProp.SetValue(cam, transform);
                 }
+                
+                var lookAtProp = cam.GetType().GetProperty("LookAt");
+                if (lookAtProp != null)
+                {
+                    lookAtProp.SetValue(cam, transform);
+                }
+                
+                // Store the FreeLook camera reference for zoom
+                if (freeLookCamera == null)
+                {
+                    freeLookCamera = cam;
+                    StoreOriginalRadiusValues(cam);
+                }
+                
+                Debug.Log($"Updated FreeLook camera targets: {((Component)cam).name}");
+            }
+        }
+        
+        // Set regular virtual cameras
+        var virtualCameraType = System.Type.GetType("Cinemachine.CinemachineVirtualCamera, Cinemachine");
+        if (virtualCameraType != null)
+        {
+            var virtualCameras = FindObjectsOfType(virtualCameraType);
+            foreach (var cam in virtualCameras)
+            {
+                var followProp = cam.GetType().GetProperty("Follow");
+                if (followProp != null)
+                {
+                    followProp.SetValue(cam, transform);
+                }
+                
+                var lookAtProp = cam.GetType().GetProperty("LookAt");
+                if (lookAtProp != null)
+                {
+                    lookAtProp.SetValue(cam, transform);
+                }
+            }
+        }
+    }
+    
+    private void StoreOriginalRadiusValues(object freeLookCam)
+    {
+        try
+        {
+            var orbitsProperty = freeLookCam.GetType().GetProperty("m_Orbits");
+            if (orbitsProperty != null)
+            {
+                var orbits = orbitsProperty.GetValue(freeLookCam);
+                if (orbits != null && orbits.GetType().IsArray)
+                {
+                    var orbitsArray = (Array)orbits;
+                    originalTopRigRadius = new float[1];
+                    originalMidRigRadius = new float[1];
+                    originalBottomRigRadius = new float[1];
+                    
+                    for (int i = 0; i < orbitsArray.Length && i < 3; i++)
+                    {
+                        var orbit = orbitsArray.GetValue(i);
+                        if (orbit != null)
+                        {
+                            var radiusField = orbit.GetType().GetField("m_Radius");
+                            if (radiusField != null)
+                            {
+                                float radius = (float)radiusField.GetValue(orbit);
+                                switch (i)
+                                {
+                                    case 0: originalTopRigRadius[0] = radius; break;
+                                    case 1: originalMidRigRadius[0] = radius; break;
+                                    case 2: originalBottomRigRadius[0] = radius; break;
+                                }
+                                Debug.Log($"Stored radius for rig {i}: {radius}");
+                            }
+                        }
+                    }
+                    Debug.Log($"Stored original radius values - Top: {originalTopRigRadius[0]}, Mid: {originalMidRigRadius[0]}, Bottom: {originalBottomRigRadius[0]}");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to store original radius values: {e.Message}\nStackTrace: {e.StackTrace}");
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Clean up camera holder
+        if (cameraHolder != null)
+        {
+            Destroy(cameraHolder);
+        }
+        
+        // Clean up Cinemachine target
+        if (cinemachineTarget != null)
+        {
+            Destroy(cinemachineTarget);
+        }
+        
+        // Restore camera to original parent if we changed it
+        if (!isCameraChild && cameraTransform != null && cameraParent != null && !isUsingCinemachine)
+        {
+            cameraTransform.SetParent(cameraParent);
+        }
+        
+        // Unsubscribe from jump event if needed
+        if (gameInputComponent != null)
+        {
+            var eventInfo = gameInputComponent.GetType().GetEvent("OnJumpAction");
+            if (eventInfo != null)
+            {
+                var handler = new EventHandler(OnJump);
+                eventInfo.RemoveEventHandler(gameInputComponent, handler);
             }
         }
     }
@@ -256,29 +849,25 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
         }
     }
     
-    private void OnDestroy()
-    {
-        // Restore camera to original parent if we changed it
-        if (!isCameraChild && cameraTransform != null && cameraParent != null)
-        {
-            cameraTransform.SetParent(cameraParent);
-        }
-        
-        // Unsubscribe from jump event if needed
-        if (gameInputComponent != null)
-        {
-            var eventInfo = gameInputComponent.GetType().GetEvent("OnJumpAction");
-            if (eventInfo != null)
-            {
-                var handler = new EventHandler(OnJump);
-                eventInfo.RemoveEventHandler(gameInputComponent, handler);
-            }
-        }
-    }
-    
     private void Update()
     {
+        // Safety check
+        if (characterController == null)
+        {
+            Debug.LogError($"CharacterController is null in Update! GameObject: {gameObject.name}");
+            return;
+        }
+        
         if (!IsLocalPlayer) return;
+        
+        // Don't process anything during stabilization period
+        if (!isStabilized)
+        {
+            return;
+        }
+        
+        // Validate transform at start of update
+        ValidateAndFixTransform();
         
         // Handle slow timer
         if (slowTimer > 0)
@@ -290,35 +879,279 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             }
         }
         
-        // Ground check
-        isGrounded = Physics.CheckSphere(transform.position - new Vector3(0, characterController.height / 2 - characterController.radius + groundCheckDistance, 0), 
-                                       characterController.radius - 0.05f, groundLayer);
+        // Check for jump input in Update (for better responsiveness)
+        if (Input.GetKeyDown(KeyCode.Space) && gameInputComponent == null)
+        {
+            OnJump(null, null);
+        }
+        
+        // Alternative animation update (in case LateUpdate isn't working)
+        if (animator != null && Time.frameCount % 5 == 0) // Update every 5 frames
+        {
+            // Try to set animator parameters directly
+            try
+            {
+                animator.SetBool("IsGrounded", isGrounded);
+                animator.SetBool("IsWalking", pendingMovement.magnitude > 0.01f);
+                animator.SetBool("IsJumping", velocity.y > 0);
+                
+                if (debugMovement)
+                {
+                    Debug.Log($"Direct Animator Update - Grounded: {isGrounded}, Walking: {pendingMovement.magnitude > 0.01f}, Jumping: {velocity.y > 0}");
+                }
+            }
+            catch (Exception e)
+            {
+                if (debugMovement)
+                {
+                    Debug.LogError($"Failed to set animator parameters: {e.Message}");
+                }
+            }
+        }
+        
+        // Runtime speed adjustment for testing (only in editor)
+        #if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            movementMultiplier = 0.5f;
+            Debug.Log($"Movement multiplier set to {movementMultiplier}");
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            movementMultiplier = 1f;
+            Debug.Log($"Movement multiplier set to {movementMultiplier}");
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            movementMultiplier = 1.5f;
+            Debug.Log($"Movement multiplier set to {movementMultiplier}");
+        }
+        else if (Input.GetKeyDown(KeyCode.C))
+        {
+            // Debug camera hierarchy
+            Debug.Log("=== Camera Debug Info ===");
+            Debug.Log($"Player Position: {transform.position}, Rotation: {transform.eulerAngles}");
+            if (cameraHolder != null)
+            {
+                Debug.Log($"CameraHolder LocalPos: {cameraHolder.transform.localPosition}, LocalRot: {cameraHolder.transform.localEulerAngles}");
+            }
+            if (cameraTransform != null)
+            {
+                Debug.Log($"Camera LocalPos: {cameraTransform.localPosition}, LocalRot: {cameraTransform.localEulerAngles}");
+                Debug.Log($"Camera WorldPos: {cameraTransform.position}, WorldRot: {cameraTransform.eulerAngles}");
+            }
+            Debug.Log($"Vertical Rotation: {verticalRotation}");
+            Debug.Log("========================");
+        }
+        else if (Input.GetKeyDown(KeyCode.H))
+        {
+            // Debug CharacterController settings
+            Debug.Log("=== CharacterController Info ===");
+            Debug.Log($"Height: {characterController.height}");
+            Debug.Log($"Center: {characterController.center}");
+            Debug.Log($"Radius: {characterController.radius}");
+            Debug.Log($"Skin Width: {characterController.skinWidth}");
+            Debug.Log($"Step Offset: {characterController.stepOffset}");
+            Debug.Log($"Slope Limit: {characterController.slopeLimit}");
+            Debug.Log($"Transform Position: {transform.position}");
+            Debug.Log($"Bottom of capsule Y: {transform.position.y + characterController.center.y - characterController.height/2f}");
+            Debug.Log("================================");
+        }
+        else if (Input.GetKeyDown(KeyCode.D))
+        {
+            // Debug complete state
+            Debug.Log("=== COMPLETE DEBUG STATE ===");
+            Debug.Log($"-- Movement --");
+            Debug.Log($"IsGrounded: {isGrounded}");
+            Debug.Log($"Velocity: {velocity}");
+            Debug.Log($"Pending Movement: {pendingMovement}");
+            Debug.Log($"Move Speed: {moveSpeed}, Sprint Speed: {sprintSpeed}");
+            
+            Debug.Log($"-- Animation --");
+            Debug.Log($"Animator: {(animator != null ? "Found" : "NULL")}");
+            if (animator != null)
+            {
+                Debug.Log($"Animator Controller: {(animator.runtimeAnimatorController != null ? animator.runtimeAnimatorController.name : "NULL")}");
+                Debug.Log($"Network IsWalking: {networkIsWalking.Value}");
+                Debug.Log($"Network IsJumping: {networkIsJumping.Value}");
+                Debug.Log($"Network IsGrounded: {networkIsGrounded.Value}");
+            }
+            
+            Debug.Log($"-- Camera/Zoom --");
+            Debug.Log($"IsUsingCinemachine: {isUsingCinemachine}");
+            Debug.Log($"FreeLook Camera: {(freeLookCamera != null ? "Found" : "NULL")}");
+            Debug.Log($"Current Zoom Level: {currentZoomLevel}");
+            
+            Debug.Log($"-- Position --");
+            Debug.Log($"Ground Position Offset: {groundPositionOffset}");
+            Debug.Log($"Transform Y: {transform.position.y}");
+            Debug.Log($"Bottom of Capsule Y: {transform.position.y + characterController.center.y - characterController.height/2f}");
+            Debug.Log("============================");
+        }
+        else if (Input.GetKeyDown(KeyCode.T))
+        {
+            // Test simple forward movement
+            Debug.Log("=== TEST: Moving forward without camera ===");
+            Vector3 testMovement = transform.forward * moveSpeed * Time.deltaTime;
+            characterController.Move(testMovement);
+            Debug.Log($"Moved {testMovement.magnitude} units forward");
+            Debug.Log($"New position: {transform.position}");
+        }
+        else if (Input.GetKeyDown(KeyCode.G))
+        {
+            // Toggle debug mode
+            debugMovement = !debugMovement;
+            Debug.Log($"Debug movement mode: {(debugMovement ? "ENABLED" : "DISABLED")}");
+        }
+        #endif
+        
+        if (!movementStopped)
+        {
+            // Handle rotation in Update for smooth camera movement
+            HandleRotation();
+            
+            // Calculate movement but don't apply it yet (will be applied in FixedUpdate)
+            CalculateMovement();
+        }
+        
+        // Handle camera zoom
+        HandleCameraZoom();
+    }
+    
+    private void FixedUpdate()
+    {
+        // Safety check
+        if (characterController == null)
+        {
+            Debug.LogError($"CharacterController is null in FixedUpdate! GameObject: {gameObject.name}");
+            return;
+        }
+        
+        if (!IsLocalPlayer) return;
+        
+        // Don't process physics during stabilization period
+        if (!isStabilized)
+        {
+            // Just ensure we're grounded during stabilization
+            CheckGrounded();
+            // Reset velocity to prevent accumulation
+            velocity = Vector3.zero;
+            return;
+        }
+        
+        // Always validate transform in FixedUpdate to catch physics issues
+        ValidateAndFixTransform();
+        
+        // Check grounded state
+        CheckGrounded();
+        
+        // Apply physics-based movement in FixedUpdate
+        ApplyMovement();
         
         // Update network state
         if (IsOwner)
         {
-            UpdateNetworkStateServerRpc(isGrounded, velocity.magnitude > 0.1f, velocity.y > 0);
+            // Check if we're actually moving horizontally (not just falling)
+            Vector3 horizontalVelocity = characterController.velocity;
+            horizontalVelocity.y = 0;
+            bool isWalking = pendingMovement.magnitude > 0.01f || horizontalVelocity.magnitude > 0.1f;
+            UpdateNetworkStateServerRpc(isGrounded, isWalking, velocity.y > 0);
         }
         
-        if (!movementStopped)
+        // Final validation at end of FixedUpdate
+        ValidateAndFixTransform();
+    }
+    
+    private void LateUpdate()
+    {
+        if (!IsLocalPlayer) return;
+        
+        // Update animator parameters
+        if (animator != null)
         {
-            HandleMovement();
-            if (cameraTransform != null)
+            // Set the animation parameters based on network state
+            if (animator.HasParameter(animIsGrounded))
+                animator.SetBool(animIsGrounded, isGrounded);
+            
+            if (animator.HasParameter(animIsWalking))
+                animator.SetBool(animIsWalking, networkIsWalking.Value);
+            
+            if (animator.HasParameter(animIsJumping))
+                animator.SetBool(animIsJumping, networkIsJumping.Value);
+            
+            if (debugMovement)
             {
-                HandleMouseLook();
-            }
-            else if (autoFindCamera)
-            {
-                // Try to find camera again if it wasn't found initially
-                FindCamera();
-                SetupCameraForLocalPlayer();
+                Debug.Log($"Animator Update - Grounded: {isGrounded}, Walking: {networkIsWalking.Value}, Jumping: {networkIsJumping.Value}");
             }
         }
         
-        // Handle jump with direct input if GameInput is not available
-        if (gameInputComponent == null && Input.GetKeyDown(KeyCode.Space))
+        // Store current rotation as last valid
+        lastValidRotation = transform.rotation;
+    }
+    
+    private void CheckGrounded()
+    {
+        wasGrounded = isGrounded;
+        
+        // Use multiple methods for ground detection
+        bool groundedByController = characterController.isGrounded;
+        
+        // Sphere check at the bottom of the capsule
+        float bottomY = characterController.center.y - characterController.height / 2f;
+        Vector3 sphereCenter = transform.position + Vector3.up * (bottomY + characterController.radius);
+        float checkRadius = characterController.radius * 0.9f;
+        bool groundedBySphere = Physics.CheckSphere(sphereCenter, checkRadius, groundLayer);
+        
+        // Raycast check from center of capsule downward
+        Vector3 rayStart = transform.position + characterController.center;
+        float rayDistance = (characterController.height / 2f) + groundCheckDistance + 0.1f;
+        bool groundedByRaycast = Physics.Raycast(rayStart, Vector3.down, rayDistance, groundLayer);
+        
+        // Combined ground check - more lenient
+        isGrounded = groundedByController || groundedBySphere || groundedByRaycast;
+        
+        // Landing detection - reset velocity when we land
+        if (!wasGrounded && isGrounded)
         {
-            OnJump(null, null);
+            // We just landed
+            if (velocity.y < -5f) // Only log significant landings
+            {
+                if (debugMovement)
+                    Debug.Log($"Landed with velocity: {velocity.y}");
+            }
+            
+            // Reset downward velocity on landing
+            if (velocity.y < 0)
+            {
+                velocity.y = -0.1f; // Small downward force to stick to ground (reduced from -2f)
+            }
+        }
+        
+        if (debugMovement)
+        {
+            Debug.Log($"Ground Detection - Controller: {groundedByController}, Sphere: {groundedBySphere}, " +
+                     $"Raycast: {groundedByRaycast}, Final: {isGrounded}, Velocity.Y: {velocity.y:F2}");
+        }
+    }
+    
+    private void HandleRotation()
+    {
+        // For third-person: Player rotates to face movement direction
+        // Camera rotation is handled by Cinemachine FreeLook
+        
+        if (pendingMovement.magnitude > 0.01f)
+        {
+            // Calculate the target rotation based on movement direction
+            Quaternion targetRotation = Quaternion.LookRotation(pendingMovement);
+            
+            // Smoothly rotate the player to face movement direction
+            float rotationSpeed = 10f;
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            
+            if (debugRotation)
+            {
+                Debug.Log($"Rotating player to face movement direction: {pendingMovement}");
+            }
         }
     }
     
@@ -346,58 +1179,235 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
         }
         
         // Fallback to direct input
-        return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        
+        // Clamp input values
+        h = Mathf.Clamp(h, -1f, 1f);
+        v = Mathf.Clamp(v, -1f, 1f);
+        
+        return new Vector2(h, v);
     }
     
-    private void HandleMovement()
+    private void CalculateMovement()
     {
         // Get input
         Vector2 inputVector = GetMovementInput();
         
         // Calculate movement direction relative to camera
-        Vector3 moveDirection = transform.right * inputVector.x + transform.forward * inputVector.y;
+        pendingMovement = Vector3.zero;
+        
+        if (inputVector.magnitude > 0.01f) // Dead zone
+        {
+            // Use cached camera or try to find one
+            if (mainCamera == null)
+            {
+                mainCamera = Camera.main ?? Camera.current ?? FindObjectOfType<Camera>();
+                
+                if (mainCamera == null)
+                {
+                    Debug.LogError("No camera found! Movement cannot be calculated. Please ensure there's a camera in the scene tagged as 'MainCamera'");
+                    // Fallback to world-space movement
+                    pendingMovement = new Vector3(inputVector.x, 0, inputVector.y);
+                    return;
+                }
+            }
+            
+            // Get camera forward and right directions
+            Vector3 cameraForward = mainCamera.transform.forward;
+            Vector3 cameraRight = mainCamera.transform.right;
+            
+            // Project onto horizontal plane (remove Y component)
+            cameraForward.y = 0f;
+            cameraForward.Normalize();
+            cameraRight.y = 0f;
+            cameraRight.Normalize();
+            
+            // Calculate movement relative to camera view
+            pendingMovement = cameraRight * inputVector.x + cameraForward * inputVector.y;
+            
+            // Normalize to prevent diagonal speed boost
+            if (pendingMovement.magnitude > 1f)
+            {
+                pendingMovement.Normalize();
+            }
+            
+            if (debugMovement)
+            {
+                Debug.Log($"Camera-relative movement: Input({inputVector.x}, {inputVector.y}) -> World({pendingMovement.x}, {pendingMovement.z})");
+            }
+        }
+    }
+    
+    private void ApplyMovement()
+    {
+        // Position stabilization - detect if we're stationary
+        bool isStationary = pendingMovement.magnitude < 0.01f && Mathf.Abs(velocity.y) < 0.1f && isGrounded;
+        
+        if (isStationary)
+        {
+            // Track how long we've been stationary
+            positionStableTime += Time.fixedDeltaTime;
+            
+            if (positionStableTime > STABILITY_TIME_REQUIRED)
+            {
+                // Lock to stable position to prevent micro-oscillations
+                Vector3 currentPos = transform.position;
+                Vector3 diff = currentPos - lastStablePosition;
+                
+                // If we've moved less than the threshold, snap back to stable position
+                if (diff.magnitude < POSITION_STABILITY_THRESHOLD)
+                {
+                    transform.position = lastStablePosition;
+                    velocity = Vector3.zero;
+                    
+                    if (debugMovement)
+                    {
+                        Debug.Log($"Position stabilized. Diff was: {diff.magnitude}");
+                    }
+                    return; // Skip the rest of movement processing
+                }
+            }
+        }
+        else
+        {
+            // We're moving, reset stability tracking
+            positionStableTime = 0f;
+            lastStablePosition = transform.position;
+        }
+        
+        // Debug log velocity at start
+        if (debugMovement && Mathf.Abs(velocity.y) > 5f)
+        {
+            Debug.LogWarning($"High velocity at start of ApplyMovement: {velocity}");
+        }
+        
+        // Clamp velocity at start to prevent any accumulated values
+        if (Mathf.Abs(velocity.y) > 50f)
+        {
+            Debug.LogError($"Excessive velocity detected: {velocity}. Clamping to safe values.");
+            velocity.y = Mathf.Clamp(velocity.y, -50f, 50f);
+        }
         
         // Apply movement
         float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
-        characterController.Move(moveDirection * currentSpeed * Time.deltaTime);
+        currentSpeed *= movementMultiplier; // Apply global multiplier
         
-        // Apply gravity
-        if (isGrounded && velocity.y < 0)
+        // Validate and apply movement
+        if (pendingMovement.magnitude > 0.01f)
         {
-            velocity.y = -2f; // Small downward force to keep grounded
+            Vector3 movement = pendingMovement * currentSpeed * Time.fixedDeltaTime;
+            
+            // Apply additional threshold to prevent micro-movements
+            if (movement.magnitude < POSITION_STABILITY_THRESHOLD)
+            {
+                if (debugMovement)
+                {
+                    Debug.Log($"Movement too small, ignoring: {movement.magnitude}");
+                }
+                movement = Vector3.zero;
+            }
+            
+            if (debugMovement && movement.magnitude > 0f)
+            {
+                Debug.Log($"Movement Debug - Speed: {currentSpeed}, DeltaTime: {Time.fixedDeltaTime}, Movement: {movement.magnitude}/frame, Direction: {pendingMovement}");
+            }
+            
+            // Ensure movement is valid
+            if (movement != Vector3.zero && !float.IsNaN(movement.x) && !float.IsNaN(movement.y) && !float.IsNaN(movement.z))
+            {
+                characterController.Move(movement);
+            }
         }
         
-        velocity.y += gravity * Time.deltaTime;
-        characterController.Move(velocity * Time.deltaTime);
-    }
-    
-    private void HandleMouseLook()
-    {
-        // Get mouse input
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
-        
-        // Rotate player body horizontally
-        transform.Rotate(Vector3.up * mouseX);
-        
-        // Rotate camera vertically
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -maxLookAngle, maxLookAngle);
-        
-        if (cameraTransform != null)
+        // Handle jump
+        if (jumpRequested && isGrounded && Time.time - lastJumpTime > jumpCooldown)
         {
-            cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            velocity.y = Mathf.Clamp(velocity.y, 0f, 20f);
+            lastJumpTime = Time.time;
+            jumpRequested = false;
+            
+            if (debugMovement)
+            {
+                Debug.Log($"Jump initiated! Velocity.y set to: {velocity.y}");
+            }
         }
+        
+        // Apply gravity with smoother ground handling
+        float previousVelY = velocity.y;
+        
+        if (isGrounded)
+        {
+            // When grounded, only apply minimal downward force if we're not already on the ground
+            if (velocity.y < 0)
+            {
+                // Use a much smaller value to prevent bouncing
+                velocity.y = -0.1f; // Reduced from -2f
+            }
+            // If we're grounded but have upward velocity (from jump), don't interfere
+        }
+        else
+        {
+            // Apply gravity when in air
+            velocity.y += gravity * Time.fixedDeltaTime;
+            
+            // Clamp falling speed to prevent extreme velocities
+            if (velocity.y < -maxFallSpeed)
+            {
+                velocity.y = -maxFallSpeed;
+                if (debugMovement)
+                {
+                    Debug.LogWarning($"Clamped falling speed to max: {maxFallSpeed}");
+                }
+            }
+        }
+        
+        // Debug log large velocity changes
+        if (debugMovement && Mathf.Abs(previousVelY - velocity.y) > 10f)
+        {
+            Debug.LogError($"HUGE velocity change! Previous: {previousVelY}, New: {velocity.y}, Grounded: {isGrounded}");
+        }
+        
+        // Final safety check before applying
+        if (Mathf.Abs(velocity.y) > maxFallSpeed * 1.5f)
+        {
+            Debug.LogError($"Dangerous velocity detected: {velocity.y}. Hard clamping!");
+            velocity.y = Mathf.Sign(velocity.y) * maxFallSpeed;
+        }
+        
+        // Apply velocity movement only if needed
+        if (!isGrounded || Mathf.Abs(velocity.y) > 0.01f) // Added threshold to prevent tiny movements
+        {
+            Vector3 velocityMovement = new Vector3(0, velocity.y * Time.fixedDeltaTime, 0);
+            
+            // Only apply if the movement is significant enough
+            if (Mathf.Abs(velocityMovement.y) > 0.0001f) // Prevent micro-movements
+            {
+                if (debugMovement && Mathf.Abs(velocityMovement.y) > 0.5f)
+                {
+                    Debug.Log($"Velocity movement this frame: {velocityMovement.y} units");
+                }
+                
+                if (!float.IsNaN(velocityMovement.y))
+                {
+                    characterController.Move(velocityMovement);
+                }
+            }
+        }
+        
+        // Clear pending movement
+        pendingMovement = Vector3.zero;
     }
     
     private void OnJump(object sender, EventArgs e)
     {
         if (!IsLocalPlayer) return;
         
-        if (isGrounded && !movementStopped)
+        // Set jump request flag (will be processed in FixedUpdate)
+        if (isGrounded && !movementStopped && Time.time - lastJumpTime > jumpCooldown)
         {
-            // Calculate jump velocity based on desired height
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            jumpRequested = true;
         }
     }
     
@@ -444,12 +1454,31 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     
     public void ApplyKnockback(Vector3 force)
     {
-        velocity += force;
+        // Validate knockback force
+        if (!float.IsNaN(force.x) && !float.IsNaN(force.y) && !float.IsNaN(force.z))
+        {
+            // Clamp knockback force more aggressively
+            force = Vector3.ClampMagnitude(force, 20f);
+            
+            // Prevent excessive upward force
+            force.y = Mathf.Clamp(force.y, -10f, 10f);
+            
+            if (debugMovement)
+            {
+                Debug.Log($"Applying knockback: {force}");
+            }
+            
+            velocity += force;
+            
+            // Clamp total velocity after adding knockback
+            velocity = Vector3.ClampMagnitude(velocity, 30f);
+        }
     }
     
     public void StopMovement()
     {
         movementStopped = true;
+        jumpRequested = false;
     }
     
     public void ResumeMovement()
@@ -465,16 +1494,212 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     // Public methods for external systems
     public void SetMoveSpeed(float newSpeed)
     {
-        moveSpeed = newSpeed;
+        moveSpeed = Mathf.Clamp(newSpeed, 0f, 50f);
     }
     
     public void ApplyExternalForce(Vector3 force)
     {
-        velocity += force;
+        // Validate force
+        if (!float.IsNaN(force.x) && !float.IsNaN(force.y) && !float.IsNaN(force.z))
+        {
+            // More aggressive clamping for external forces
+            force = Vector3.ClampMagnitude(force, 20f);
+            
+            // Prevent excessive upward force
+            force.y = Mathf.Clamp(force.y, -10f, 10f);
+            
+            if (debugMovement)
+            {
+                Debug.Log($"Applying external force: {force}");
+            }
+            
+            velocity += force;
+            
+            // Clamp total velocity after adding force
+            velocity = Vector3.ClampMagnitude(velocity, 30f);
+        }
     }
     
     public Vector3 GetVelocity()
     {
         return characterController.velocity;
+    }
+    
+    // Public method to reset camera alignment if it gets out of sync
+    public void ResetCameraAlignment()
+    {
+        if (cameraHolder != null)
+        {
+            cameraHolder.transform.localEulerAngles = new Vector3(verticalRotation, 0f, 0f);
+        }
+        
+        if (cinemachineTarget != null)
+        {
+            cinemachineTarget.transform.localEulerAngles = new Vector3(verticalRotation, 0f, 0f);
+        }
+        
+        if (isCameraChild && cameraTransform != null && cameraHolder == null && cinemachineTarget == null)
+        {
+            cameraTransform.localEulerAngles = new Vector3(verticalRotation, 0f, 0f);
+        }
+    }
+    
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (debugMovement)
+        {
+            Debug.Log($"Collision detected with: {hit.gameObject.name}, Normal: {hit.normal}, Point: {hit.point}");
+            
+            // Check if we're being pushed upward
+            if (hit.normal.y < -0.5f)
+            {
+                Debug.LogWarning($"Being pushed up by collision! Normal.y: {hit.normal.y}");
+                // Prevent upward velocity accumulation from collision
+                if (velocity.y > 0)
+                {
+                    velocity.y = 0f;
+                }
+            }
+        }
+        
+        // If we hit something while falling, reduce downward velocity
+        if (velocity.y < -10f && hit.normal.y > 0.5f)
+        {
+            velocity.y = -0.1f; // Reset to small downward force (reduced from -2f)
+            if (debugMovement)
+            {
+                Debug.Log("Hit ground while falling fast - reducing velocity");
+            }
+        }
+        
+        // Prevent sideways sliding on steep slopes
+        if (isGrounded && hit.normal.y < 0.7f && hit.normal.y > 0.1f)
+        {
+            // We're on a slope - apply a counter-force
+            Vector3 slopeForce = Vector3.ProjectOnPlane(Vector3.down, hit.normal);
+            characterController.Move(slopeForce * 0.1f * Time.deltaTime);
+        }
+    }
+    
+    #if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (!Application.isPlaying || characterController == null) return;
+        
+        // Draw sphere check
+        float bottomY = characterController.center.y - characterController.height / 2f;
+        Vector3 sphereCenter = transform.position + Vector3.up * (bottomY + characterController.radius);
+        float checkRadius = characterController.radius * 0.9f;
+        
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+        Gizmos.DrawWireSphere(sphereCenter, checkRadius);
+        
+        // Draw raycast
+        Vector3 rayStart = transform.position + characterController.center;
+        float rayDistance = (characterController.height / 2f) + groundCheckDistance + 0.1f;
+        Gizmos.DrawLine(rayStart, rayStart + Vector3.down * rayDistance);
+        
+        // Draw CharacterController capsule
+        Gizmos.color = Color.yellow;
+        Vector3 p1 = transform.position + characterController.center + Vector3.up * (characterController.height / 2f - characterController.radius);
+        Vector3 p2 = transform.position + characterController.center - Vector3.up * (characterController.height / 2f - characterController.radius);
+        Gizmos.DrawWireSphere(p1, characterController.radius);
+        Gizmos.DrawWireSphere(p2, characterController.radius);
+    }
+    #endif
+    
+    private void HandleCameraZoom()
+    {
+        if (freeLookCamera == null)
+        {
+            if (debugMovement && Time.frameCount % 60 == 0) // Log every second
+            {
+                Debug.LogWarning("Camera zoom not working: FreeLook camera reference is null");
+            }
+            return;
+        }
+        
+        if (!isUsingCinemachine)
+        {
+            if (debugMovement && Time.frameCount % 60 == 0)
+            {
+                Debug.LogWarning("Camera zoom not working: Cinemachine not detected");
+            }
+            return;
+        }
+        
+        // Get scroll input
+        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+        
+        if (Mathf.Abs(scrollInput) > 0.01f)
+        {
+            Debug.Log($"Scroll input detected: {scrollInput}");
+            
+            // Update zoom level
+            currentZoomLevel = Mathf.Clamp01(currentZoomLevel - scrollInput * zoomSpeed);
+            
+            // Apply zoom to FreeLook camera
+            try
+            {
+                var orbitsProperty = freeLookCamera.GetType().GetProperty("m_Orbits");
+                if (orbitsProperty != null)
+                {
+                    var orbits = orbitsProperty.GetValue(freeLookCamera);
+                    if (orbits != null && orbits.GetType().IsArray)
+                    {
+                        var orbitsArray = (Array)orbits;
+                        
+                        for (int i = 0; i < orbitsArray.Length && i < 3; i++)
+                        {
+                            var orbit = orbitsArray.GetValue(i);
+                            if (orbit != null)
+                            {
+                                var radiusField = orbit.GetType().GetField("m_Radius");
+                                if (radiusField != null)
+                                {
+                                    float originalRadius = 0f;
+                                    switch (i)
+                                    {
+                                        case 0: originalRadius = originalTopRigRadius?[0] ?? 5f; break;
+                                        case 1: originalRadius = originalMidRigRadius?[0] ?? 6f; break;
+                                        case 2: originalRadius = originalBottomRigRadius?[0] ?? 5f; break;
+                                    }
+                                    
+                                    // Interpolate between min and max zoom distance
+                                    float newRadius = Mathf.Lerp(minZoomDistance, 
+                                        Mathf.Min(maxZoomDistance, originalRadius), 
+                                        currentZoomLevel);
+                                    
+                                    radiusField.SetValue(orbit, newRadius);
+                                    orbitsArray.SetValue(orbit, i);
+                                    
+                                    Debug.Log($"Set rig {i} radius to: {newRadius} (from {originalRadius})");
+                                }
+                                else
+                                {
+                                    Debug.LogError($"Could not find m_Radius field on orbit {i}");
+                                }
+                            }
+                        }
+                        
+                        orbitsProperty.SetValue(freeLookCamera, orbitsArray);
+                        
+                        Debug.Log($"Camera zoom level: {currentZoomLevel:F2} (scroll: {scrollInput})");
+                    }
+                    else
+                    {
+                        Debug.LogError("Orbits is not an array or is null");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Could not find m_Orbits property on FreeLook camera");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to apply zoom: {e.Message}\nStackTrace: {e.StackTrace}");
+            }
+        }
     }
 } 

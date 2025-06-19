@@ -97,8 +97,9 @@ public class NewPlayerBehavior : NetworkBehaviour
         Vector3 spawnPosition = SpawnManager.Instance.AssignSpawnPoint(OwnerClientId);
         Quaternion spawnRotation = SpawnManager.Instance.AssignSpawnRotation(OwnerClientId);
 
-        gameObject.GetComponent<Rigidbody>().MovePosition(spawnPosition);
-        gameObject.GetComponent<Rigidbody>().MoveRotation(spawnRotation);     
+        // Use transform instead of Rigidbody for CharacterController compatibility
+        transform.position = spawnPosition;
+        transform.rotation = spawnRotation;
 
         SpawnPlayerAtStartingLocationRpc(spawnPosition, spawnRotation);
     }
@@ -109,9 +110,9 @@ public class NewPlayerBehavior : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void SpawnPlayerAtStartingLocationRpc(Vector3 spawnPosition, Quaternion spawnRotation)
     {      
-        gameObject.GetComponent<Rigidbody>().MovePosition(spawnPosition);
-        gameObject.GetComponent<Rigidbody>().MoveRotation(spawnRotation);
-
+        // Use transform instead of Rigidbody for CharacterController compatibility
+        transform.position = spawnPosition;
+        transform.rotation = spawnRotation;
     }
 
 

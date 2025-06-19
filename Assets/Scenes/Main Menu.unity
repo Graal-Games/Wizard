@@ -305,6 +305,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 164937663}
   m_CullTransparentMesh: 1
+--- !u!1 &224292708 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4170498834935349083, guid: 41a9b179a3992fb4a94bc29ef50bae34, type: 3}
+  m_PrefabInstance: {fileID: 670692015}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &224292722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 224292708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 097d15c6e32de004b86f11f4877d6cf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &662434659
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,7 +615,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4170498834935349083, guid: 41a9b179a3992fb4a94bc29ef50bae34, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 224292722}
   m_SourcePrefab: {fileID: 100100000, guid: 41a9b179a3992fb4a94bc29ef50bae34, type: 3}
 --- !u!1 &723553339
 GameObject:
@@ -3062,37 +3082,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc30e8f0bf4d3b744a9a58cca7bab3d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <IsLocalPlayer>k__BackingField: 0
-  <IsOwner>k__BackingField: 0
-  <IsServer>k__BackingField: 0
-  <ServerIsHost>k__BackingField: 0
-  <IsClient>k__BackingField: 0
-  <IsHost>k__BackingField: 0
-  <IsOwnedByServer>k__BackingField: 0
-  <IsSpawned>k__BackingField: 0
-  m_NetworkObject: {fileID: 0}
-  <NetworkObjectId>k__BackingField: 0
-  <NetworkBehaviourId>k__BackingField: 0
-  NetworkBehaviourIdCache: 0
-  <OwnerClientId>k__BackingField: 0
-  m_VarInit: 0
-  <m_TargetIdBeingSynchronized>k__BackingField: 0
-  movementSlowAmount: 0
-  movementSlowTime: 0
-  isSlowed: 0
-  leftButton: 0
-  rightButton: 0
-  forwardsButton: 0
-  timerLimit: 0
-  leftTimer: 0
-  rightTimer: 0
-  mainCharSpeed: 4
-  moveForward: 1
-  scrollWheel: 0
-  forceMagnitude: 5
-  playerBehavior: {fileID: 0}
-  animationStateController: {fileID: 0}
-  isAnimationTriggered: 0
 --- !u!1 &1833616708
 GameObject:
   m_ObjectHideFlags: 0
