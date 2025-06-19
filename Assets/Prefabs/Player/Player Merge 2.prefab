@@ -866,7 +866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1803049746
+      value: 3471792998
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2
@@ -1061,6 +1061,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7534202589935760644}
+    - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2847569429190963579}
     - targetCorrespondingSourceObject: {fileID: 999568757803109219, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2193960103145206821}
@@ -1220,16 +1223,21 @@ MonoBehaviour:
   jumpCooldown: 0.2
   movementMultiplier: 1
   maxFallSpeed: 20
+  acceleration: 4
+  deceleration: 4
+  airAcceleration: 4
+  airDeceleration: 6
   cameraTransform: {fileID: 0}
   maxLookAngle: 80
   eyeHeight: 0.6
   autoFindCamera: 1
+  enableZoom: 0
   zoomSpeed: 2
   minZoomDistance: 2
   maxZoomDistance: 10
   stabilizationTime: 0.5
   debugMovement: 1
-  debugRotation: 1
+  debugRotation: 0
   playerBody: {fileID: 0}
   gameInputObject: {fileID: 0}
   groundLayer:
@@ -1250,6 +1258,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   headHeight: 1.6
   createRedDebugSphere: 1
+--- !u!114 &2847569429190963579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4170498834935349083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1df896ae8ed17fd4da3c5629c4e07192, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  zoomSpeed: 10
+  minFOV: 1
+  maxFOV: 100
+  enableDebugLogs: 1
 --- !u!114 &4180561960647442126 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6079213664827151387, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}

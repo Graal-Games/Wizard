@@ -1,0 +1,43 @@
+CAMERA ZOOM SETUP - QUICK GUIDE
+================================
+
+OPTION 1: Use AlternativeZoom (RECOMMENDED - Most Reliable)
+-----------------------------------------------------------
+1. On your Player GameObject:
+   - In CharacterControllerMovement, UNCHECK "Enable Zoom" [ ]
+   - Add Component > AlternativeZoom
+   - Settings:
+     * Min FOV: 20 (zoomed in)
+     * Max FOV: 60 (zoomed out)
+     * Zoom Speed: 3
+
+2. This changes Field of View instead of camera distance
+3. Works with any camera type
+
+OPTION 2: Use SimpleCameraZoom (For Orbit-based zoom)
+-----------------------------------------------------
+1. On your Player GameObject:
+   - In CharacterControllerMovement, UNCHECK "Enable Zoom" [ ]
+   - Add Component > SimpleCameraZoom
+   - Settings:
+     * Min Zoom: 2
+     * Max Zoom: 10
+     * Zoom Speed: 3
+     * Enable Debug Logs: ✓
+
+2. Requires Cinemachine FreeLook camera
+
+OPTION 3: Use Built-in CharacterControllerMovement Zoom
+-------------------------------------------------------
+1. Keep "Enable Zoom" CHECKED [✓] in CharacterControllerMovement
+2. Enable "Debug Movement" to see zoom messages
+3. Requires Cinemachine FreeLook camera
+
+TROUBLESHOOTING
+---------------
+- If scroll detected but no zoom: Try AlternativeZoom (Option 1)
+- Press Z key with SimpleCameraZoom to see debug info
+- Hold Shift+Z to see all camera fields/properties
+- Check console for error messages
+
+The AlternativeZoom script is the most compatible option! 

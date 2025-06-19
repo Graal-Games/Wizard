@@ -41,6 +41,12 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     [SerializeField] private float movementMultiplier = 1f; // Global movement speed multiplier for easy tuning
     [SerializeField] private float maxFallSpeed = 20f;  // Maximum falling speed to prevent extreme velocities
     
+    [Header("Movement Inertia")]
+    [SerializeField] private float acceleration = 8f; // How quickly to reach max speed
+    [SerializeField] private float deceleration = 12f; // How quickly to stop
+    [SerializeField] private float airAcceleration = 4f; // Acceleration while in air
+    [SerializeField] private float airDeceleration = 6f; // Deceleration while in air
+    
     [Header("Camera Settings")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private float maxLookAngle = 80f; // Maximum vertical look angle
@@ -48,6 +54,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     [SerializeField] private bool autoFindCamera = true; // Enable auto-finding camera
     
     [Header("Camera Zoom")]
+    [SerializeField] private bool enableZoom = true; // Toggle to enable/disable zoom
     [SerializeField] private float zoomSpeed = 2f; // How fast the camera zooms
     [SerializeField] private float minZoomDistance = 2f; // Minimum zoom distance
     [SerializeField] private float maxZoomDistance = 10f; // Maximum zoom distance
@@ -76,6 +83,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     // Movement state
     private Vector3 velocity;
     private float currentSpeed;
+    private Vector3 currentHorizontalVelocity; // For smooth acceleration/deceleration
     private bool isGrounded = false;
     private bool wasGrounded = false; // For landing detection
     private float lastGroundedTime = 0f;
@@ -127,7 +135,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     private GameObject cinemachineTarget; // For Cinemachine follow target
     
     // Zoom state
-    private object freeLookCamera; // Store FreeLook camera reference
+    private Component freeLookCamera; // Store FreeLook camera reference (as Component for easier access)
     private float currentZoomLevel = 1f; // 0 = min zoom, 1 = max zoom
     private float[] originalTopRigRadius;
     private float[] originalMidRigRadius;
@@ -637,7 +645,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
                     // Store the FreeLook camera reference for zoom
                     if (freeLookCamera == null)
                     {
-                        freeLookCamera = cam;
+                        freeLookCamera = cam as Component;
                         StoreOriginalRadiusValues(cam);
                     }
                 }
@@ -699,7 +707,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
                 // Store the FreeLook camera reference for zoom
                 if (freeLookCamera == null)
                 {
-                    freeLookCamera = cam;
+                    freeLookCamera = cam as Component;
                     StoreOriginalRadiusValues(cam);
                 }
                 
@@ -1052,9 +1060,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
         if (IsOwner)
         {
             // Check if we're actually moving horizontally (not just falling)
-            Vector3 horizontalVelocity = characterController.velocity;
-            horizontalVelocity.y = 0;
-            bool isWalking = pendingMovement.magnitude > 0.01f || horizontalVelocity.magnitude > 0.1f;
+            bool isWalking = currentHorizontalVelocity.magnitude > 0.1f;
             UpdateNetworkStateServerRpc(isGrounded, isWalking, velocity.y > 0);
         }
         
@@ -1139,10 +1145,11 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
         // For third-person: Player rotates to face movement direction
         // Camera rotation is handled by Cinemachine FreeLook
         
-        if (pendingMovement.magnitude > 0.01f)
+        // Use current velocity for smoother rotation that matches actual movement
+        if (currentHorizontalVelocity.magnitude > 0.1f)
         {
             // Calculate the target rotation based on movement direction
-            Quaternion targetRotation = Quaternion.LookRotation(pendingMovement);
+            Quaternion targetRotation = Quaternion.LookRotation(currentHorizontalVelocity.normalized);
             
             // Smoothly rotate the player to face movement direction
             float rotationSpeed = 10f;
@@ -1150,7 +1157,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             
             if (debugRotation)
             {
-                Debug.Log($"Rotating player to face movement direction: {pendingMovement}");
+                Debug.Log($"Rotating player to face movement direction: {currentHorizontalVelocity.normalized}");
             }
         }
     }
@@ -1260,6 +1267,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
                 {
                     transform.position = lastStablePosition;
                     velocity = Vector3.zero;
+                    currentHorizontalVelocity = Vector3.zero; // Reset horizontal velocity when stabilized
                     
                     if (debugMovement)
                     {
@@ -1289,14 +1297,46 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             velocity.y = Mathf.Clamp(velocity.y, -50f, 50f);
         }
         
-        // Apply movement
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
-        currentSpeed *= movementMultiplier; // Apply global multiplier
+        // Apply movement with inertia
+        float targetSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
+        targetSpeed *= movementMultiplier; // Apply global multiplier
         
-        // Validate and apply movement
-        if (pendingMovement.magnitude > 0.01f)
+        // Calculate target velocity based on input
+        Vector3 targetVelocity = pendingMovement * targetSpeed;
+        
+        // Apply acceleration/deceleration for smooth movement
+        float accel = acceleration;
+        float decel = deceleration;
+        
+        // Use different values in air
+        if (!isGrounded)
         {
-            Vector3 movement = pendingMovement * currentSpeed * Time.fixedDeltaTime;
+            accel = airAcceleration;
+            decel = airDeceleration;
+        }
+        
+        // Smoothly interpolate current velocity to target velocity
+        if (targetVelocity.magnitude > 0.01f)
+        {
+            // Accelerating towards target
+            currentHorizontalVelocity = Vector3.Lerp(currentHorizontalVelocity, targetVelocity, accel * Time.fixedDeltaTime);
+        }
+        else
+        {
+            // Decelerating to stop
+            currentHorizontalVelocity = Vector3.Lerp(currentHorizontalVelocity, Vector3.zero, decel * Time.fixedDeltaTime);
+            
+            // Stop completely when very slow
+            if (currentHorizontalVelocity.magnitude < 0.1f)
+            {
+                currentHorizontalVelocity = Vector3.zero;
+            }
+        }
+        
+        // Apply the smoothed movement
+        if (currentHorizontalVelocity.magnitude > 0.01f)
+        {
+            Vector3 movement = currentHorizontalVelocity * Time.fixedDeltaTime;
             
             // Apply additional threshold to prevent micro-movements
             if (movement.magnitude < POSITION_STABILITY_THRESHOLD)
@@ -1310,7 +1350,7 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
             
             if (debugMovement && movement.magnitude > 0f)
             {
-                Debug.Log($"Movement Debug - Speed: {currentSpeed}, DeltaTime: {Time.fixedDeltaTime}, Movement: {movement.magnitude}/frame, Direction: {pendingMovement}");
+                Debug.Log($"Movement Debug - Target Speed: {targetSpeed}, Current Velocity: {currentHorizontalVelocity.magnitude}, DeltaTime: {Time.fixedDeltaTime}, Movement: {movement.magnitude}/frame");
             }
             
             // Ensure movement is valid
@@ -1610,90 +1650,210 @@ public class CharacterControllerMovement : NetworkBehaviour, IMovementEffects
     
     private void HandleCameraZoom()
     {
-        if (freeLookCamera == null)
-        {
-            if (debugMovement && Time.frameCount % 60 == 0) // Log every second
-            {
-                Debug.LogWarning("Camera zoom not working: FreeLook camera reference is null");
-            }
-            return;
-        }
+        // Check if zoom is enabled
+        if (!enableZoom) return;
         
-        if (!isUsingCinemachine)
-        {
-            if (debugMovement && Time.frameCount % 60 == 0)
-            {
-                Debug.LogWarning("Camera zoom not working: Cinemachine not detected");
-            }
-            return;
-        }
-        
-        // Get scroll input
+        // Always check for scroll input first
         float scrollInput = Input.GetAxis("Mouse ScrollWheel");
         
+        // Log scroll input even without camera for debugging
         if (Mathf.Abs(scrollInput) > 0.01f)
         {
+            Debug.Log($"=== ZOOM DEBUG ===");
             Debug.Log($"Scroll input detected: {scrollInput}");
-            
-            // Update zoom level
+            Debug.Log($"IsUsingCinemachine: {isUsingCinemachine}");
+            Debug.Log($"FreeLookCamera: {(freeLookCamera != null ? "FOUND" : "NULL")}");
+        }
+        
+        // Try to find FreeLook camera if we don't have it yet (always try, not just when using Cinemachine)
+        if (freeLookCamera == null)
+        {
+            // First try the standard way
+            var freeLookType = System.Type.GetType("Cinemachine.CinemachineFreeLook, Cinemachine");
+            if (freeLookType != null)
+            {
+                var freeLookCameras = FindObjectsOfType(freeLookType);
+                if (freeLookCameras.Length > 0)
+                {
+                    freeLookCamera = freeLookCameras[0] as Component;
+                    StoreOriginalRadiusValues(freeLookCamera);
+                    isUsingCinemachine = true; // Set this to true if we find a FreeLook camera
+                    Debug.Log($"Found FreeLook camera for zoom: {((Component)freeLookCamera).name}");
+                }
+                else
+                {
+                    Debug.LogWarning("FreeLook type found but no FreeLook cameras in scene!");
+                }
+            }
+            else
+            {
+                // Try alternative namespace
+                freeLookType = System.Type.GetType("Cinemachine.CinemachineFreeLook, Unity.Cinemachine");
+                if (freeLookType != null)
+                {
+                    var freeLookCameras = FindObjectsOfType(freeLookType);
+                    if (freeLookCameras.Length > 0)
+                    {
+                        freeLookCamera = freeLookCameras[0] as Component;
+                        StoreOriginalRadiusValues(freeLookCamera);
+                        isUsingCinemachine = true;
+                        Debug.Log($"Found FreeLook camera (Unity.Cinemachine) for zoom: {((Component)freeLookCamera).name}");
+                    }
+                }
+                else
+                {
+                    if (debugMovement && Time.frameCount % 60 == 0)
+                    {
+                        Debug.LogWarning("Could not find Cinemachine.CinemachineFreeLook type. Is Cinemachine installed?");
+                    }
+                }
+            }
+        }
+        
+        if (freeLookCamera == null)
+        {
+            if (Mathf.Abs(scrollInput) > 0.01f) // Only log when trying to zoom
+            {
+                Debug.LogWarning("Camera zoom not working: FreeLook camera not found. Make sure you have a Cinemachine FreeLook camera in the scene.");
+            }
+            return;
+        }
+        
+        // Apply zoom if we have scroll input
+        if (Mathf.Abs(scrollInput) > 0.01f)
+        {
+            // Update zoom level (inverted so scroll up zooms in)
             currentZoomLevel = Mathf.Clamp01(currentZoomLevel - scrollInput * zoomSpeed);
             
             // Apply zoom to FreeLook camera
             try
             {
-                var orbitsProperty = freeLookCamera.GetType().GetProperty("m_Orbits");
-                if (orbitsProperty != null)
+                // Try to get orbits as a FIELD first (not property)
+                var orbitsField = freeLookCamera.GetType().GetField("m_Orbits", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                
+                object orbits = null;
+                
+                if (orbitsField != null)
                 {
-                    var orbits = orbitsProperty.GetValue(freeLookCamera);
-                    if (orbits != null && orbits.GetType().IsArray)
+                    orbits = orbitsField.GetValue(freeLookCamera);
+                    if (debugMovement)
+                        Debug.Log("Found m_Orbits as a FIELD");
+                }
+                else
+                {
+                    // Try as a property
+                    var orbitsProperty = freeLookCamera.GetType().GetProperty("m_Orbits",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    
+                    if (orbitsProperty != null)
                     {
-                        var orbitsArray = (Array)orbits;
-                        
-                        for (int i = 0; i < orbitsArray.Length && i < 3; i++)
+                        orbits = orbitsProperty.GetValue(freeLookCamera);
+                        if (debugMovement)
+                            Debug.Log("Found m_Orbits as a PROPERTY");
+                    }
+                }
+                
+                if (orbits != null && orbits.GetType().IsArray)
+                {
+                    var orbitsArray = (Array)orbits;
+                    
+                    for (int i = 0; i < orbitsArray.Length && i < 3; i++)
+                    {
+                        var orbit = orbitsArray.GetValue(i);
+                        if (orbit != null)
                         {
-                            var orbit = orbitsArray.GetValue(i);
-                            if (orbit != null)
+                            // Try to find radius field with different approaches
+                            var radiusField = orbit.GetType().GetField("m_Radius",
+                                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                            
+                            if (radiusField == null)
                             {
-                                var radiusField = orbit.GetType().GetField("m_Radius");
-                                if (radiusField != null)
+                                // Try alternative names
+                                string[] radiusNames = { "Radius", "radius", "_radius" };
+                                foreach (string name in radiusNames)
                                 {
-                                    float originalRadius = 0f;
-                                    switch (i)
-                                    {
-                                        case 0: originalRadius = originalTopRigRadius?[0] ?? 5f; break;
-                                        case 1: originalRadius = originalMidRigRadius?[0] ?? 6f; break;
-                                        case 2: originalRadius = originalBottomRigRadius?[0] ?? 5f; break;
-                                    }
-                                    
-                                    // Interpolate between min and max zoom distance
-                                    float newRadius = Mathf.Lerp(minZoomDistance, 
-                                        Mathf.Min(maxZoomDistance, originalRadius), 
-                                        currentZoomLevel);
-                                    
-                                    radiusField.SetValue(orbit, newRadius);
-                                    orbitsArray.SetValue(orbit, i);
-                                    
-                                    Debug.Log($"Set rig {i} radius to: {newRadius} (from {originalRadius})");
-                                }
-                                else
-                                {
-                                    Debug.LogError($"Could not find m_Radius field on orbit {i}");
+                                    radiusField = orbit.GetType().GetField(name,
+                                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                                    if (radiusField != null) break;
                                 }
                             }
+                            
+                            if (radiusField != null)
+                            {
+                                // Interpolate between min and max zoom distance
+                                // currentZoomLevel: 0 = zoomed in (min distance), 1 = zoomed out (max distance)
+                                float newRadius = Mathf.Lerp(minZoomDistance, maxZoomDistance, currentZoomLevel);
+                                
+                                radiusField.SetValue(orbit, newRadius);
+                                
+                                Debug.Log($"Set rig {i} radius to: {newRadius} (zoom level: {currentZoomLevel:F2})");
+                            }
+                            else
+                            {
+                                Debug.LogError($"Could not find radius field on orbit {i}");
+                            }
+                        }
+                    }
+                    
+                    // Apply changes back if needed
+                    if (orbitsField != null)
+                    {
+                        orbitsField.SetValue(freeLookCamera, orbitsArray);
+                    }
+                    
+                    Debug.Log($"Camera zoom applied! Level: {currentZoomLevel:F2} (0=close, 1=far)");
+                    
+                    // Try to force the camera to update
+                    try
+                    {
+                        // Look for an InvalidateCache or Update method
+                        var invalidateMethod = freeLookCamera.GetType().GetMethod("InvalidateCache",
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        if (invalidateMethod != null)
+                        {
+                            invalidateMethod.Invoke(freeLookCamera, null);
+                            if (debugMovement) Debug.Log("Called InvalidateCache on FreeLook camera");
                         }
                         
-                        orbitsProperty.SetValue(freeLookCamera, orbitsArray);
+                        // Try OnValidate
+                        var onValidateMethod = freeLookCamera.GetType().GetMethod("OnValidate",
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        if (onValidateMethod != null)
+                        {
+                            onValidateMethod.Invoke(freeLookCamera, null);
+                            if (debugMovement) Debug.Log("Called OnValidate on FreeLook camera");
+                        }
                         
-                        Debug.Log($"Camera zoom level: {currentZoomLevel:F2} (scroll: {scrollInput})");
+                        // Force the component to update
+                        if (freeLookCamera is Component comp)
+                        {
+                            comp.SendMessage("OnValidate", SendMessageOptions.DontRequireReceiver);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Debug.LogError("Orbits is not an array or is null");
+                        if (debugMovement) Debug.LogWarning($"Could not call update methods: {ex.Message}");
                     }
                 }
                 else
                 {
-                    Debug.LogError("Could not find m_Orbits property on FreeLook camera");
+                    Debug.LogError("Could not find orbits field/property on FreeLook camera! Make sure you have a Cinemachine FreeLook camera.");
+                    
+                    // Log available members for debugging
+                    if (debugMovement && Input.GetKey(KeyCode.LeftShift))
+                    {
+                        Debug.Log("=== Available FreeLook Camera Members ===");
+                        var fields = freeLookCamera.GetType().GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        foreach (var field in fields)
+                        {
+                            if (field.Name.ToLower().Contains("orbit") || field.Name.ToLower().Contains("rig"))
+                            {
+                                Debug.Log($"Field: {field.Name} ({field.FieldType})");
+                            }
+                        }
+                        Debug.Log("========================================");
+                    }
                 }
             }
             catch (Exception e)
