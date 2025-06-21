@@ -866,7 +866,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1803049746
+      value: 3471792998
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2
@@ -1044,6 +1044,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2854820038932135643}
+    - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6508504514050385902}
     - targetCorrespondingSourceObject: {fileID: 999568757803109219, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2193960103145206821}
@@ -1168,6 +1171,24 @@ MonoBehaviour:
   spawnLocation: {fileID: 3698988320840582189}
   invocationRadius: {fileID: 4862430053716336212}
   invokedObjectGO: {fileID: 705924895072455061, guid: 233e8e02b8166484c88c8998078cf950, type: 3}
+--- !u!114 &6508504514050385902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4170498834935349083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d3be821675e35d46887d9b4427cb812, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MeshType: 0
+  Size: 2.32
+  StrengthMultiplier: 0.5
+  AdditionalConstantStrength: 0.2
+  Offset: {x: 0, y: 0, z: 0}
+  MeshIntersectionThreshold: 0.461
 --- !u!114 &4180561960647442126 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6079213664827151387, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
