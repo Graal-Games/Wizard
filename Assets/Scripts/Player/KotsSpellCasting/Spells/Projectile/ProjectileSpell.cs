@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using static K_Spell;
 
-public class ProjectileSpell : NetworkBehaviour
+public class ProjectileSpell : ProjectileClass
 {
     //[SerializeField]
     //private K_SpellData spellDataScriptableObject;
@@ -27,39 +28,19 @@ public class ProjectileSpell : NetworkBehaviour
     public delegate void DestroyLocalProjectileInstance(FixedString128Bytes spellId);
     public static event DestroyLocalProjectileInstance projectileInstance;
 
-    Rigidbody rb;
+    public delegate void PlayerHitEvent2(float damage);
+    public static event PlayerHitEvent2 playerHitEvent2;
 
-    private void Start()
+
+    //private void OnDrawGizmos()
+    //{
+    //    // Visualize the last movement segment and the sphere cast
+    //    Gizmos.color = Color.yellow;
+    //    Gizmos.DrawWireSphere(transform.position, this.gameObject.transform.localScale.x / 2); // 0.2f is your sphere cast radius
+    //}
+
+    public override void FixedUpdate()
     {
-
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-
-        rb = GetComponent<Rigidbody>();
-
-        rb.constraints = RigidbodyConstraints.FreezeRotation;
-        rb.useGravity = false;
-        rb.isKinematic = false;
-
-    }
-
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        Vector3 forceDirection = transform.forward * 130;
-        rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
-    }
-
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.name.Contains("Player"))
-        {
-            Debug.LogFormat($"<color=red>>>>>>>>>COLLISION<<<<<<</color>");
-            Debug.Log(">>>>>>>>COLLISION<<<<<<");
-        }
+        base.FixedUpdate();
     }
 }

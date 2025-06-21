@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Netcode;
+using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
-using Unity.Netcode;
-using TMPro;
 
 public class HealthBarUi : NetworkBehaviour
 {
@@ -24,7 +25,10 @@ public class HealthBarUi : NetworkBehaviour
         get { return _healthSlider; }
         set { _healthSlider = value; }
     }
-
+    //void OnEnable()
+    //{
+    //    ProjectileSpell.playerHitEvent2 += ApplyDamage;
+    //}
     private void Start()
     {
         _healthSlider = this.GetComponent<Slider>();

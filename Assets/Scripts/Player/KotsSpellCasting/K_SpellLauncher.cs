@@ -244,8 +244,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
         base.OnNetworkSpawn();
+        //Debug.LogFormat($"<color=red> IsLocalPlayer {IsLocalPlayer} OwnerClientId {OwnerClientId} </color>");
 
-        
     }
 
     private void Update()
@@ -627,7 +627,8 @@ public class K_SpellLauncher : NetworkBehaviour
                 // Spawn 
                 SpawnAtLocation(invocationSpawnerScript.SpawnOnce());
                 break;
-
+            case "Charm":
+                break;
             default: 
                 break;
         }
@@ -667,6 +668,10 @@ public class K_SpellLauncher : NetworkBehaviour
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
         netObj.SpawnWithOwnership(OwnerClientId);
+
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
+
+        ResetSpellSequence();
     }
 
 
@@ -688,7 +693,7 @@ public class K_SpellLauncher : NetworkBehaviour
         // Call a custom RPC to handle parenting across the network
         //SetParentRpc(netObj.NetworkObjectId, gameObject.GetComponent<NetworkObject>().NetworkObjectId);
 
-        ResetPlayerCastStateAndDRRPC();
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
     }
@@ -750,7 +755,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
 
-        ResetPlayerCastStateAndDRRPC();
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
     }
@@ -789,17 +794,17 @@ public class K_SpellLauncher : NetworkBehaviour
         //HideForOwnerRpc(netObj);
 
         //netObj.TrySetParent(gameObject.transform);
-        ResetPlayerCastStateAndDRRPC();
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
     }
 
     [Rpc(SendTo.Owner)]
-    void ResetPlayerCastStateAndDRRPC()
+    void ResetPlayerCastStateAndDRRPC(string spellCategory)
     {
         inSpellCastModeOrWaitingSpellCategory = false;
 
-        ignoreSpellDRLock[currentSpellType.ToString()] = false;
+        ignoreSpellDRLock[spellCategory] = false;
     }
     
     
@@ -816,7 +821,7 @@ public class K_SpellLauncher : NetworkBehaviour
         netObj.Spawn();
 
         //netObj.TrySetParent(gameObject.transform);
-        ResetPlayerCastStateAndDRRPC();
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
     }
@@ -833,7 +838,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
         netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
 
-        ResetPlayerCastStateAndDRRPC();
+        ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
     }

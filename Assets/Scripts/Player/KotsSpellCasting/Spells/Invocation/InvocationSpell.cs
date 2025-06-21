@@ -95,7 +95,7 @@ public class InvocationSpell : K_Spell
         // If a target is available
         if (aimAtOpposingPlayerScript.TargetFound)
         {
-            SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
+            SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
         }
         else 
         {             

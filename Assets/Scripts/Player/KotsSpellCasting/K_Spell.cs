@@ -249,41 +249,77 @@ public abstract class K_Spell : NetworkBehaviour
 
 
 
+    //[ClientRpc]
+    //void ApplyDamageToPlayerClientRpc(ClientRpcParams rpcParams = default)
+    //{
+        
+    //    DoSomething();
+    //    Debug.LogFormat($"<color=blue> 1 NEW DAMAGE APPLICATION / OWNER: {rpcParams} </color>");
+    //}
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    void ApplyDamageToPlayerClientRpc(ulong ownerId, RpcParams rpcParams = default)
+    {
+        SpellPayloadConstructor
+        (
+            this.gameObject.GetInstanceID(),
+            ownerId,
+            spellDataScriptableObject.element.ToString(),
+            spellDataScriptableObject.incapacitationName,
+            spellDataScriptableObject.incapacitationDuration,
+            spellDataScriptableObject.visionImpairmentType,
+            spellDataScriptableObject.visionImpairmentDuration,
+            spellDataScriptableObject.directDamageAmount,
+            spellDataScriptableObject.damageOverTimeAmount,
+            spellDataScriptableObject.damageOverTimeDuration,
+            spellDataScriptableObject.spellAttribute,
+            spellDataScriptableObject.pushback
+        );
+
+        PlayerIsHit();
+
+        DoSomething();
+        Debug.LogFormat($"<color=blue> 1 NEW DAMAGE APPLICATION / OWNER: {rpcParams} </color>");
+    }
+
+    public void DoSomething()
+    {
+        //this.GetComponent<NewPlayerBehavior>().DoSomething();
+        Debug.LogFormat($"<color=blue> 2 NEW DAMAGE APPLICATION / OWNER: {OwnerClientId} </color>");
+
+    }
+
 
     public virtual void OnTriggerEnter(Collider other)
     {
-        // Debug.LogFormat($"<color=green>OTEn().<K_Spell>:{other}</color>");
 
-        //if (!IsOwner) { return; }
-        // // If the (projectile) spell comes into contact with the environment, destroy it
-        //if (other.gameObject.CompareTag("Environment"))
+        //if (!IsServer)
         //{
-        //    if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-        //        DestroyProjectileRpc();
+        //    if (other.gameObject.CompareTag("Player"))
+        //    {
+        //        SpellPayloadConstructor
+        //       (
+        //           this.gameObject.GetInstanceID(),
+        //           other.GetComponent<NetworkObject>().OwnerClientId,
+        //           spellDataScriptableObject.element.ToString(),
+        //           spellDataScriptableObject.incapacitationName,
+        //           spellDataScriptableObject.incapacitationDuration,
+        //           spellDataScriptableObject.visionImpairmentType,
+        //           spellDataScriptableObject.visionImpairmentDuration,
+        //           spellDataScriptableObject.directDamageAmount,
+        //           spellDataScriptableObject.damageOverTimeAmount,
+        //           spellDataScriptableObject.damageOverTimeDuration,
+        //           spellDataScriptableObject.spellAttribute,
+        //           spellDataScriptableObject.pushback
+        //       );
+
+
+        //        PlayerIsHit();
+        //        return;
+        //    }
         //}
 
-        //if (other.gameObject.CompareTag("Spell"));
-        //Debug.LogFormat($"<color=purple>Trigger: {other.gameObject.name} - Tag: {other.gameObject.tag}</color>");
-        //if (spellData.damageLayers == (spellData.damageLayers | (1 << other.gameObject.layer)))
-        //{
-        //    if (other.transform == caster)
-        //    {
-        //        if (spellData.friendlyFire)
-        //        {
-        //            // TODO: Apply damage to the caster (spellData.damage)
-        //        }
-        //    }
-        //    else
-        //    {
-        //        // TODO: Apply damage to enemy player (spellData.damage)
-        //    }
-
-        //    // If true, the spell will be destroyed on contact with a player
-        //    if (spellData.destroyOnPlayerCollision)
-        //        Destroy(0f);
-
-        //    return;
-        //}
+        // Debug.LogFormat("<color=green> >>> HIT >>> (" + other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId + ")</color>");
 
 
         // If shield is detected redirect damage to it
@@ -303,24 +339,23 @@ public abstract class K_Spell : NetworkBehaviour
         }
 
 
-        // If the spell hits a barrier, apply the damage to the barrier
-        // If the spell hits a shield > That is handled above
-        if (other.gameObject.name.Contains("Barrier") && other.gameObject.CompareTag("Spell"))
-        {
-            if (this.gameObject.CompareTag("ActiveShield")) return; // Handled above, this is just an exception handler.
+        //// If the spell hits a barrier, apply the damage to the barrier
+        //// If the spell hits a shield > That is handled above
+        //if (other.gameObject.name.Contains("Barrier") && other.gameObject.CompareTag("Spell"))
+        //{
+        //    if (this.gameObject.CompareTag("ActiveShield")) return; // Handled above, this is just an exception handler.
 
-            BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
+        //    BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
 
-            //if (barrierScript.spellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
-            //{
-            //    // Apply damage to the barrier
-            //    other.gameObject.GetComponent<BarrierSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-            //}
-        }
+        //    //if (barrierScript.spellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
+        //    //{
+        //    //    // Apply damage to the barrier
+        //    //    other.gameObject.GetComponent<BarrierSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+        //    //}
+        //}
 
 
-        // The below code can nbe simplified, making .
-        //
+        // The below code can nbe simplified
         if (other.gameObject.CompareTag("Spell"))
         {
             if (other.gameObject.name.Contains("Barrier"))
@@ -333,7 +368,7 @@ public abstract class K_Spell : NetworkBehaviour
                     //DestroySpellRpc();
                 }
 
-                Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE HIT >>> (" + other.gameObject.name + ")</color>");
+                Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
             }
 
@@ -343,10 +378,12 @@ public abstract class K_Spell : NetworkBehaviour
 
                 if (invocationSpell.SpellDataScriptableObject.health > 1)
                 {
+                    Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + gameObject.name + ")</color>");
+
                     invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE HIT >>> (" + other.gameObject.name + ")</color>");
+                Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
 
             }
@@ -356,6 +393,42 @@ public abstract class K_Spell : NetworkBehaviour
         // If the spell collides with the player character, handle this interaction
         if (other.gameObject.CompareTag("Player"))
         {
+
+            // Get the NetworkObjectId of the other GameObject involved in the collision
+            ulong networkObjectId = other.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
+
+            // Attempt to retrieve the NetworkObject from the SpawnManager using its ID retrieved above
+            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
+            {
+                // Get the client ID that owns this NetworkObject
+                ulong ownerId = netObj.OwnerClientId;
+
+                // Log the ownership information for debugging purposes
+                Debug.Log($"Object {networkObjectId} is owned by client {ownerId}");
+
+                // Send an RPC to apply damage only to the owning client of this object
+                ApplyDamageToPlayerClientRpc(other.GetComponent<NetworkObject>().OwnerClientId,
+                RpcTarget.Single(ownerId, RpcTargetUse.Temp));
+
+            }
+
+            //NetworkObject targetNetObj = other.gameObject.GetComponent<NetworkObject>();
+            //if (targetNetObj != null)
+            //{
+            //    var clientRpcParams = new ClientRpcParams
+            //    {
+            //        Send = new ClientRpcSendParams
+            //        {
+            //            TargetClientIds = new[] { targetNetObj.OwnerClientId }
+            //        }
+            //    };
+
+            //    ApplyDamageToPlayerClientRpc(clientRpcParams);
+            //}
+
+            //ApplyDamageToPlayerRpc(this.GetComponent<NetworkBehaviour>().RpcTarget.Owner);
+
+
             if (gameObject.name == "Aoe_Air" && gameObject.name == "Area of effect" && gameObject.tag == "Spell")
             {
                 if (spellDataScriptableObject.pushForce > 0)
@@ -369,17 +442,18 @@ public abstract class K_Spell : NetworkBehaviour
                         //pullSpellsList.Add(rb);
                     }
                 }
-            } else 
-            {
-                if (spellDataScriptableObject.pushForce > 0)
+                else
                 {
-                    // Cache the player's Rigidbody locally
-                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-                    // Add the rigidbody to the list of rigidbodies to be pushed
-                    if (rb2 != null)
+                    if (spellDataScriptableObject.pushForce > 0)
                     {
-                        pushSpellsList.Add(rb2);                    
+                        // Cache the player's Rigidbody locally
+                        Rigidbody rb2 = other.GetComponent<Rigidbody>();
+
+                        // Add the rigidbody to the list of rigidbodies to be pushed
+                        if (rb2 != null)
+                        {
+                            pushSpellsList.Add(rb2);
+                        }
                     }
                 }
             }
@@ -413,11 +487,11 @@ public abstract class K_Spell : NetworkBehaviour
                 spellDataScriptableObject.damageOverTimeAmount,
                 spellDataScriptableObject.damageOverTimeDuration,
                 spellDataScriptableObject.spellAttribute,
-                spellDataScriptableObject.pushback 
+                spellDataScriptableObject.pushback
             );
 
 
-            PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
+            //PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
             hasHitPlayer = true;
 
             Debug.LogFormat("<color=blue>YYYYYYYK_Spell (" + other.gameObject.name + ")</color>");

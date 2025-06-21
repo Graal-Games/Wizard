@@ -76,6 +76,9 @@ public class K_ProjectileSpell : K_Spell
     {
         base.OnNetworkSpawn();
 
+        Debug.LogFormat("<color=orange> >>> PROJECTILE OWNER >>> (" + OwnerClientId + ")</color>");
+
+
         spellMoveSpeed.Value = SpellDataScriptableObject.moveSpeed;
 
         rb.constraints = RigidbodyConstraints.FreezeRotation;
@@ -288,17 +291,27 @@ public class K_ProjectileSpell : K_Spell
 
         //else
         //{
-            //Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
-            ////rb.MovePosition(rb.position + moveDirection);
-            ////rb.AddForce(rb.position + moveDirection);
-            //transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
+        //Vector3 moveDirection = transform.forward * SpellDataScriptableObject.moveSpeed * Time.deltaTime;
+        ////rb.MovePosition(rb.position + moveDirection);
+        ////rb.AddForce(rb.position + moveDirection);
+        //transform.Translate(Vector3.forward * Time.deltaTime * SpellDataScriptableObject.moveSpeed);
         //}
-
 
         Vector3 forceDirection = transform.forward * spellMoveSpeed.Value;
         rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
+
+
+        // UpdatePositionOnServerRpc();
     }
 
+    //[Rpc(SendTo.Server)]
+    //void UpdatePositionOnServerRpc()
+    //{
+    //    if (!IsServer) return;
+    //    // Update the current position on the server
+    //    Vector3 forceDirection = transform.forward * spellMoveSpeed.Value;
+    //    rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
+    //}
 
     public override void Fire()
     {
@@ -355,18 +368,20 @@ public class K_ProjectileSpell : K_Spell
 
         base.OnTriggerEnter(other);
 
-        Debug.LogFormat("<color=orange> >>> PROJECTILE HIT >>> (" + other.gameObject.name + ")</color>");
+        if (other.gameObject.CompareTag("Player"))
+            Debug.LogFormat("<color=orange> >>> PROJECTILE HIT >>> (" + other.gameObject.name + ")</color>");
 
-        if (other.gameObject.name.Contains("Player"))
-        {
-            triggerEntered = true;
-            //other.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
-        }
+        //if (other.gameObject.name.Contains("Player"))
+        //{
+        //    triggerEntered = true;
+        //    //other.gameObject.GetComponent<NewPlayerBehavior>().DirectDamage(SpellDataScriptableObject.directDamageAmount);
+        //}
 
         if (other.gameObject.layer == 7)
         {
             if (IsSpawned)
             {
+                Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
             }
         }

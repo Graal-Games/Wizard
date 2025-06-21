@@ -149,7 +149,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         parryLetterGO.SetActive(false); // Note: If this were to be placed in the Start(), the object would be deactivated locally but persists over the network
 
         // Subscribe to the changes made to the player health
-        K_Spell.playerHitEvent += DamageHandler; // Event subscription to event emitted by spell upon interaction with player
+        SpellsClass.playerHitEvent += DamageHandler; // Event subscription to event emitted by spell upon interaction with player
 
         K_SphereSpell.shieldExists += ShieldAliveStatus;
 
@@ -175,7 +175,11 @@ public class NewPlayerBehavior : NetworkBehaviour
     }
 
 
+    public void DoSomething()
+    {
+        Debug.LogFormat($"<color=blue> 2 NEW DAMAGE APPLICATION / OWNER: {OwnerClientId} </color>");
 
+    }
 
     [Rpc(SendTo.Server)]
     void SpawnWandRpc()
@@ -415,14 +419,14 @@ public class NewPlayerBehavior : NetworkBehaviour
     {
 
         Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 1 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
-
-        if (!IsOwner) return;
+        // if (!IsOwner)
+        if (emittedPlayerHitPayload.PlayerId != GetComponent<NetworkObject>().OwnerClientId) return;
 
         Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
 
         // Make sure the the event is being processed by the respective script of the player that was hit
         // xx Lets say the projectile is owned by player 2 and emits that it hit player 1, if this script is indeed owned by player 1 then run the code otherwise skip it
-        if (emittedPlayerHitPayload.PlayerId != OwnerClientId) return;
+        //if (emittedPlayerHitPayload.PlayerId != OwnerClientId) return;
          
         Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 3 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
         // Received from an event emitted by the spawed sphere
@@ -503,12 +507,13 @@ public class NewPlayerBehavior : NetworkBehaviour
     public void DirectDamage(float directDamageAmount)
     {
         Debug.LogFormat($"<color=orange> >1Direct Damage method - Damage amount: {directDamageAmount} </color>");
-        if (!IsOwner) return;
-        //healthBarScript.SetHealth(directDamageAmount);
-        //PlayerHealth.Value -= directDamageAmount;
+
+        if (!IsOwner) return;    
+
         if (shaderActivation != null) shaderActivation(OwnerClientId, "Blood", 1);
-        // healthBarScript.ApplyDamage(directDamageAmount);
+
         _healthBar.ApplyDamage(directDamageAmount);
+
         // edit health on local class
         // send event for game manager
         Debug.LogFormat($"<color=orange> >2Direct Damage method - Damage amount: {directDamageAmount} </color>");
