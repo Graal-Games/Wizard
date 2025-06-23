@@ -161,6 +161,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         _playerController = GetComponent<PlayerController>();
 
+        // if (!IsOwner) return;
         isSlowed.Value = false;
 
         //SpawnWandRpc();
@@ -404,13 +405,17 @@ public class NewPlayerBehavior : NetworkBehaviour
     {
         if (p_clientId != OwnerClientId) return;
 
-        Debug.LogFormat($"<color=brown>ShieldAliveStatus Owner ccc : {OwnerClientId} </color>");
+        Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
 
         // Evaluates to true when a shield is spawned and is active on the player character
         //and is thereafter used to check whether or not to deal damage to the player
         // !! This method is further elaborated so that damage to the player is not made at the same time a projectile destroys it (the problem this code is solving)
         //ShieldIsActiveServerRpc();
         isShieldActive = isShieldAvailable;
+
+
+        Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
+
     }
 
 

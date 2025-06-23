@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using static ProjectileSpell;
-
-public class SpellsClass : NetworkBehaviour
+ 
+public class SpellsClass : NetworkBehaviour, ISpell
 {
     [SerializeField]
     private K_SpellData spellDataScriptableObject;
+
+    GameObject gameObjectToDestroy;
 
     public K_SpellData SpellDataScriptableObject
     {
@@ -17,9 +19,13 @@ public class SpellsClass : NetworkBehaviour
     public delegate void PlayerHitEvent(PlayerHitPayload damageInfo);
     public static event PlayerHitEvent playerHitEvent;
 
-    //PlayerHitPayload spellPayload;
-
     public Rigidbody rb;
+
+    public string SpellName => SpellDataScriptableObject.name;
+
+    NetworkVariable<bool> hasHitShield = new NetworkVariable<bool>(false,
+    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
+
 
     private void Start()
     {
@@ -29,14 +35,30 @@ public class SpellsClass : NetworkBehaviour
         rb.useGravity = false;
     }
 
+
+
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        //K_SphereSpell.shieldExists += ShieldAliveStatus;
+        StartCoroutine(LifeTime(spellDataScriptableObject.spellDuration, this.gameObject));
     }
 
 
+
+    public virtual void PlayerIsHit(GameObject other)
+    {
+        // Get the NetworkObject ID of the player that was hit
+        ulong targetNetworkObjectId = other.GetComponent<NetworkObject>().NetworkObjectId;
+
+        // Handle spell interaction with player
+        ApplyDamageToPlayerClientRpc(targetNetworkObjectId);
+    }
+
+
+
+    // Emits a client rpc payload to all players that is then locally digested to invoke associated methods
     [Rpc(SendTo.Everyone)]
     void ApplyDamageToPlayerClientRpc(ulong targetNetworkObjectId)
     {
@@ -64,41 +86,15 @@ public class SpellsClass : NetworkBehaviour
 
             EmitPayload(spellPayload);
         }
-
-        
     }
+
+
+
 
     void EmitPayload(PlayerHitPayload spellPayloadParam)
     {
         playerHitEvent?.Invoke(spellPayloadParam);
     }
-
-    //// This method instantiates a new instance of PlayerHitPayload struct that was defined elsewhere
-    //// Thereafter, once the spell has come into contact with a player the information required to handle player damage, along with the inflicted target player's clientId
-    //// Once the infomation is set, it is sent via an event that is emitted, thereafter received in the PlayerBehaviour script and handled there accordingly
-    //// Note parameters order
-    //public void SpellPayloadConstructor(int netId, ulong pId, string element, IncapacitationName incapName, float incapDur, VisionImpairment visionImp, float visionImpDur, float ddAmount, float dotAmount, float dotDur, SpellAttribute type, bool pushback)
-    //{
-    //    Debug.LogFormat($"<color=orange>PAYLOAD CONSTRUCTOR</color>");
-    //    // This is a struct that is defined in its own script
-    //    // It is used to send information about the spell that hit a player for damage and effects handling
-    //    spellPayload = new PlayerHitPayload
-    //    {
-    //        // The left side values are defined in the PlayerHitPayload struct
-    //        NetworkId = netId,
-    //        PlayerId = pId,
-    //        SpellElement = element,
-    //        IncapacitationName = incapName,
-    //        IncapacitationDuration = incapDur,
-    //        VisionImpairment = visionImp,
-    //        VisionImpairmentDuration = visionImpDur,
-    //        DirectDamageAmount = ddAmount,
-    //        DamageOverTimeAmount = dotAmount,
-    //        SpellAttribute = type,
-    //        DamageOverTimeDuration = dotDur,
-    //        Pushback = pushback
-    //    };
-    //}
 
     //serverRPC
     //get the local health of the player involved
@@ -106,52 +102,103 @@ public class SpellsClass : NetworkBehaviour
     //player health = 80
     //clientRPC get health >> is local health == server health
 
-    public virtual void PlayerIsHit(GameObject other)
+    public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        Debug.LogFormat($"<color=orange>PLAYERISHIT</color>");
+        Debug.LogFormat("<color=orange> 1 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
+
+        // If shield is detected redirect damage to it
+        // And DO NOT proceed to apply damage to the related player
+        if (other.CompareTag("ActiveShield"))
+        {
+            // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+            other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+
+            hasHitShield.Value = true;
+
+            // What?
+            if (spellDataScriptableObject.spellType.ToString() == "Projectile")
+                DestroySpellRpc();
+
+            Debug.LogFormat("<color=orange> 3 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
 
 
-        //// Get the NetworkObjectId of the other GameObject involved in the collision
-        //ulong networkObjectId = other.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
-
-        //// Attempt to retrieve the NetworkObject from the SpawnManager using its ID retrieved above
-        //if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
-        //{
-        //    // Get the client ID that owns this NetworkObject
-        //    ulong ownerId = netObj.OwnerClientId;
-
-        //    // Log the ownership information for debugging purposes
-        //    Debug.Log($"Object {networkObjectId} is owned by client {ownerId}");
-
-        //    // Send an RPC to apply damage only to the owning client of this object
-        //    ApplyDamageToPlayerClientRpc
-        //    (
-        //        other.GetComponent<NetworkObject>().OwnerClientId,
-        //        RpcTarget.Single(ownerId, RpcTargetUse.Temp)
-        //    );
-
-        //}
-
-        //NetworkObject targetNetObj = other.gameObject.GetComponent<NetworkObject>();
-
-        //if (targetNetObj != null)
-        //{
-        //    var clientRpcParams = new ClientRpcParams
-        //    {
-        //        Send = new ClientRpcSendParams
-        //        {
-        //            TargetClientIds = new[] { targetNetObj.OwnerClientId }
-        //        }
-        //    };
-        //}
-
-        // 'other' is the GameObject you want to reference
-        ulong targetNetworkObjectId = other.GetComponent<NetworkObject>().NetworkObjectId;
-        ApplyDamageToPlayerClientRpc(targetNetworkObjectId);
-
-        // Apply damage HealthBarUi
-
+            return true;
+        }
+        Debug.LogFormat("<color=orange> 4 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
+        return false;
     }
 
 
+    public void HandleSpellToSpellInteractions(GameObject other)
+    {
+        // If the other object that this gameObject has interacted with is a spell
+        //>>handle the behavior of the spell interaction
+        if (other.CompareTag("Spell"))
+        {
+            if (other.GetComponent<ISpell>().SpellName.Contains("Barrier"))
+            {
+                BarrierSpell barrierScript = other.GetComponentInParent<BarrierSpell>();
+
+                if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
+                {
+                    other.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
+                    //DestroySpellRpc();
+                }
+
+                //Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
+                DestroySpellRpc();
+            }
+
+            if (other.gameObject.name.Contains("Scepter"))
+            {
+                InvocationSpell invocationSpell = other.gameObject.GetComponentInParent<InvocationSpell>();
+
+                if (invocationSpell.SpellDataScriptableObject.health > 1)
+                {
+                    //Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + gameObject.name + ")</color>");
+
+                    invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+                }
+
+                //Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
+                DestroySpellRpc();
+
+            }
+        }
+    }
+
+
+    #region Spell Duration handling and destruction
+    public IEnumerator LifeTime(float duration, GameObject spellObj)
+    {
+        gameObjectToDestroy = spellObj;
+
+        yield return new WaitForSeconds(duration);
+        DestroySpellRpc();
+    }
+
+    public void DestroySpell(GameObject spellObj)
+    {
+        gameObjectToDestroy = spellObj;
+
+        DestroySpellRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void DestroySpellRpc()
+    {
+        Debug.LogFormat($"<color=pink>gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
+
+        Destroy(gameObjectToDestroy);
+
+        if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)
+        {
+            gameObjectToDestroy.GetComponent<NetworkObject>().Despawn();
+        }
+        else
+        {
+            gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
+        }
+    }
+    #endregion
 }

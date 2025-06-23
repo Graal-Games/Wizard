@@ -162,6 +162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spellDataScriptableObject: {fileID: 11400000, guid: a6748aa5792ad92428fb4b9121e35f91, type: 2}
+  rb: {fileID: 0}
   directDamageAmount:
     m_InternalValue: 0
   localSpellId: 

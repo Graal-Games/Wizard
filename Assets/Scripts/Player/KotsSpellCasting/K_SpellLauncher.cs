@@ -269,7 +269,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (isInDRLockMode)
         {
             //if (CastModeSpeedChange != null) CastModeSpeedChange(castModeMoveSpeedSlow);
-            Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");
+            // Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");
             HandleDRLockInput();
             return;
         } else

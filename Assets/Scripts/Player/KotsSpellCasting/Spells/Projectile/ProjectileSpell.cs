@@ -7,30 +7,6 @@ using static K_Spell;
 
 public class ProjectileSpell : ProjectileClass
 {
-    //[SerializeField]
-    //private K_SpellData spellDataScriptableObject;
-    bool spellHasSpawned = false;
-    //string spellType;
-    //bool hasHitShield = false;
-    //bool hasHitPlayer = false;
-    private bool triggerEntered = false;
-
-    public NetworkVariable<float> directDamageAmount = new NetworkVariable<float>();
-
-    // This is the locally saved GUID
-    public string localSpellId;
-
-    // This NV saves the GUID on the NetworkedObject instance of the same spell and is used to destroy the local instance of the projectile
-    public NetworkVariable<FixedString128Bytes> spellId = new NetworkVariable<FixedString128Bytes>();
-
-    public NetworkVariable<float> spellMoveSpeed = new NetworkVariable<float>();
-
-    public delegate void DestroyLocalProjectileInstance(FixedString128Bytes spellId);
-    public static event DestroyLocalProjectileInstance projectileInstance;
-
-    public delegate void PlayerHitEvent2(float damage);
-    public static event PlayerHitEvent2 playerHitEvent2;
-
 
     //private void OnDrawGizmos()
     //{

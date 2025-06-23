@@ -20,7 +20,7 @@ public class K_SphereSpell : K_Spell
 
         base.OnNetworkSpawn();
 
-        // Debug.LogFormat($"<color=orange>{this.gameObject.transform.parent}</color>");
+        Debug.LogFormat($"<color=orange>SPHERE PARENT: {this.gameObject.transform.parent} ID: {OwnerClientId} </color>");
 
         //RigidbodyCP.constraints = RigidbodyConstraints.FreezeAll;
         //RigidbodyCP.useGravity = false;
@@ -102,16 +102,27 @@ public class K_SphereSpell : K_Spell
     public void TakeDamage(float damage)
     {
         armorPoints.Value -= damage;
-        Debug.LogFormat($"<color=orange>armorPoints: {armorPoints}</color>");
-        
-        if (armorPoints.Value <= 0 ) 
+        Debug.LogFormat($"<color=orange>armorPoints: {armorPoints.Value}</color>");
+
+        //TakeDamageRpc(damage);
+
+        CheckStatus();
+    }
+
+    [Rpc(SendTo.Server)]
+    void TakeDamageRpc(float damage)
+    {
+        armorPoints.Value -= damage;
+        CheckStatus();
+    }
+
+    void CheckStatus()
+    {
+        if (armorPoints.Value <= 0)
         {
             DestroySpell(gameObject);
         }
-        
     }
-
-
 
     public override void Fire()
     {
