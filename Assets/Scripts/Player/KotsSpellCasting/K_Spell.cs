@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 [SelectionBase] // Select parent
 //[RequireComponent(typeof(Rigidbody))]
-public abstract class K_Spell : NetworkBehaviour
+public abstract class K_Spell : NetworkBehaviour, ISpell
 {
     //[Tooltip("The collider for damage detection, it should be set as a Trigger.")]
     //public Collider hurtBox;
@@ -36,6 +36,8 @@ public abstract class K_Spell : NetworkBehaviour
     private float speed;
 
     float? healthPoints = null; // Nullable
+
+    public string SpellName => SpellDataScriptableObject.name;
 
     public float? HealthPoints
     {

@@ -135,7 +135,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //>>handle the behavior of the spell interaction
         if (other.CompareTag("Spell"))
         {
-            if (other.GetComponent<ISpell>().SpellName.Contains("Barrier"))
+            var spellComponent = other.GetComponent<ISpell>();
+
+            Debug.LogFormat("<color=orange> spellComponent (" + spellComponent + ")</color>");
+
+            if (spellComponent != null && spellComponent.SpellName.Contains("Barrier"))
             {
                 BarrierSpell barrierScript = other.GetComponentInParent<BarrierSpell>();
 
@@ -147,20 +151,21 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 //Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
-            }
-
-            if (other.gameObject.name.Contains("Scepter"))
+            } 
+            else if (other.GetComponentInParent<ISpell>() != null && other.GetComponentInParent<ISpell>().SpellName.Contains("Scepter"))
             {
+                Debug.LogFormat("<color=orange> 22222 >>> SCEPTER DESTROY BY >>> (" + other.gameObject.name + ")</color>");
+
                 InvocationSpell invocationSpell = other.gameObject.GetComponentInParent<InvocationSpell>();
 
                 if (invocationSpell.SpellDataScriptableObject.health > 1)
                 {
-                    //Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + gameObject.name + ")</color>");
+                    Debug.LogFormat("<color=orange> 33333 >>> SCEPTER DESTROY BY >>> (" + gameObject.name + ")</color>");
 
                     invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                //Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
+                Debug.LogFormat("<color=orange> 44444 >>> SCEPTER DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
 
             }
