@@ -46,14 +46,14 @@ public class InvocationSpell : K_Spell
 
     GameObject InitializeObjectToSpawnPrefab()
     {
-        Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
+        //Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
 
 
 
         switch (SpellDataScriptableObject.element.ToString())
         {
             case "Arcane":
-                Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
+                //Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
 
                 objectToSpawn = spawnableGameObjects[0];
                 return objectToSpawn;
@@ -89,7 +89,7 @@ public class InvocationSpell : K_Spell
     IEnumerator Shoot()
     {
         yield return new WaitForSeconds(5);
-        Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
+        // Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
         //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
 
         // If a target is available
@@ -113,7 +113,7 @@ public class InvocationSpell : K_Spell
         if (localHealth.Value <= 0)
         {
             // DestroyBarrierRpc();
-            DestroySpellRpc();
+            DestroySpellRpc(gameObject);
         }
     }
 
@@ -124,8 +124,8 @@ public class InvocationSpell : K_Spell
     void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     {
         //Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-        Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
-        Debug.Log("SpellDataScriptableObject.childPrefab " + xPos + yPos + zPos);
+        //Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
+        //Debug.Log("SpellDataScriptableObject.childPrefab " + xPos + yPos + zPos);
 
         // spawnPosition = spawnLocation.gameObject.transform;
         //spawnPosition = aimAtOpposingPlayerScript.GetPlayerGameObject();

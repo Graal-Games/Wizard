@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 using static ProjectileSpell;
  
 public class SpellsClass : NetworkBehaviour, ISpell
@@ -26,6 +27,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
     NetworkVariable<bool> hasHitShield = new NetworkVariable<bool>(false,
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
+    NetworkVariable<float> healthPoints = new NetworkVariable<float>(0,
+    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
+
 
     private void Start()
     {
@@ -43,7 +47,26 @@ public class SpellsClass : NetworkBehaviour, ISpell
         base.OnNetworkSpawn();
 
         StartCoroutine(LifeTime(spellDataScriptableObject.spellDuration, this.gameObject));
+
+        // If the spell has a health value greater than 0, set the healthPoints variable
+        // This is used to apply damage to the spell itself and handle it's (delayed) destruction
+        if (SpellDataScriptableObject.health > 0)
+        {
+            healthPoints.Value = SpellDataScriptableObject.health;
+        }
     }
+
+    //void ApplyDamageToSpell()
+    //{
+    //    healthPoints.Value -= damage;
+    //    Debug.LogFormat($"<color=orange>armorPoints: {healthPoints}</color>");
+
+    //    if (healthPoints.Value <= 0)
+    //    {
+    //        // DestroyBarrierRpc();
+    //        DestroySpellRpc();
+    //    }
+    //}
 
 
 
@@ -104,8 +127,6 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        Debug.LogFormat("<color=orange> 1 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
-
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
         if (other.CompareTag("ActiveShield"))
@@ -119,53 +140,90 @@ public class SpellsClass : NetworkBehaviour, ISpell
             if (spellDataScriptableObject.spellType.ToString() == "Projectile")
                 DestroySpellRpc();
 
-            Debug.LogFormat("<color=orange> 3 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
-
 
             return true;
         }
-        Debug.LogFormat("<color=orange> 4 >>> PROJECTILE HIT SHIELD >>> (" + other.gameObject.name + ")</color>");
+
         return false;
     }
 
-
-    public void HandleSpellToSpellInteractions(GameObject other)
+    public void HandleAllInteractions(Collider colliderHit)
     {
+        HandleSpellToSpellInteractions(colliderHit);
+        HandleSpellToPlayerInteractions(colliderHit);
+    }
+
+    void HandleSpellToPlayerInteractions(Collider colliderHit)
+    {
+        
+        if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == false)
+        {
+            // Check for player hit
+            if (colliderHit.CompareTag("Player"))
+            {
+                // If player does not have active shield, handle the player hit
+                PlayerIsHit(colliderHit.gameObject);
+            }
+            return;
+        }
+        
+       
+        //// Check for player hit
+        //if (colliderHit.CompareTag("Player"))
+        //{
+        //    // If player does not have active shield, handle the player hit
+        //    PlayerIsHit(colliderHit.gameObject);
+        //}
+        
+
+        // Check if the target is a spell instead 
+        if (colliderHit.CompareTag("Spell"))
+        {
+            //Handle the spell to spell interaction
+            HandleSpellToSpellInteractions(colliderHit);
+        }
+
+        if (colliderHit.gameObject.layer == 7)
+        {
+            if (IsSpawned)
+            {
+                Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
+                DestroySpellRpc();
+            }
+        }
+    }
+
+    public void HandleSpellToSpellInteractions(Collider colliderHit)
+    {
+        // Collider objectHit = colliderHit;
         // If the other object that this gameObject has interacted with is a spell
         //>>handle the behavior of the spell interaction
-        if (other.CompareTag("Spell"))
+        if (colliderHit.CompareTag("Spell"))
         {
-            var spellComponent = other.GetComponent<ISpell>();
+            var spellComponent = colliderHit.GetComponent<ISpell>();
 
-            Debug.LogFormat("<color=orange> spellComponent (" + spellComponent + ")</color>");
 
             if (spellComponent != null && spellComponent.SpellName.Contains("Barrier"))
             {
-                BarrierSpell barrierScript = other.GetComponentInParent<BarrierSpell>();
+                BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
-                    other.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
-                    //DestroySpellRpc();
+                    colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
+                    
                 }
 
-                //Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
             } 
-            else if (other.GetComponentInParent<ISpell>() != null && other.GetComponentInParent<ISpell>().SpellName.Contains("Scepter"))
+            else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Scepter"))
             {
-                Debug.LogFormat("<color=orange> 22222 >>> SCEPTER DESTROY BY >>> (" + other.gameObject.name + ")</color>");
-
-                InvocationSpell invocationSpell = other.gameObject.GetComponentInParent<InvocationSpell>();
+                InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
 
                 if (invocationSpell.SpellDataScriptableObject.health > 1)
                 {
-                    Debug.LogFormat("<color=orange> 33333 >>> SCEPTER DESTROY BY >>> (" + gameObject.name + ")</color>");
-
                     invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                Debug.LogFormat("<color=orange> 44444 >>> SCEPTER DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc();
 
             }
@@ -192,8 +250,6 @@ public class SpellsClass : NetworkBehaviour, ISpell
     [Rpc(SendTo.Server)]
     public void DestroySpellRpc()
     {
-        Debug.LogFormat($"<color=pink>gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
-
         Destroy(gameObjectToDestroy);
 
         if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)

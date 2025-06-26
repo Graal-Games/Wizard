@@ -598,9 +598,9 @@ public class K_SpellLauncher : NetworkBehaviour
             case "Sphere":
                 localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
 
-                //NetworkObjectReference spellInstanceReference = spellInstance.GetComponent<NetworkObject>();
-
-                // spellInstance.transform.parent = gameObject.transform;
+                localSpellInstance.GetComponent<K_SphereSpell>().enabled = false;
+                localSpellInstance.GetComponent<SphereCollider>().enabled = false;
+                localSpellInstance.GetComponent<NetworkObject>().enabled = false;
 
                 SpellSpawnRpc(spellSequence, playerCenter.transform.rotation, playerCenter.transform.position);
                 break;

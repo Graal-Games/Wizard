@@ -12,7 +12,7 @@ public class K_SphereSpell : K_Spell
 
     bool isAlive = true;
 
-    NetworkVariable <float> armorPoints = new NetworkVariable<float>();
+    NetworkVariable <float> armorPoints = new NetworkVariable<float>(0);
 
     public override void OnNetworkSpawn()
     {        
@@ -21,6 +21,7 @@ public class K_SphereSpell : K_Spell
         base.OnNetworkSpawn();
 
         Debug.LogFormat($"<color=orange>SPHERE PARENT: {this.gameObject.transform.parent} ID: {OwnerClientId} </color>");
+        Debug.LogFormat($"<color=orange>SPHERE HEALTH: {SpellDataScriptableObject.health} </color>");
 
         //RigidbodyCP.constraints = RigidbodyConstraints.FreezeAll;
         //RigidbodyCP.useGravity = false;
@@ -33,9 +34,11 @@ public class K_SphereSpell : K_Spell
 
         StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, gameObject));
 
-        // Add null exception handler or conditional here
-        gameObject.GetComponent<NetworkObject>().transform.position = gameObject.transform.parent.transform.position;
-
+        // Only set position if parent exists
+        if (gameObject.transform.parent != null)
+            gameObject.GetComponent<NetworkObject>().transform.position = gameObject.transform.parent.transform.position;
+        else
+            Debug.LogWarning("K_SphereSpell.OnNetworkSpawn: Parent is null, position not set.");
 
         //Debug.LogFormat($"<color=orange>Sphere parent OwnerClientId: {OwnerClientId}</color>");
         //gameObject.GetComponent<NetworkObject>().enabled = false;
@@ -120,6 +123,7 @@ public class K_SphereSpell : K_Spell
     {
         if (armorPoints.Value <= 0)
         {
+            Debug.LogFormat($"<color=orange>2!!!!armorPoints: {armorPoints.Value}</color>");
             DestroySpell(gameObject);
         }
     }

@@ -59,7 +59,7 @@ public class BarrierSpell : K_Spell
         if (localHealth.Value <= 0)
         {
             // DestroyBarrierRpc();
-            DestroySpellRpc();
+            DestroySpellRpc(gameObject);
         }
     }
 

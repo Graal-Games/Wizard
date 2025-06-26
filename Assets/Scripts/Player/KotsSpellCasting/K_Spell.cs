@@ -204,30 +204,50 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         gameObjectToDestroy = spellObj;
 
         yield return new WaitForSeconds(duration);
-        DestroySpellRpc();
+        DestroySpellRpc(gameObjectToDestroy);
     }
 
     public void DestroySpell(GameObject spellObj)
     {
-        gameObjectToDestroy = spellObj;
+        var netObj = spellObj.GetComponent<NetworkObject>();
+        if (netObj != null && netObj.IsSpawned)
+        {
+            DestroySpellRpc(netObj); // or new NetworkObjectReference(netObj)
+        }
+        else
+        {
+            // Fallback: just destroy locally if not spawned
+            Destroy(spellObj);
+        }
 
-        DestroySpellRpc();
+
+        //gameObjectToDestroy = spellObj;
+
+        //Debug.LogFormat($"<color=purple>111gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
+
+
+        //DestroySpellRpc(gameObjectToDestroy);
     }
 
 
+
     [Rpc(SendTo.Server)]
-    public void DestroySpellRpc()
+    public void DestroySpellRpc(NetworkObjectReference spellObjRef)
     {
-        Debug.LogFormat($"<color=pink>gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
+        Debug.LogFormat($"<color=purple>222gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
 
         Destroy(gameObjectToDestroy);
 
-        if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)
+        if (spellObjRef.TryGet(out NetworkObject netObj))
         {
-            gameObjectToDestroy.GetComponent<NetworkObject>().Despawn();
-        } else
-        {
-            gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
+            if (netObj != null)
+            {
+                netObj.Despawn();
+            }
+            else
+            {
+                netObj.Despawn();
+            }
         }
     }
 
@@ -335,7 +355,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
             // What?
             if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-                DestroySpellRpc();
+                DestroySpellRpc(other.gameObject);
 
             return;
         }
@@ -355,7 +375,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         //    //    other.gameObject.GetComponent<BarrierSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
         //    //}
         //}
-
+        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
 
         // The below code can nbe simplified
         if (other.gameObject.CompareTag("Spell"))
@@ -371,7 +391,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 }
 
                 Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
-                DestroySpellRpc();
+                DestroySpellRpc(other.gameObject);
             }
 
             if (other.gameObject.name.Contains("Scepter"))
@@ -386,33 +406,33 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 }
 
                 Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
-                DestroySpellRpc();
+                DestroySpellRpc(other.gameObject);
 
             }
         }
 
         // This is an exception that handles AIR PROJECTILES or AIR AOE
         // If the spell collides with the player character, handle this interaction
-        if (other.gameObject.CompareTag("Player"))
+        if (other.gameObject.CompareTag("Player") && !gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier"))
         {
 
-            // Get the NetworkObjectId of the other GameObject involved in the collision
-            ulong networkObjectId = other.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
+            //// Get the NetworkObjectId of the other GameObject involved in the collision
+            //ulong networkObjectId = other.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
 
-            // Attempt to retrieve the NetworkObject from the SpawnManager using its ID retrieved above
-            if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
-            {
-                // Get the client ID that owns this NetworkObject
-                ulong ownerId = netObj.OwnerClientId;
+            //// Attempt to retrieve the NetworkObject from the SpawnManager using its ID retrieved above
+            //if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
+            //{
+            //    // Get the client ID that owns this NetworkObject
+            //    ulong ownerId = netObj.OwnerClientId;
 
-                // Log the ownership information for debugging purposes
-                Debug.Log($"Object {networkObjectId} is owned by client {ownerId}");
+            //    // Log the ownership information for debugging purposes
+            //    Debug.Log($"Object {networkObjectId} is owned by client {ownerId}");
 
-                // Send an RPC to apply damage only to the owning client of this object
-                ApplyDamageToPlayerClientRpc(other.GetComponent<NetworkObject>().OwnerClientId,
-                RpcTarget.Single(ownerId, RpcTargetUse.Temp));
+            //    // Send an RPC to apply damage only to the owning client of this object
+            //    ApplyDamageToPlayerClientRpc(other.GetComponent<NetworkObject>().OwnerClientId,
+            //    RpcTarget.Single(ownerId, RpcTargetUse.Temp));
 
-            }
+            //}
 
             //NetworkObject targetNetObj = other.gameObject.GetComponent<NetworkObject>();
             //if (targetNetObj != null)
@@ -493,7 +513,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
             );
 
 
-            //PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
+            PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
             hasHitPlayer = true;
 
             Debug.LogFormat("<color=blue>YYYYYYYK_Spell (" + other.gameObject.name + ")</color>");

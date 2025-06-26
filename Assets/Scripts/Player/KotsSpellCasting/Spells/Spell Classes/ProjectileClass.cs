@@ -49,36 +49,37 @@ public class ProjectileClass : SpellsClass
 
         if (Physics.SphereCast(currentPosition, radius, lastPosition - currentPosition, out hit, Vector3.Distance(currentPosition, lastPosition)))
         {
-            // If player has active shield, handle the shield interaction and don't process the player hit
-            if (hit.collider.CompareTag("ActiveShield"))
-            {
-                if (HandleIfPlayerHasActiveShield(hit.collider.gameObject) == false)
-                {
-                    // Check for player hit
-                    if (hit.collider.CompareTag("Player"))
-                    {
+            HandleAllInteractions(hit.collider);
+            //// If player has active shield, handle the shield interaction and don't process the player hit
+            //if (hit.collider.CompareTag("ActiveShield"))
+            //{
+            //    if (HandleIfPlayerHasActiveShield(hit.collider.gameObject) == false)
+            //    {
+            //        // Check for player hit
+            //        if (hit.collider.CompareTag("Player"))
+            //        {
 
-                        // If player does not have active shield, handle the player hit
-                        PlayerIsHit(hit.collider.gameObject);
-                    }
-                }
-            } else
-            {
-                // Check for player hit
-                if (hit.collider.CompareTag("Player"))
-                {
+            //            // If player does not have active shield, handle the player hit
+            //            PlayerIsHit(hit.collider.gameObject);
+            //        }
+            //    }
+            //} else
+            //{
+            //    // Check for player hit
+            //    if (hit.collider.CompareTag("Player"))
+            //    {
 
-                    // If player does not have active shield, handle the player hit
-                    PlayerIsHit(hit.collider.gameObject);
-                }
-            }
+            //        // If player does not have active shield, handle the player hit
+            //        PlayerIsHit(hit.collider.gameObject);
+            //    }
+            //}
 
-            // Check if the target is a spell instead 
-            if (hit.collider.CompareTag("Spell"))
-            {
-                //Handle the spell to spell interaction
-                HandleSpellToSpellInteractions(hit.collider.gameObject);
-            }
+            //// Check if the target is a spell instead 
+            //if (hit.collider.CompareTag("Spell"))
+            //{
+            //    //Handle the spell to spell interaction
+            //    HandleSpellToSpellInteractions(hit.collider.gameObject);
+            //}
 
             if (hit.collider.gameObject.layer == 7)
             {

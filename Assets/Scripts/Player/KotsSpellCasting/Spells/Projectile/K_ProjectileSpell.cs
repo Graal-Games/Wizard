@@ -321,7 +321,7 @@ public class K_ProjectileSpell : K_Spell
     IEnumerator DelayedDestruction()
     {
         yield return new WaitForSeconds(0.3f); // The value here seems to be working for now. Might need to revise it later.
-        DestroySpellRpc();
+        DestroySpellRpc(gameObject);
     }
 
     //[Rpc(SendTo.Server)]
@@ -358,7 +358,7 @@ public class K_ProjectileSpell : K_Spell
     {
         //this.gameObject.SetActive(false);
         yield return new WaitForSeconds(1);
-        DestroySpellRpc();
+        DestroySpellRpc(gameObject);
     }
 
 
@@ -382,7 +382,7 @@ public class K_ProjectileSpell : K_Spell
             if (IsSpawned)
             {
                 Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
-                DestroySpellRpc();
+                DestroySpellRpc(gameObject);
             }
         }
 
