@@ -269,7 +269,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (isInDRLockMode)
         {
             //if (CastModeSpeedChange != null) CastModeSpeedChange(castModeMoveSpeedSlow);
-            // Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");
+            // Debug.LogFormat($"<color=red> UPDATE !!!! IS DR LOCK !!!! UPDATE </color>");65149835
             HandleDRLockInput();
             return;
         } else
@@ -598,6 +598,8 @@ public class K_SpellLauncher : NetworkBehaviour
             case "Sphere":
                 localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
 
+                // Disabling these so no errors are thrown when shield is being destoyed
+                // otherwise the functionality does not work
                 localSpellInstance.GetComponent<K_SphereSpell>().enabled = false;
                 localSpellInstance.GetComponent<SphereCollider>().enabled = false;
                 localSpellInstance.GetComponent<NetworkObject>().enabled = false;
@@ -710,33 +712,12 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void SpellSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position)
     {
-        Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-        Debug.Log("NetworkManager.LocalClientId (" + OwnerClientId + ")");
-
-        // GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], playerCenter.transform.position, rotation);
-
-        //if (spellInstanceReference.TryGet(out NetworkObject targetObject))
-        //{
-        //    //NetworkObject netObj = NetworkManager.SpawnManager.InstantiateAndSpawn(targetObject.GetComponent<NetworkObject>(), OwnerClientId, true, true, false, position, rotation);
-        //    // NetworkObject netObj = targetObject.Spawn();
-
-        //    NetworkObject netObj = targetObject.GetComponent<NetworkObject>();
-
-        //    netObj.SpawnWithOwnership(OwnerClientId);
-
-        //    netObj.TrySetParent(gameObject.transform);
-
-        //    //netObj.GetComponent<K_SphereSpell>().AssignParent(gameObject.transform);
-        //}
-
-        //NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        //NetworkObject netObj = NetworkManager.SpawnManager.InstantiateAndSpawn(spellPrefabsReferences[spellSequenceParam].GetComponent<NetworkObject>());
 
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], playerCenterGO.transform.position, rotation);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
+
         netObj.SpawnWithOwnership(OwnerClientId);
 
         netObj.TrySetParent(gameObject.GetComponent<NetworkObject>());
@@ -744,16 +725,6 @@ public class K_SpellLauncher : NetworkBehaviour
         netObj.GetComponent<K_SphereSpell>().AssignParent(gameObject.transform);
 
         HideForOwnerRpc(netObj);
-
-
-        // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
-        //netObj.SpawnWithOwnership(OwnerClientId);
-
-        //netObj.TrySetParent(gameObject.transform);
-
-        //Debug.Log("SPHERE SCRIPT>: " + spellPrefabsReferences[spellSequenceParam].GetComponent<K_SphereSpell>());
-
-
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
@@ -780,20 +751,10 @@ public class K_SpellLauncher : NetworkBehaviour
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
-        //Physics.IgnoreCollision(spellInstance.GetComponent<Collider>(), GetComponent<Collider>(), true);
-
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        //var spellScript = netObj.GetComponent<K_ProjectileSpell>();
-
-        //spellScript.spellId.Value = spellId;
-
-        //netObj.SpawnWithOwnership(OwnerClientId);
         netObj.Spawn();
 
-        //HideForOwnerRpc(netObj);
-
-        //netObj.TrySetParent(gameObject.transform);
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();
@@ -817,10 +778,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        //netObj.SpawnWithOwnership(OwnerClientId);
         netObj.Spawn();
 
-        //netObj.TrySetParent(gameObject.transform);
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
         ResetSpellSequence();

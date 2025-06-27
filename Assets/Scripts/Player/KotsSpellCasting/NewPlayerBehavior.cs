@@ -150,6 +150,9 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         // Subscribe to the changes made to the player health
         SpellsClass.playerHitEvent += DamageHandler; // Event subscription to event emitted by spell upon interaction with player
+        
+        // To replace
+        K_Spell.playerHitEvent += DamageHandler; // Event subscription to event emitted by spell upon interaction with player
 
         K_SphereSpell.shieldExists += ShieldAliveStatus;
 
@@ -600,6 +603,8 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
+
         if (other.gameObject.name.Contains("Targeting"))
         {
             // Activate parry letters above this player character

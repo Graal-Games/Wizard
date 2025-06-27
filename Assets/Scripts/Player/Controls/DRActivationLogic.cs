@@ -14,7 +14,7 @@ public class DRActivationLogic : MonoBehaviour
     LocalSpells localSpells;
     [SerializeField] GameObject localSpellsCastPoint;
     [SerializeField] DRTierObjectColorManager dRTierObjectColorManager;
-    BarrierSpellCast barrierSpellCast;
+    //BarrierSpellCast barrierSpellCast;
 
     bool isSphereCastInterrupted;
     bool isAoeCastInterrupted = false;
@@ -37,9 +37,9 @@ public class DRActivationLogic : MonoBehaviour
         spellcasting = GetComponentInParent<Spellcasting>();
         localSpells = localSpellsCastPoint.GetComponent<LocalSpells>();
 
-        barrierSpellCast = GetComponentInChildren<BarrierSpellCast>();
+        //barrierSpellCast = GetComponentInChildren<BarrierSpellCast>();
 
-        Debug.LogFormat($"<color=black>barrierSpellCast: {barrierSpellCast}</color>");
+        //Debug.LogFormat($"<color=black>barrierSpellCast: {barrierSpellCast}</color>");
     }
 
     
@@ -365,7 +365,7 @@ public class DRActivationLogic : MonoBehaviour
     {
         if (playerInput.isBarrierDRActive == false)
         {
-            barrierSpellCast.CastBarrier(spell);
+            //barrierSpellCast.CastBarrier(spell);
            
             // Keep track of how many times the spell was cast for DR
             dRRouter.BarrierCount++;

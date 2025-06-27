@@ -21,7 +21,7 @@ public class Spellcasting : NetworkBehaviour
     LocalSpells localSpells;
     PlayerMovement playerMovement;
     PlayerBehavior playerBehavior;
-    BarrierSpellCast barrierSpellCast;
+    //BarrierSpellCast barrierSpellCast;
     AoeCast aoeCast;
 
     [Header("Ui")]
@@ -64,7 +64,7 @@ public class Spellcasting : NetworkBehaviour
         dRActivationLogic = GetComponent<DRActivationLogic>();
         playerMovement = GetComponent<PlayerMovement>();
         playerBehavior = GetComponent<PlayerBehavior>();
-        barrierSpellCast = GetComponentInChildren<BarrierSpellCast>();
+        //barrierSpellCast = GetComponentInChildren<BarrierSpellCast>();
         localSpells = localSpellsCastPoint.GetComponent<LocalSpells>();
         aoeCast = dischargedSpellcast.GetComponent<AoeCast>();
         spellManager = GetComponent<SpellManager>();
@@ -1175,7 +1175,7 @@ public class Spellcasting : NetworkBehaviour
                     // Aoe mode Barrier
                     // ****************
                     // >> dRActivationLogic.DRActivationGate("Barrier", "Arcane");
-                    barrierSpellCast.CastBarrier("Aoe Arcane", aoeCast.AoeSpawnPosition);
+                    //barrierSpellCast.CastBarrier("Aoe Arcane", aoeCast.AoeSpawnPosition);
                     SoundManager.Instance.PlayCastUnsuccessful(castSuccessful_SFX); // amend
 
                     dRRouter.CharmCount++;

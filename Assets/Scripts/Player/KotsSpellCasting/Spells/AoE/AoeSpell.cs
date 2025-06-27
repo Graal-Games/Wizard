@@ -174,13 +174,10 @@ public class AoeSpell : K_Spell
 
 
 
-    //void OnTriggerEnter(Collider other)
-    //{
-    //    if (gameObject.name == "Area of effect")
-    //    {
-
-    //    }
-    //}
+    public override void OnTriggerEnter(Collider other)
+    {
+        base.OnTriggerEnter(other);
+    }
 
 
     //void OnTriggerEnter(Collider other)

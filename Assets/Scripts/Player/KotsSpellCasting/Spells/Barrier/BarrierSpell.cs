@@ -54,12 +54,24 @@ public class BarrierSpell : K_Spell
     public void ApplyDamage(float damage)
     {
         localHealth.Value -= damage;
-        Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
+        Debug.LogFormat($"<color=orange>armorPoints: {localHealth.Value}</color>");
+        Debug.LogFormat($"<color=orange>gameObject: {gameObject} parent: {gameObject.transform.parent }</color>");
+
+        GameObject thisGameObject;
+
+        if (gameObject.GetComponent<NetworkObject>())
+        {
+            thisGameObject = gameObject;
+        }
+        else
+        {
+            thisGameObject = gameObject.transform.parent.gameObject;
+        }
 
         if (localHealth.Value <= 0)
         {
             // DestroyBarrierRpc();
-            DestroySpellRpc(gameObject);
+            DestroySpellRpc(thisGameObject);
         }
     }
 

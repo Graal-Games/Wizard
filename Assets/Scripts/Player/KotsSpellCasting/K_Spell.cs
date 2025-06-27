@@ -209,7 +209,19 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public void DestroySpell(GameObject spellObj)
     {
-        var netObj = spellObj.GetComponent<NetworkObject>();
+        NetworkObject netObj;
+
+        if (spellObj.GetComponent<NetworkObject>())
+        {
+            netObj = spellObj.GetComponent<NetworkObject>();
+        }
+        else
+        {
+            netObj = spellObj.GetComponentInParent<NetworkObject>();
+        }
+
+
+
         if (netObj != null && netObj.IsSpawned)
         {
             DestroySpellRpc(netObj); // or new NetworkObjectReference(netObj)
@@ -314,7 +326,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public virtual void OnTriggerEnter(Collider other)
     {
-
+        Debug.LogFormat("OnTriggerEnter: this={0} (tag={1}), other={2} (tag={3})",
+        gameObject.name, gameObject.tag, other.gameObject.name, other.gameObject.tag);
         //if (!IsServer)
         //{
         //    if (other.gameObject.CompareTag("Player"))
@@ -342,7 +355,33 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         //}
 
         // Debug.LogFormat("<color=green> >>> HIT >>> (" + other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId + ")</color>");
+        // Find the first child (or self) with the "Spell" tag
+        Transform spellTagged = other.transform;
 
+        // Traverse down the hierarchy if needed (in case the collider is on a parent)
+        if (!spellTagged.CompareTag("Spell"))
+        {
+            // Search all children for the tag
+            spellTagged = other.transform.GetComponentInChildren<Transform>(true);
+            foreach (Transform child in other.transform.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.CompareTag("Spell"))
+                {
+                    spellTagged = child;
+                    break;
+                }
+            }
+        }
+
+        if (spellTagged != null && spellTagged.CompareTag("Spell"))
+        {
+            string parentName = spellTagged.parent != null ? spellTagged.parent.name : "No parent";
+            Debug.Log($"Player collided with Spell child object: {spellTagged.gameObject.name}, parent: {parentName}");
+        }
+        else
+        {
+            Debug.Log("No child with 'Spell' tag found on collided object.");
+        }
 
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
@@ -356,6 +395,34 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
             // What?
             if (spellDataScriptableObject.spellType.ToString() == "Projectile")
                 DestroySpellRpc(other.gameObject);
+
+            return;
+        }
+
+        if (other.gameObject.CompareTag("Player"))
+        {
+
+            // OPTIMIZE BELOW
+            // Assign the values to the payload to be sent with the event emission upon hitting the player
+            SpellPayloadConstructor
+            (
+                this.gameObject.GetInstanceID(),
+                other.GetComponent<NetworkObject>().OwnerClientId,
+                spellDataScriptableObject.element.ToString(),
+                spellDataScriptableObject.incapacitationName,
+                spellDataScriptableObject.incapacitationDuration,
+                spellDataScriptableObject.visionImpairmentType,
+                spellDataScriptableObject.visionImpairmentDuration,
+                spellDataScriptableObject.directDamageAmount,
+                spellDataScriptableObject.damageOverTimeAmount,
+                spellDataScriptableObject.damageOverTimeDuration,
+                spellDataScriptableObject.spellAttribute,
+                spellDataScriptableObject.pushback
+            );
+
+
+            PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
+            hasHitPlayer = true;
 
             return;
         }
@@ -375,18 +442,22 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         //    //    other.gameObject.GetComponent<BarrierSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
         //    //}
         //}
-        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
+        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} damage:  </color>");
 
         // The below code can nbe simplified
-        if (other.gameObject.CompareTag("Spell"))
+        if (other.gameObject.CompareTag("Spell") && !other.gameObject.CompareTag("Player")) 
         {
-            if (other.gameObject.name.Contains("Barrier"))
+            Debug.LogFormat("<color=orange> barrier spell script >>> (" + other.gameObject.GetComponent<BarrierSpell>() + ")</color>");
+
+            if (other.GetComponent<ISpell>().SpellName.Contains("Barrier") && other.gameObject.GetComponent<BarrierSpell>() != null)
             {
+                Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} damage: {spellDataScriptableObject.directDamageAmount} </color>");
+
                 BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
-                    other.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
+                    barrierScript.ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
                     //DestroySpellRpc();
                 }
 
