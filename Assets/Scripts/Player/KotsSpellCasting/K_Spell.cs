@@ -107,6 +107,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     {
         base.OnNetworkSpawn();
 
+        Debug.LogFormat($"<color=pink>ggggggggggggggggggggo{gameObject}</color>");
+
         pushDirection = transform.forward;
 
     }
@@ -119,7 +121,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     {
         if (pullSpellsList.Count > 0) // Need to add this to the player behaviour script because this will be destroyed too fast and cannot take into account defensive spells
         {
-            Debug.LogFormat($"<color=pink>rb count ------------- {gameObject}</color>");
+            Debug.LogFormat($"<color=purple>rb count ------------- {gameObject}</color>");
 
             // Apply force to all the rigidbodies
             foreach (Rigidbody rb in pullSpellsList)
@@ -131,6 +133,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
         if (pushSpellsList.Count > 0)
         {
+            Debug.LogFormat($"<color=purple>rb count ------------- {gameObject}</color>");
+
             foreach (Rigidbody rb2 in pushSpellsList)
             {
                 //AddForce(rb2);
@@ -328,6 +332,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     {
         Debug.LogFormat("OnTriggerEnter: this={0} (tag={1}), other={2} (tag={3})",
         gameObject.name, gameObject.tag, other.gameObject.name, other.gameObject.tag);
+
+        if (gameObject.name.Contains("Player")) return;
         //if (!IsServer)
         //{
         //    if (other.gameObject.CompareTag("Player"))
@@ -353,35 +359,71 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         //        return;
         //    }
         //}
+        Debug.LogFormat($"<color=blue>2 Game Object: {gameObject} ISpell: {gameObject.GetComponent<ISpell>().SpellName}</color>");
 
-        // Debug.LogFormat("<color=green> >>> HIT >>> (" + other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId + ")</color>");
-        // Find the first child (or self) with the "Spell" tag
-        Transform spellTagged = other.transform;
-
-        // Traverse down the hierarchy if needed (in case the collider is on a parent)
-        if (!spellTagged.CompareTag("Spell"))
+        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
         {
-            // Search all children for the tag
-            spellTagged = other.transform.GetComponentInChildren<Transform>(true);
-            foreach (Transform child in other.transform.GetComponentsInChildren<Transform>(true))
+            if (spellDataScriptableObject.pushForce > 0)
             {
-                if (child.CompareTag("Spell"))
+                Debug.LogFormat("<color=blue>1 Push spell</color>");
+                // Cache the player's Rigidbody locally
+                Rigidbody rb = other.GetComponent<Rigidbody>();
+                Debug.Log($"OnTriggerEnter: other={other.gameObject.name}, parent={other.transform.parent?.name}, has RB: {other.GetComponent<Rigidbody>() != null}, has RB in parent: {other.GetComponentInParent<Rigidbody>() != null}");
+                Debug.LogFormat($"<color=blue>3 Push spell RB: {rb}</color>");
+
+                // Add the rigidbody to the list of rigidbodies to be pushed
+                if (rb != null)
                 {
-                    spellTagged = child;
-                    break;
+                    pullSpellsList.Add(rb);
+                }
+            }
+            else
+            {
+                if (spellDataScriptableObject.pushForce > 0)
+                {
+                    Debug.LogFormat("<color=blue>2 Push spell</color>");
+
+                    // Cache the player's Rigidbody locally
+                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
+
+                    Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+
+                    // Add the rigidbody to the list of rigidbodies to be pushed
+                    if (rb2 != null)
+                    {
+                        pushSpellsList.Add(rb2);
+                    }
                 }
             }
         }
+        // Debug.LogFormat("<color=green> >>> HIT >>> (" + other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId + ")</color>");
+        // Find the first child (or self) with the "Spell" tag
+        //Transform spellTagged = other.transform;
 
-        if (spellTagged != null && spellTagged.CompareTag("Spell"))
-        {
-            string parentName = spellTagged.parent != null ? spellTagged.parent.name : "No parent";
-            Debug.Log($"Player collided with Spell child object: {spellTagged.gameObject.name}, parent: {parentName}");
-        }
-        else
-        {
-            Debug.Log("No child with 'Spell' tag found on collided object.");
-        }
+        //// Traverse down the hierarchy if needed (in case the collider is on a parent)
+        //if (!spellTagged.CompareTag("Spell"))
+        //{
+        //    // Search all children for the tag
+        //    spellTagged = other.transform.GetComponentInChildren<Transform>(true);
+        //    foreach (Transform child in other.transform.GetComponentsInChildren<Transform>(true))
+        //    {
+        //        if (child.CompareTag("Spell"))
+        //        {
+        //            spellTagged = child;
+        //            break;
+        //        }
+        //    }
+        //}
+
+        //if (spellTagged != null && spellTagged.CompareTag("Spell"))
+        //{
+        //    string parentName = spellTagged.parent != null ? spellTagged.parent.name : "No parent";
+        //    Debug.Log($"Player collided with Spell child object: {spellTagged.gameObject.name}, parent: {parentName}");
+        //}
+        //else
+        //{
+        //    Debug.Log("No child with 'Spell' tag found on collided object.");
+        //}
 
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
@@ -522,34 +564,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
             //ApplyDamageToPlayerRpc(this.GetComponent<NetworkBehaviour>().RpcTarget.Owner);
 
 
-            if (gameObject.name == "Aoe_Air" && gameObject.name == "Area of effect" && gameObject.tag == "Spell")
-            {
-                if (spellDataScriptableObject.pushForce > 0)
-                {
-                    // Cache the player's Rigidbody locally
-                    Rigidbody rb = other.GetComponent<Rigidbody>();
 
-                    // Add the rigidbody to the list of rigidbodies to be pushed
-                    if (rb != null)
-                    {
-                        //pullSpellsList.Add(rb);
-                    }
-                }
-                else
-                {
-                    if (spellDataScriptableObject.pushForce > 0)
-                    {
-                        // Cache the player's Rigidbody locally
-                        Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-                        // Add the rigidbody to the list of rigidbodies to be pushed
-                        if (rb2 != null)
-                        {
-                            pushSpellsList.Add(rb2);
-                        }
-                    }
-                }
-            }
 
 
             // Exception handler - If when the player has a shield on when hit by a projectile, ignore damage application on the player

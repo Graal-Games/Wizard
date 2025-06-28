@@ -18,7 +18,15 @@ public class BarrierSpell : K_Spell
         //    StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration));
         //}
 
-        StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+        if (gameObject.GetComponent<NetworkObject>() == null)
+        {
+            StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject.transform.parent.gameObject));
+        } else
+        {
+            StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+        }
+
+        
     }
 
     public override void Fire()

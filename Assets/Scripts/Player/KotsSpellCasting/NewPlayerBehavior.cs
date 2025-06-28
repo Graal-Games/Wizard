@@ -603,7 +603,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
+        // Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
 
         if (other.gameObject.name.Contains("Targeting"))
         {

@@ -244,6 +244,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
         base.OnNetworkSpawn();
+
+        invocationBoundsGO.gameObject.SetActive(false);
         //Debug.LogFormat($"<color=red> IsLocalPlayer {IsLocalPlayer} OwnerClientId {OwnerClientId} </color>");
 
     }
@@ -513,7 +515,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 castKey.StartCastBufferAnim((isInSpellChargingMode) ? 0.7f : 1f);
 
                 // Maybe we should add this into a conditional or something?
-                invocationBoundsGO.SetActive(true);
+                //invocationBoundsGO.SetActive(true);
                 break;
             case "InstantPlaceable":
                 //Activate Raycast
@@ -627,7 +629,11 @@ public class K_SpellLauncher : NetworkBehaviour
                 break;
             case "Invocation":
                 // Spawn 
+                invocationBoundsGO.gameObject.SetActive(true);
+
                 SpawnAtLocation(invocationSpawnerScript.SpawnOnce());
+
+                invocationBoundsGO.gameObject.SetActive(false);
                 break;
             case "Charm":
                 break;
