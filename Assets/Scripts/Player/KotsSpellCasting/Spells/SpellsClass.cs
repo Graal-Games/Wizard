@@ -147,11 +147,16 @@ public class SpellsClass : NetworkBehaviour, ISpell
         return false;
     }
 
+
+
+
     public void HandleAllInteractions(Collider colliderHit)
     {
         HandleSpellToSpellInteractions(colliderHit);
         HandleSpellToPlayerInteractions(colliderHit);
     }
+
+
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {

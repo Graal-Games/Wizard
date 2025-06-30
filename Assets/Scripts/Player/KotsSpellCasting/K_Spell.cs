@@ -54,7 +54,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     public static event PlayerHitEvent playerHitEvent;
 
     Vector3 pushDirection; // Adjust the direction of the force
-    //float lifetimeDuration;
 
     List<Rigidbody> pullSpellsList = new List<Rigidbody>();
     List<Rigidbody> pushSpellsList = new List<Rigidbody>();
@@ -121,8 +120,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     {
         if (pullSpellsList.Count > 0) // Need to add this to the player behaviour script because this will be destroyed too fast and cannot take into account defensive spells
         {
-            Debug.LogFormat($"<color=purple>rb count ------------- {gameObject}</color>");
-
             // Apply force to all the rigidbodies
             foreach (Rigidbody rb in pullSpellsList)
             {
@@ -133,8 +130,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
         if (pushSpellsList.Count > 0)
         {
-            Debug.LogFormat($"<color=purple>rb count ------------- {gameObject}</color>");
-
             foreach (Rigidbody rb2 in pushSpellsList)
             {
                 //AddForce(rb2);
@@ -334,47 +329,21 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         gameObject.name, gameObject.tag, other.gameObject.name, other.gameObject.tag);
 
         if (gameObject.name.Contains("Player")) return;
-        //if (!IsServer)
-        //{
-        //    if (other.gameObject.CompareTag("Player"))
-        //    {
-        //        SpellPayloadConstructor
-        //       (
-        //           this.gameObject.GetInstanceID(),
-        //           other.GetComponent<NetworkObject>().OwnerClientId,
-        //           spellDataScriptableObject.element.ToString(),
-        //           spellDataScriptableObject.incapacitationName,
-        //           spellDataScriptableObject.incapacitationDuration,
-        //           spellDataScriptableObject.visionImpairmentType,
-        //           spellDataScriptableObject.visionImpairmentDuration,
-        //           spellDataScriptableObject.directDamageAmount,
-        //           spellDataScriptableObject.damageOverTimeAmount,
-        //           spellDataScriptableObject.damageOverTimeDuration,
-        //           spellDataScriptableObject.spellAttribute,
-        //           spellDataScriptableObject.pushback
-        //       );
 
-
-        //        PlayerIsHit();
-        //        return;
-        //    }
-        //}
-        Debug.LogFormat($"<color=blue>2 Game Object: {gameObject} ISpell: {gameObject.GetComponent<ISpell>().SpellName}</color>");
-
-        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
+        //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
+        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air")
+            || gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Projectile_Air"))
         {
             if (spellDataScriptableObject.pushForce > 0)
             {
-                Debug.LogFormat("<color=blue>1 Push spell</color>");
+                Debug.LogFormat("<color=green>2 Push spell</color>");
                 // Cache the player's Rigidbody locally
                 Rigidbody rb = other.GetComponent<Rigidbody>();
-                Debug.Log($"OnTriggerEnter: other={other.gameObject.name}, parent={other.transform.parent?.name}, has RB: {other.GetComponent<Rigidbody>() != null}, has RB in parent: {other.GetComponentInParent<Rigidbody>() != null}");
-                Debug.LogFormat($"<color=blue>3 Push spell RB: {rb}</color>");
 
                 // Add the rigidbody to the list of rigidbodies to be pushed
                 if (rb != null)
                 {
-                    pullSpellsList.Add(rb);
+                    //pullSpellsList.Add(rb);
                 }
             }
             else
@@ -396,34 +365,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 }
             }
         }
-        // Debug.LogFormat("<color=green> >>> HIT >>> (" + other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId + ")</color>");
-        // Find the first child (or self) with the "Spell" tag
-        //Transform spellTagged = other.transform;
-
-        //// Traverse down the hierarchy if needed (in case the collider is on a parent)
-        //if (!spellTagged.CompareTag("Spell"))
-        //{
-        //    // Search all children for the tag
-        //    spellTagged = other.transform.GetComponentInChildren<Transform>(true);
-        //    foreach (Transform child in other.transform.GetComponentsInChildren<Transform>(true))
-        //    {
-        //        if (child.CompareTag("Spell"))
-        //        {
-        //            spellTagged = child;
-        //            break;
-        //        }
-        //    }
-        //}
-
-        //if (spellTagged != null && spellTagged.CompareTag("Spell"))
-        //{
-        //    string parentName = spellTagged.parent != null ? spellTagged.parent.name : "No parent";
-        //    Debug.Log($"Player collided with Spell child object: {spellTagged.gameObject.name}, parent: {parentName}");
-        //}
-        //else
-        //{
-        //    Debug.Log("No child with 'Spell' tag found on collided object.");
-        //}
 
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
@@ -470,31 +411,12 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         }
 
 
-        //// If the spell hits a barrier, apply the damage to the barrier
-        //// If the spell hits a shield > That is handled above
-        //if (other.gameObject.name.Contains("Barrier") && other.gameObject.CompareTag("Spell"))
-        //{
-        //    if (this.gameObject.CompareTag("ActiveShield")) return; // Handled above, this is just an exception handler.
-
-        //    BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
-
-        //    //if (barrierScript.spellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
-        //    //{
-        //    //    // Apply damage to the barrier
-        //    //    other.gameObject.GetComponent<BarrierSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-        //    //}
-        //}
-        Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} damage:  </color>");
-
         // The below code can nbe simplified
         if (other.gameObject.CompareTag("Spell") && !other.gameObject.CompareTag("Player")) 
         {
-            Debug.LogFormat("<color=orange> barrier spell script >>> (" + other.gameObject.GetComponent<BarrierSpell>() + ")</color>");
 
             if (other.GetComponent<ISpell>().SpellName.Contains("Barrier") && other.gameObject.GetComponent<BarrierSpell>() != null)
             {
-                Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} damage: {spellDataScriptableObject.directDamageAmount} </color>");
-
                 BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
@@ -503,7 +425,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                     //DestroySpellRpc();
                 }
 
-                Debug.LogFormat("<color=orange> 2222222 >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc(other.gameObject);
             }
 
@@ -513,12 +434,9 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
                 if (invocationSpell.SpellDataScriptableObject.health > 1)
                 {
-                    Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + gameObject.name + ")</color>");
-
                     invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                Debug.LogFormat("<color=orange> SSSSSSSS >>> PROJECTILE DESTROY BY >>> (" + other.gameObject.name + ")</color>");
                 DestroySpellRpc(other.gameObject);
 
             }
@@ -528,55 +446,10 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         // If the spell collides with the player character, handle this interaction
         if (other.gameObject.CompareTag("Player") && !gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier"))
         {
-
-            //// Get the NetworkObjectId of the other GameObject involved in the collision
-            //ulong networkObjectId = other.gameObject.GetComponent<NetworkObject>().NetworkObjectId;
-
-            //// Attempt to retrieve the NetworkObject from the SpawnManager using its ID retrieved above
-            //if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(networkObjectId, out NetworkObject netObj))
-            //{
-            //    // Get the client ID that owns this NetworkObject
-            //    ulong ownerId = netObj.OwnerClientId;
-
-            //    // Log the ownership information for debugging purposes
-            //    Debug.Log($"Object {networkObjectId} is owned by client {ownerId}");
-
-            //    // Send an RPC to apply damage only to the owning client of this object
-            //    ApplyDamageToPlayerClientRpc(other.GetComponent<NetworkObject>().OwnerClientId,
-            //    RpcTarget.Single(ownerId, RpcTargetUse.Temp));
-
-            //}
-
-            //NetworkObject targetNetObj = other.gameObject.GetComponent<NetworkObject>();
-            //if (targetNetObj != null)
-            //{
-            //    var clientRpcParams = new ClientRpcParams
-            //    {
-            //        Send = new ClientRpcSendParams
-            //        {
-            //            TargetClientIds = new[] { targetNetObj.OwnerClientId }
-            //        }
-            //    };
-
-            //    ApplyDamageToPlayerClientRpc(clientRpcParams);
-            //}
-
-            //ApplyDamageToPlayerRpc(this.GetComponent<NetworkBehaviour>().RpcTarget.Owner);
-
-
-
-
-
             // Exception handler - If when the player has a shield on when hit by a projectile, ignore damage application on the player
             if (spellDataScriptableObject.spellType.ToString() == "Projectile")
             {
                 if (hasHitShield.Value == true) return;
-
-
-                //Debug.LogFormat("<color=red>K_Spell RETURN (" + other.gameObject.name + ")</color>");
-
-                // The return here prevents processing the event for projectiles
-                // >>>>>>> return;
             }
 
 

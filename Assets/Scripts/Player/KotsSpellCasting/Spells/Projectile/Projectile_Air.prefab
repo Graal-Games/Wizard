@@ -4852,7 +4852,7 @@ GameObject:
   - component: {fileID: 2975706477693316955}
   - component: {fileID: 4926625136138452871}
   - component: {fileID: 4059352729761131061}
-  - component: {fileID: 6779289676104438207}
+  - component: {fileID: 3951890862879267727}
   - component: {fileID: 6514538205735283431}
   - component: {fileID: 363308353575362683}
   m_Layer: 0
@@ -4997,7 +4997,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &6779289676104438207
+--- !u!114 &3951890862879267727
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5006,23 +5006,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4716045805267283745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6b7f330b6b5cd14e860c9664a2a0106, type: 3}
+  m_Script: {fileID: 11500000, guid: 6063426f08873f84f8310c9850ef9e00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  materialDictionary:
-    keys: 0000000001000000020000000300000004000000
-    values:
-    - {fileID: 2100000, guid: fb7b261b89e72364a8ebfe6e4753f921, type: 2}
-    - {fileID: 2100000, guid: 09744d8e0b9c19e4589ca47b977b015d, type: 2}
-    - {fileID: 2100000, guid: 12de10cdd9c93934397bceda46895b30, type: 2}
-    - {fileID: 2100000, guid: 1201d3a750325de43bc9b19318398dfd, type: 2}
-    - {fileID: 2100000, guid: 408490bba2b664745a010bb36c13e032, type: 2}
-  spellData: {fileID: 0}
-  aliveTimer: 0
-  dotTickTimer: 0
-  rb: {fileID: 0}
-  caster: {fileID: 0}
   spellDataScriptableObject: {fileID: 11400000, guid: 01df13ac27bdf9848838aa90d7ca978b, type: 2}
+  rb: {fileID: 0}
 --- !u!114 &6514538205735283431
 MonoBehaviour:
   m_ObjectHideFlags: 0
