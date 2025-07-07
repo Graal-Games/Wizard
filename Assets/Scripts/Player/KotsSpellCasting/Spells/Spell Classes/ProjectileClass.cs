@@ -116,14 +116,14 @@ public class ProjectileClass : SpellsClass
                 ApplyPushbackToTarget(hit.collider.gameObject);
             }
 
-            if (hit.collider.gameObject.layer == 7)
-            {
-                if (IsSpawned)
-                {
-                    Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + hit.collider.name + ")</color>");
-                    DestroySpellRpc();
-                }
-            }
+            // if (hit.collider.gameObject.layer == 7)
+            // {
+            //     if (IsSpawned)
+            //     {
+            //         Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + hit.collider.name + ")</color>");
+            //         DestroySpellRpc();
+            //     }
+            // }
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement
@@ -146,15 +146,68 @@ public class ProjectileClass : SpellsClass
             }
         }
 
+        HandlePushbackRpc();
+
+        if (IsHost) return;
+        // {
+        //     HandlePushbackRpc();
         if (pushSpellsList.Count > 0)
         {
             foreach (Rigidbody rb2 in pushSpellsList)
             {
                 Debug.LogFormat($"<color=blue>4 Push spell - RB: {rb2}</color>");
-
-                //AddForce(rb2);
+                Debug.LogFormat($"Force applied - PUSH DIRECTION: {pushDirection.normalized} PUSH FORCE: {SpellDataScriptableObject.pushForce}");
                 rb2.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
+                canDestroy = true;
+            }
+        }
 
+    }
+
+    
+    [Rpc(SendTo.Server)]
+    void HandlePushbackRpc()
+    {
+        // Remove any null or destroyed rigidbodies
+        pushSpellsList.RemoveAll(rb => rb == null || rb.gameObject == null);
+
+        if (pushSpellsList.Count > 0)
+        {
+            foreach (Rigidbody rb2 in pushSpellsList)
+            {
+                // Try to get the NetworkObject and its owner
+                NetworkObject netObj = rb2.GetComponent<NetworkObject>();
+                if (netObj != null && !netObj.IsOwnedByServer)
+                {
+                    ApplyPushbackClientRpc(netObj.OwnerClientId, SpellDataScriptableObject.pushForce, pushDirection);                }
+                else
+                {
+                    // Server-owned, apply force directly
+                    Debug.LogFormat($"<color=blue>[RPC] 4 Push spell - RB: {rb2}</color>");
+                    Debug.LogFormat($"[RPC] Force applied - PUSH DIRECTION: {pushDirection.normalized} PUSH FORCE: {SpellDataScriptableObject.pushForce}");
+                    rb2.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
+                    canDestroy = true;
+                }
+            }
+        }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    void ApplyPushbackClientRpc(ulong targetClientId, float pushForce, Vector3 direction, RpcParams rpcParams = default)
+    {
+        Debug.LogFormat($"<color=blue>targetClientId: {targetClientId}</color>");
+
+        // Only run on the intended client
+        //if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
+
+        // Find the local player object (assumes this script is not on the player, so you must find the correct Rigidbody)
+        // This example assumes the player object is the owner of the Rigidbody in pushSpellsList
+        foreach (Rigidbody rb in pushSpellsList)
+        {
+            if (rb.GetComponent<NetworkObject>() != null && rb.GetComponent<NetworkObject>().OwnerClientId == targetClientId)
+            {
+                Debug.LogFormat($"<color=blue>[ClientRpc] Push spell - RB: {rb}</color>");
+                rb.AddForce(pushForce * direction.normalized, ForceMode.Impulse);
                 canDestroy = true;
             }
         }
@@ -162,38 +215,72 @@ public class ProjectileClass : SpellsClass
 
     public void ApplyPushbackToTarget(GameObject other)
     {
+        // if (other.gameObject.CompareTag("Player"))
+        // {
+        //     //    if (SpellDataScriptableObject.pushForce > 0)
+        //     //    {
+        //     //        Debug.LogFormat("<color=green>2 Push spell</color>");
+        //     //        // Cache the player's Rigidbody locally
+        //     //        Rigidbody rb = other.GetComponent<Rigidbody>();
+
+        //     //        // Add the rigidbody to the list of rigidbodies to be pushed
+        //     //        if (rb != null)
+        //     //        {
+        //     //            //pullSpellsList.Add(rb);
+        //     //        }
+        //     //    }
+        //     //    else
+        //     //    {
+        //     if (SpellDataScriptableObject.pushForce > 0)
+        //     {
+        //         Debug.LogFormat("<color=blue>2 Push spell</color>");
+
+        //         // Cache the player's Rigidbody locally
+        //         Rigidbody rb2 = other.GetComponent<Rigidbody>();
+
+        //         Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+
+        //         // Add the rigidbody to the list of rigidbodies to be pushed
+        //         if (rb2 != null)
+        //         {
+        //             pushSpellsList.Add(rb2);
+        //         }
+        //     }
+        //     //}
+        // }
+
         if (other.gameObject.CompareTag("Player"))
         {
-            //    if (SpellDataScriptableObject.pushForce > 0)
-            //    {
-            //        Debug.LogFormat("<color=green>2 Push spell</color>");
-            //        // Cache the player's Rigidbody locally
-            //        Rigidbody rb = other.GetComponent<Rigidbody>();
-
-            //        // Add the rigidbody to the list of rigidbodies to be pushed
-            //        if (rb != null)
-            //        {
-            //            //pullSpellsList.Add(rb);
-            //        }
-            //    }
-            //    else
-            //    {
             if (SpellDataScriptableObject.pushForce > 0)
             {
-                Debug.LogFormat("<color=blue>2 Push spell</color>");
-
+                Debug.LogFormat("<color=green>2 Push spell</color>");
                 // Cache the player's Rigidbody locally
-                Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-                Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+                Rigidbody rb = other.GetComponent<Rigidbody>();
 
                 // Add the rigidbody to the list of rigidbodies to be pushed
-                if (rb2 != null)
+                if (rb != null)
                 {
-                    pushSpellsList.Add(rb2);
+                    pushSpellsList.Add(rb);
                 }
             }
-            //}
+            else
+            {
+                if (SpellDataScriptableObject.pushForce > 0)
+                {
+                    Debug.LogFormat("<color=blue>2 Push spell</color>");
+
+                    // Cache the player's Rigidbody locally
+                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
+
+                    Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+
+                    // Add the rigidbody to the list of rigidbodies to be pushed
+                    if (rb2 != null)
+                    {
+                        pushSpellsList.Add(rb2);
+                    }
+                }
+            }
         }
     }
 }

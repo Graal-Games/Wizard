@@ -51,6 +51,11 @@ public class BarrierSpell : K_Spell
     // The player that comes into contact with this spell
     // is stunned
 
+    public override void FixedUpdate()
+    {
+        base.FixedUpdate();
+    }
+
     void ActivateBarrier()
     {
         //gameObject.transform.position = new Vector3(transform.position.x, -1, transform.position.z);

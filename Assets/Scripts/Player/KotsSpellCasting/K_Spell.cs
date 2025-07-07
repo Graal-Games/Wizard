@@ -116,7 +116,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
 
 
-    private void Update()
+    public virtual void FixedUpdate()
     {
         if (pullSpellsList.Count > 0) // Need to add this to the player behaviour script because this will be destroyed too fast and cannot take into account defensive spells
         {
@@ -328,6 +328,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         Debug.LogFormat("OnTriggerEnter: this={0} (tag={1}), other={2} (tag={3})",
         gameObject.name, gameObject.tag, other.gameObject.name, other.gameObject.tag);
 
+        // This very script is sometimes being run from the player prefab for some reason
+        // This makes sure that the player does not run this script
         if (gameObject.name.Contains("Player")) return;
 
         //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
@@ -343,7 +345,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 // Add the rigidbody to the list of rigidbodies to be pushed
                 if (rb != null)
                 {
-                    //pullSpellsList.Add(rb);
+                    pushSpellsList.Add(rb);
                 }
             }
             else

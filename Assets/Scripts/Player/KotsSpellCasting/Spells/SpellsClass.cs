@@ -31,6 +31,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
 
+
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -119,6 +121,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
         playerHitEvent?.Invoke(spellPayloadParam);
     }
 
+
+
+
     //serverRPC
     //get the local health of the player involved
     //validate that the player health is similar to what is saved on the server
@@ -188,15 +193,20 @@ public class SpellsClass : NetworkBehaviour, ISpell
             HandleSpellToSpellInteractions(colliderHit);
         }
 
-        if (colliderHit.gameObject.layer == 7)
-        {
-            if (IsSpawned)
-            {
-                Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
-                DestroySpellRpc();
-            }
-        }
+        // If the collider of the other gameObjecy belongs to layer 7 (layer of gameObjects that destroy a projectile)
+        //>>destroy the projectile
+        // if (colliderHit.gameObject.layer == 7)
+        // {
+        //     if (IsSpawned)
+        //     {
+        //         Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
+        //         DestroySpellRpc();
+        //     }
+        // }
     }
+
+
+
 
     public void HandleSpellToSpellInteractions(Collider colliderHit)
     {
@@ -236,6 +246,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+
+
     #region Spell Duration handling and destruction
     public IEnumerator LifeTime(float duration, GameObject spellObj)
     {
@@ -245,12 +257,18 @@ public class SpellsClass : NetworkBehaviour, ISpell
         DestroySpellRpc();
     }
 
+
+
+
     public void DestroySpell(GameObject spellObj)
     {
         gameObjectToDestroy = spellObj;
 
         DestroySpellRpc();
     }
+
+
+
 
     [Rpc(SendTo.Server)]
     public void DestroySpellRpc()

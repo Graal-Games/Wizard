@@ -560,7 +560,7 @@ public class K_SpellLauncher : NetworkBehaviour
             // TD: Instantiate a spell instance LOCALLY based on the spell name
             spellBuilder.UpdateDRTier(currentSpellType, spellSequence);
 
-            newPlayerBehaviorScript.LocalPlayerClass.SetDRActive(spellSequence[0]);
+            //newPlayerBehaviorScript.LocalPlayerClass.SetDRActive(spellSequence[0]);
 
             // This can be written better. Calling the Fire() method in each spell
             // The difficulty is making sure that the spells are casted the same way
@@ -948,14 +948,14 @@ public class K_SpellLauncher : NetworkBehaviour
     //will be stored in a dictionary. This helps determine
     //if a spell is in DR.
     // This has likely been discontinued
-    bool IsCurrentSpellCategoryInDR(string spellSequence)
-    {
+    // bool IsCurrentSpellCategoryInDR(string spellSequence)
+    // {
 
-        // This will get its information from the NewPlayerBehavior script, which, throught the game manager, updates the playerClass information locally and on the server
-        char firstChar = (char)currentSpellType;
+    //     // This will get its information from the NewPlayerBehavior script, which, throught the game manager, updates the playerClass information locally and on the server
+    //     char firstChar = (char)currentSpellType;
 
-        return newPlayerBehaviorScript.LocalPlayerClass.GetSpellCategoryActivityStatus(firstChar);
-    }
+    //     return newPlayerBehaviorScript.LocalPlayerClass.GetSpellCategoryActivityStatus(firstChar);
+    // }
 
 
 

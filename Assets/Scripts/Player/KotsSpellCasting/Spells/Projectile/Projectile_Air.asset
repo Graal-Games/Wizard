@@ -26,7 +26,7 @@ MonoBehaviour:
   directDamageAmount: 30
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
-  pushForce: 230
+  pushForce: 20
   pullForce: 0
   health: 0
   damageLayers:

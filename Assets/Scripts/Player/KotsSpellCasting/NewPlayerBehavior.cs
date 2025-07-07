@@ -125,7 +125,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         
 
-        playerClass = new PlayerClass(this.NetworkObject, this.GetNetworkBehaviour(this.NetworkBehaviourId), this.gameObject.GetComponent<NetworkObject>());
+        // playerClass = new PlayerClass(this.NetworkObject, this.GetNetworkBehaviour(this.NetworkBehaviourId), this.gameObject.GetComponent<NetworkObject>());
 
         // Get the health bar instance reference that was assigned to this player
         NewHealthBarSingleton.Instance.GetPlayer(gameObject.transform);
@@ -165,7 +165,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         _playerController = GetComponent<PlayerController>();
 
         // if (!IsOwner) return;
-        isSlowed.Value = false;
+        //isSlowed.Value = false;
 
         //SpawnWandRpc();
     }

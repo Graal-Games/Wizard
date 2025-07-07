@@ -97,7 +97,7 @@ public class GameManager2 : NetworkBehaviour
          * Alternatively, your script can inherit from ScriptableObject or no base class at all
          */
 
-        playerClass = new PlayerClass(playerObjRef, playerBehaviorNetScript, netObj);
+        // playerClass = new PlayerClass(playerObjRef, playerBehaviorNetScript, netObj);
         
         
         // Save it to a dictionary on the server
