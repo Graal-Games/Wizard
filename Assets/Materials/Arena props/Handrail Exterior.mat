@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Handrail Exterior
-  m_Shader: {fileID: -6465566751694194690, guid: 049fd44933423884aa57df2b31446a6a, type: 3}
+  m_Shader: {fileID: 4800000, guid: ee2ce0be66f45d9449d71ba9b49c2acd, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 865254ef2e2fb184dbb1a83512fd3c44, type: 3}
+        m_Texture: {fileID: 2800000, guid: 21cd9d46f6089a547b8852d3c94c82f3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CoatMaskMap:
@@ -80,7 +80,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: c51fa86d110e4b94dbd2d143ec9a9b29, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7ece6cd1b2ca582459033b5be5cf585d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -88,7 +88,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: 2800000, guid: 266b740dbffef714596ef9d6d8c5164d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 77d4844872faa734da908867046cff0d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -124,7 +124,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
-        m_Texture: {fileID: 2800000, guid: 266b740dbffef714596ef9d6d8c5164d, type: 3}
+        m_Texture: {fileID: 2800000, guid: 77d4844872faa734da908867046cff0d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
