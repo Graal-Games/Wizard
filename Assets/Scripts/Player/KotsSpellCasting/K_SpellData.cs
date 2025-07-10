@@ -22,10 +22,16 @@ public class K_SpellData : ScriptableObject
     [Header("Spell Parameters")]
     [Tooltip("The amount of \"casts\" this spell costs regarding the DR logic.")]
     [Min(1)] public int castMultiplier = 1;
+
     [Tooltip("The speed at wich the spell changes position or size")]
     [Min(0f)] public float moveSpeed;
+
     [Tooltip("The duration in seconds of the spell. Set to 0 for infinite duration")]
-    [Min(0f)] public float spellDuration;    
+    [Min(0f)] public float spellDuration;
+
+    [Tooltip("The amount of time the player is incapacitated for")]
+    [Min(0f)] public float spellActivationDelay;
+
     [Tooltip("The amount of time the player is incapacitated for")]
     [Min(0f)] public float incapacitationDuration; 
     [Tooltip("The amount of time the inflicted player will be vision impaired")]

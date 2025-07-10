@@ -13,10 +13,17 @@ public class SpellChargingManager
     }
     
 
+    // This 
     private bool isSpellChargingType(KeyCode spellType)
     {
+        if (spellLauncher.CurrentSpellType.ToString() == "B" ||
+            spellLauncher.CurrentSpellType.ToString() == "R")
+        {
+            // If the spell type is bean spell, then it is a Spell Charging type
+            return true;
+        }
         // Currently only bean spell is ChargingType
-        return spellLauncher.CurrentSpellType.ToString() == "B";
+        return false;
     }
 
 

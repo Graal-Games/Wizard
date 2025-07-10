@@ -112,6 +112,10 @@ public class K_SpellLauncher : NetworkBehaviour
     Transform playerCenter;
     NetworkObject playerCenterNO;
 
+    [SerializeField] GameObject dispellGO;
+    Transform dispellTransform;
+
+
     [SerializeField] GameObject barrierPointGO;
     Transform barrierPoint;
 
@@ -207,6 +211,8 @@ public class K_SpellLauncher : NetworkBehaviour
         barrierPoint = barrierPointGO.GetComponent<Transform>();
         invocationBounds = invocationBoundsGO.GetComponent<Transform>();
         invocationBoundsGO.SetActive(false);
+        dispellGO.SetActive(false);
+
 
         // The SpellDict cannot be saved to a Dictionary reference directly
         // This saves a copy of the spell key to prefab, and is used later to spawn the spell object
@@ -245,9 +251,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
         base.OnNetworkSpawn();
 
-        invocationBoundsGO.gameObject.SetActive(false);
-        //Debug.LogFormat($"<color=red> IsLocalPlayer {IsLocalPlayer} OwnerClientId {OwnerClientId} </color>");
-
+        invocationBoundsGO.SetActive(false);
+        dispellGO.SetActive(false);
     }
 
     private void Update()
@@ -414,8 +419,6 @@ public class K_SpellLauncher : NetworkBehaviour
                     return;
                 }
 
-                //Debug.LogFormat($"<color=red> 5 </color>");
-
                 // This method checks if SpellCharging should be activated
                 spellChargingManager.HandleSpellChargingActivation();
 
@@ -426,8 +429,6 @@ public class K_SpellLauncher : NetworkBehaviour
                 }
 
             }
-
-            //Debug.LogFormat($"<color=red> 6 </color>");
 
             // handle parry letters generation here
             parryLetters.Value = "R";
@@ -440,14 +441,11 @@ public class K_SpellLauncher : NetworkBehaviour
             spellText.text = K_SpellKeys.cast.ToString() + spellSequence;
 
 
-
             // Check if the spell (spell sequence) exists. If not,
             // reset the sequence, the spellText & the casting status
             if (!spellBuilder.SpellExists(spellSequence))
             {
-                //Debug.LogFormat($"<color=red> Spell does not exist </color>");
-                //Debug.LogFormat($"<color=red> 7 {spellSequence} </color>");
-
+                Debug.LogFormat($"<color=red> Spell does not exist {spellSequence} </color>");
                 // Note: No need to cancel anim here since the anim is not active here yet
                 StopCastBuffer();
                 //StopCastBufferAnimationIfActive();
@@ -460,15 +458,9 @@ public class K_SpellLauncher : NetworkBehaviour
             // If the animation is already active, deactivate it first
             if (castKey.Anim.GetCurrentAnimatorStateInfo(0).IsName("BufferOnce"))
             {
-                //Debug.LogFormat($"<color=red> 8 </color>");
-
-                //Debug.LogFormat($"<color=red> Anim is playing > Stop playing </color>");
-
                 // The animation is not currently playing, so start it ?
                 castKey.StopCastBufferAnim();
             }
-            //Debug.LogFormat($"<color=red> 9 </color>");
-
 
             InitCastProcedure(); // (exists in one other place in this script) This can be replaced by InitiateCastProcedure(spellSequence);
         } 
@@ -636,6 +628,9 @@ public class K_SpellLauncher : NetworkBehaviour
                 invocationBoundsGO.gameObject.SetActive(false);
                 break;
             case "Charm":
+                // dispellGO.SetActive(true);
+                break;
+            case "Conjured":
                 break;
             default: 
                 break;
@@ -718,8 +713,6 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void SpellSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position)
     {
-
-
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], playerCenterGO.transform.position, rotation);
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();

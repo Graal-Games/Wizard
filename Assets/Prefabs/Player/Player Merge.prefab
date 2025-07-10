@@ -857,6 +857,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2350346627784580438}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5458424201664194667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7930388543090889099}
+  m_Layer: 0
+  m_Name: DispellBounds
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7930388543090889099
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5458424201664194667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 2.4311, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3342514065231975190}
+  m_Father: {fileID: 2350346627784580438}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5496607399818639315
 GameObject:
   m_ObjectHideFlags: 0
@@ -1069,6 +1101,60 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+--- !u!1 &5961232970244339880
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3342514065231975190}
+  - component: {fileID: 3447961323643288198}
+  m_Layer: 0
+  m_Name: InvocationBounds (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3342514065231975190
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5961232970244339880}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0.41133645, z: 0}
+  m_LocalScale: {x: 4, y: 0.7, z: 4}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7930388543090889099}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &3447961323643288198
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5961232970244339880}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &6321212135877629326
 GameObject:
   m_ObjectHideFlags: 0
@@ -1113,6 +1199,7 @@ Transform:
   - {fileID: 5710789056703803652}
   - {fileID: 3380994012463359457}
   - {fileID: 8244854095766260500}
+  - {fileID: 7930388543090889099}
   - {fileID: 838547487703721344}
   - {fileID: 6065584626161098975}
   - {fileID: 1945957466749286844}
@@ -1158,7 +1245,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1683003782
+  GlobalObjectIdHash: 3153094642
   InScenePlacedSourceGlobalObjectIdHash: 1803049746
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -1265,11 +1352,15 @@ MonoBehaviour:
     - {fileID: 1815086933814884428}
     - {fileID: 4986569469672888793}
     - {fileID: 5457619955595907956}
+  spellChargingUiKeysDictionary:
+    keys: []
+    values: []
   maxStartingDrKeys: 1
   drKeysPerSolve: 1
   spellBuilder: {fileID: 4445197102937803169}
   wandTipGO: {fileID: 0}
   playerCenterGO: {fileID: 0}
+  dispellGO: {fileID: 0}
   barrierPointGO: {fileID: 0}
   invocationBoundsGO: {fileID: 0}
   theProjectile1: {fileID: 4716045805267283745, guid: a5ebddbeaa3f56e4e84269cd3c918c91, type: 3}

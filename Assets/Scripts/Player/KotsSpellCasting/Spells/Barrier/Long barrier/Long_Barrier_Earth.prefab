@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 8772006748899872397}
   - component: {fileID: 8649903279289449822}
   m_Layer: 7
-  m_Name: Pushback Collider
-  m_TagString: Untagged
+  m_Name: Barrier Pushback Collider
+  m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -50,7 +50,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -87,8 +87,8 @@ GameObject:
   - component: {fileID: 5254245522924551466}
   - component: {fileID: 1806753123881638517}
   m_Layer: 7
-  m_Name: Stun and Damage Trigger
-  m_TagString: Untagged
+  m_Name: Barrier Stun and Damage Trigger
+  m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -123,7 +123,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -162,11 +162,10 @@ GameObject:
   - component: {fileID: 9142938988710890399}
   - component: {fileID: 5025849542299978759}
   - component: {fileID: 4080321511880601651}
-  - component: {fileID: 8025783821149835430}
   - component: {fileID: 4706290986570022875}
   m_Layer: 7
   m_Name: Long Forward Earth Barrier Model
-  m_TagString: Untagged
+  m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -253,23 +252,10 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8025783821149835430
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2990725854677197291}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01f5d2dbc53644443a2f1e70f05e28d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  earthBarrierScript: {fileID: 6668027578986422120}
 --- !u!95 &4706290986570022875
 Animator:
   serializedVersion: 5
@@ -301,7 +287,13 @@ GameObject:
   m_Component:
   - component: {fileID: 1216288214839624998}
   - component: {fileID: 3366026252868741040}
-  - component: {fileID: 6668027578986422120}
+  - component: {fileID: 532151495091222576}
+  - component: {fileID: 8676197010055560604}
+  - component: {fileID: -3154971263049007218}
+  - component: {fileID: 1414046413215412709}
+  - component: {fileID: 1538430696595392765}
+  - component: {fileID: 4069006542705968217}
+  - component: {fileID: 4987812924695100872}
   m_Layer: 7
   m_Name: Long_Barrier_Earth
   m_TagString: Spell
@@ -339,7 +331,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2795747007
+  GlobalObjectIdHash: 105502133
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -348,7 +340,34 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &6668027578986422120
+--- !u!54 &532151495091222576
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
+--- !u!114 &8676197010055560604
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -357,11 +376,106 @@ MonoBehaviour:
   m_GameObject: {fileID: 3940154183010903383}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a92f89c864d78d4e9bad8c6c6499ddb, type: 3}
+  m_Script: {fileID: 11500000, guid: d553b1d4f5089b84691af07aaea6a165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  earthBarrierHealth:
-    m_InternalValue: 0
-  earthBarrierDamage:
-    m_InternalValue: 0
-  earthBarrierCollisionScript: {fileID: 8025783821149835430}
+  spellDataScriptableObject: {fileID: 11400000, guid: 55cc1d2af9da72e4399b7dd64106e6a1, type: 2}
+  nonTriggerCollider: {fileID: 0}
+--- !u!114 &-3154971263049007218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48af42deb96f27148a95f9ce66374afe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spellDataScriptableObject: {fileID: 11400000, guid: 55cc1d2af9da72e4399b7dd64106e6a1, type: 2}
+--- !u!114 &1414046413215412709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  Interpolate: 1
+  SlerpPosition: 0
+--- !u!114 &1538430696595392765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!65 &4069006542705968217
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 2.0982823, z: 11.755446}
+  m_Center: {x: 0, y: 0.54914117, z: 5.377724}
+--- !u!65 &4987812924695100872
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3940154183010903383}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 2.0982823, z: 11.755446}
+  m_Center: {x: 0, y: 0.54914117, z: 5.377724}

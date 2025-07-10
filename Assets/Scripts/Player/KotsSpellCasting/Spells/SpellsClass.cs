@@ -20,7 +20,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public delegate void PlayerHitEvent(PlayerHitPayload damageInfo);
     public static event PlayerHitEvent playerHitEvent;
 
-    public Rigidbody rb;
+    protected Rigidbody rb;
 
     public string SpellName => SpellDataScriptableObject.name;
 
@@ -30,6 +30,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     NetworkVariable<float> healthPoints = new NetworkVariable<float>(0,
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
+    protected NetworkVariable<bool> isSpellActive = new NetworkVariable<bool>(false,
+    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
 
 
@@ -48,7 +50,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         base.OnNetworkSpawn();
 
-        StartCoroutine(LifeTime(spellDataScriptableObject.spellDuration, this.gameObject));
+        StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
 
         // If the spell has a health value greater than 0, set the healthPoints variable
         // This is used to apply damage to the spell itself and handle it's (delayed) destruction
@@ -56,7 +58,44 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             healthPoints.Value = SpellDataScriptableObject.health;
         }
+
+        SpellActivationDelay();
     }
+
+
+
+    void SpellActivationDelay()
+    {
+        if (SpellDataScriptableObject.spellActivationDelay > 0)
+        {
+            StartCoroutine(ActivationDelay());
+        }
+        else
+        {
+            ActivateSpell();
+        }
+    }
+
+
+
+        IEnumerator ActivationDelay()
+    {
+        // Wait for the specified activation delay
+        yield return new WaitForSeconds(SpellDataScriptableObject.spellActivationDelay);
+
+        // Activate the spell
+        ActivateSpell();
+    }
+
+
+
+    void ActivateSpell()
+    {
+        // Logic to activate the spell
+        gameObject.GetComponentInChildren<Collider>().enabled = true;
+        isSpellActive.Value = true;
+    }
+
 
     //void ApplyDamageToSpell()
     //{
@@ -124,6 +163,12 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
+    public void HandleAllInteractions(Collider colliderHit)
+    {
+        HandleSpellToSpellInteractions(colliderHit);
+        HandleSpellToPlayerInteractions(colliderHit);
+    }
+
     //serverRPC
     //get the local health of the player involved
     //validate that the player health is similar to what is saved on the server
@@ -155,17 +200,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
-    public void HandleAllInteractions(Collider colliderHit)
-    {
-        HandleSpellToSpellInteractions(colliderHit);
-        HandleSpellToPlayerInteractions(colliderHit);
-    }
-
 
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        
+
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == false)
         {
             // Check for player hit
@@ -176,15 +215,6 @@ public class SpellsClass : NetworkBehaviour, ISpell
             }
             return;
         }
-        
-       
-        //// Check for player hit
-        //if (colliderHit.CompareTag("Player"))
-        //{
-        //    // If player does not have active shield, handle the player hit
-        //    PlayerIsHit(colliderHit.gameObject);
-        //}
-        
 
         // Check if the target is a spell instead 
         if (colliderHit.CompareTag("Spell"))
@@ -193,6 +223,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             HandleSpellToSpellInteractions(colliderHit);
         }
 
+        // DO NOT DELETE
         // If the collider of the other gameObjecy belongs to layer 7 (layer of gameObjects that destroy a projectile)
         //>>destroy the projectile
         // if (colliderHit.gameObject.layer == 7)
@@ -205,8 +236,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
         // }
     }
 
-
-
+    // DO NOT DELETE
+    // This is to be implemented as the mandatory method that handles spells interactions
+    //implemented on each different spell type and further subdivided by element
+    //public abstract void HandleSpellToSpellInteraction(Collider colliderHit);
 
     public void HandleSpellToSpellInteractions(Collider colliderHit)
     {
@@ -217,19 +250,24 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             var spellComponent = colliderHit.GetComponent<ISpell>();
 
+            Debug.LogFormat("<color=orange> Spell hit (" + colliderHit.name + ")</color>");
 
             if (spellComponent != null && spellComponent.SpellName.Contains("Barrier"))
             {
+                Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+
                 BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
+                    Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+
                     colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
-                    
+
                 }
 
                 DestroySpellRpc();
-            } 
+            }
             else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Scepter"))
             {
                 InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
@@ -242,6 +280,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 DestroySpellRpc();
 
             }
+            // else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Projectile"))
+            // {
+
+            // }
         }
     }
 

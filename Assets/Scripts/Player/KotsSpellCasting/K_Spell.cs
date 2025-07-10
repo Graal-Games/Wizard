@@ -104,15 +104,39 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public override void OnNetworkSpawn()
     {
+        if (gameObject.CompareTag("Player")) return;
+        
         base.OnNetworkSpawn();
-
+        gameObject.GetComponentInChildren<Collider>().enabled = false;
         Debug.LogFormat($"<color=pink>ggggggggggggggggggggo{gameObject}</color>");
 
         pushDirection = transform.forward;
 
+        if (SpellDataScriptableObject.spellActivationDelay > 0)
+        {
+            StartCoroutine(ActivationDelay());
+        }
+        else
+        {
+            ActivateSpell();
+        }
+
     }
 
+    IEnumerator ActivationDelay()
+    {
+        // Wait for the specified activation delay
+        yield return new WaitForSeconds(SpellDataScriptableObject.spellActivationDelay);
 
+        // Activate the spell
+        ActivateSpell();
+    }
+
+    void ActivateSpell()
+    {
+        // Logic to activate the spell
+        gameObject.GetComponentInChildren<Collider>().enabled = true;
+    }
 
 
 

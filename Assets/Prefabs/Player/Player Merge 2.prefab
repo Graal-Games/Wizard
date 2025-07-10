@@ -650,7 +650,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.keys.Array.size
-      value: 22
+      value: 27
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: drDictionary.values.Array.data[1]
@@ -682,7 +682,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 508024dc160a18349a82d3928426038d, type: 2}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.values.Array.size
-      value: 22
+      value: 27
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.keys.Array.data[1]
@@ -769,6 +769,26 @@ PrefabInstance:
       value: B
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[22]
+      value: N
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[23]
+      value: NY
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[24]
+      value: NYB
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[25]
+      value: NYBJ
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[26]
+      value: RT
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.values.Array.data[1]
       value: 
       objectReference: {fileID: 11400000, guid: dfadc483c55c88844ae5372729de7043, type: 2}
@@ -852,6 +872,26 @@ PrefabInstance:
       propertyPath: spellDictionary.values.Array.data[21]
       value: 
       objectReference: {fileID: 11400000, guid: ec7c29cfc5affa74d825d532bc7c625c, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[22]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1dfed0547dd9dc14db958913e0a83e65, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[23]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1dfed0547dd9dc14db958913e0a83e65, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[24]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1dfed0547dd9dc14db958913e0a83e65, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[25]
+      value: 
+      objectReference: {fileID: 11400000, guid: 55cc1d2af9da72e4399b7dd64106e6a1, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[26]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1251d8f2d6d4fa243b4a97f41b512081, type: 2}
     - target: {fileID: 5734205734715665329, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -884,6 +924,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: IvocationSpawnLocation
       objectReference: {fileID: 0}
+    - target: {fileID: 6799642521477597899, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: dispellGO
+      value: 
+      objectReference: {fileID: 2709431458476933822}
     - target: {fileID: 6799642521477597899, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTipGO
       value: 
@@ -1027,7 +1071,7 @@ PrefabInstance:
       insertIndex: 7
       addedObject: {fileID: 1895708736288426739}
     - targetCorrespondingSourceObject: {fileID: 2350346627784580438, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
-      insertIndex: 8
+      insertIndex: 9
       addedObject: {fileID: 5173037566844384501}
     - targetCorrespondingSourceObject: {fileID: 2350346627784580438, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
@@ -1077,6 +1121,11 @@ MonoBehaviour:
 --- !u!1 &2698406356412321120 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5416502290154743733, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+  m_PrefabInstance: {fileID: 7951635563543505621}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2709431458476933822 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5458424201664194667, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
   m_PrefabInstance: {fileID: 7951635563543505621}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &2730516203989580193 stripped

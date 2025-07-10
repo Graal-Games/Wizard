@@ -81,6 +81,8 @@ public class ProjectileClass : SpellsClass
         if (Physics.SphereCast(currentPosition, radius, lastPosition - currentPosition, out hit, Vector3.Distance(currentPosition, lastPosition)))
         {
             HandleAllInteractions(hit.collider);
+
+
             //// If player has active shield, handle the shield interaction and don't process the player hit
             //if (hit.collider.CompareTag("ActiveShield"))
             //{
@@ -124,6 +126,8 @@ public class ProjectileClass : SpellsClass
             //         DestroySpellRpc();
             //     }
             // }
+            
+            // DestroySpellRpc();
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement

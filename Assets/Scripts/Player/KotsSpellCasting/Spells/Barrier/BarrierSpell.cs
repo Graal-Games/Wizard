@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class BarrierSpell : K_Spell
+public class BarrierSpell : SpellsClass // WARNING: TO RENAME TO BARRIERCLASS
 {
     // For health, get reference to the associated spellData
     NetworkVariable<float> localHealth = new NetworkVariable<float>();
@@ -18,48 +18,15 @@ public class BarrierSpell : K_Spell
         //    StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration));
         //}
 
-        if (gameObject.GetComponent<NetworkObject>() == null)
-        {
-            StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject.transform.parent.gameObject));
-        } else
-        {
-            StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
-        }
+        // if (gameObject.GetComponent<NetworkObject>() == null)
+        // {
+        //     StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject.transform.parent.gameObject));
+        // } else
+        // {
+        //     StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+        // }
 
         
-    }
-
-    public override void Fire()
-    {
-
-    }
-
-    //IEnumerator LifeTime()
-    //{
-    //    yield return new WaitForSeconds(SpellDataScriptableObject.spellDuration);
-    //    DestroyBarrierRpc();
-    //}
-
-    //[Rpc(SendTo.Server)]
-    //void DestroyBarrierRpc()
-    //{
-    //    Destroy(gameObject);
-    //    gameObject.GetComponentInParent<NetworkObject>().Despawn();
-    //}
-
-    // While the animation is active
-    // The player that comes into contact with this spell
-    // is stunned
-
-    public override void FixedUpdate()
-    {
-        base.FixedUpdate();
-    }
-
-    void ActivateBarrier()
-    {
-        //gameObject.transform.position = new Vector3(transform.position.x, -1, transform.position.z);
-        Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
     }
 
     // This code can (can it?) be placed in the K_Spell script
@@ -84,33 +51,13 @@ public class BarrierSpell : K_Spell
         if (localHealth.Value <= 0)
         {
             // DestroyBarrierRpc();
-            DestroySpellRpc(thisGameObject);
+            DestroySpellRpc();
         }
     }
 
-    //public void DestroyBarrierRpc()
-    //{
-    //    DestroyBarrierRpcRpc();
-    //}
+    // void OnTriggerEnter(Collider other)
+    // {
+    //     HandleAllInteractions(other);
 
-    //[Rpc(SendTo.Server)]
-    //void DestroyBarrierRpcRpc()
-    //{
-    //    Destroy(gameObject);
-    //    gameObject.GetComponent<NetworkObject>().Despawn();
-    //}
-
-    public override void OnTriggerEnter(Collider other)
-    {
-        base.OnTriggerEnter(other);
-
-
-        //if (other.gameObject.name.Contains("Projectile"))
-        //{
-        //    Debug.LogFormat("<color=blue><><><><><><>BARRIER OTEN (" + other.gameObject.name + ")<><><><><><></color>");
-
-        //    //other.gameObject.GetComponent<K_ProjectileSpell>().DestroySpellRpc();
-        //}
-
-    }
+    // }
 }

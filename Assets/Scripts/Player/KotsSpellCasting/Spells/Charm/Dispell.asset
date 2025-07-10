@@ -10,26 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Long_Barrier_Earth
+  m_Name: Dispell
   m_EditorClassIdentifier: 
-  spellType: 4
-  element: 4
-  spellAttribute: 2
-  castProcedure: 1
-  incapacitationName: 1
-  visionImpairmentType: 2
+  spellType: 0
+  element: 0
+  spellAttribute: 0
+  castProcedure: 0
+  incapacitationName: 0
+  visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 15
-  spellActivationDelay: 40
-  incapacitationDuration: 3
-  visionImpairmentDuration: 3
-  directDamageAmount: 25
+  spellDuration: 0
+  incapacitationDuration: 0
+  visionImpairmentDuration: 0
+  directDamageAmount: 0
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
   pullForce: 0
-  health: 100
+  health: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -40,5 +39,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 3940154183010903383, guid: fb1911a99ade9994c92280c89f1a9a5e, type: 3}
+  prefab: {fileID: 0}
   childPrefab: {fileID: 0}
