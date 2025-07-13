@@ -55,9 +55,4 @@ public class BarrierSpell : SpellsClass // WARNING: TO RENAME TO BARRIERCLASS
         }
     }
 
-    // void OnTriggerEnter(Collider other)
-    // {
-    //     HandleAllInteractions(other);
-
-    // }
 }

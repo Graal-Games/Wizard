@@ -29,8 +29,12 @@ public class K_SpellData : ScriptableObject
     [Tooltip("The duration in seconds of the spell. Set to 0 for infinite duration")]
     [Min(0f)] public float spellDuration;
 
-    [Tooltip("The amount of time the player is incapacitated for")]
+    [Tooltip("The delay in seconds before the spell can be activated after casting")]
     [Min(0f)] public float spellActivationDelay;
+
+    [Tooltip("The delay in seconds before the spell is be deactivated after casting")]
+    [Min(0f)] public float spellTimeBeforeDeactivation;
+
 
     [Tooltip("The amount of time the player is incapacitated for")]
     [Min(0f)] public float incapacitationDuration; 

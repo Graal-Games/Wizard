@@ -131,7 +131,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         NewHealthBarSingleton.Instance.GetPlayer(gameObject.transform);
         _healthBar = NewHealthBarSingleton.Instance.GetComponent<NewHealthBarSingleton>().GetComponentInChildren<HealthBarUi>();
 
-        Debug.Log("NetworkObject found12321321321321321312312: " + NewHealthBarSingleton.Instance.GetComponent<NewHealthBarSingleton>());
+        // Debug.Log("NetworkObject found12321321321321321312312: " + NewHealthBarSingleton.Instance.GetComponent<NewHealthBarSingleton>());
 
 
         // Emit an event of the player info to be ingested by the GameManager

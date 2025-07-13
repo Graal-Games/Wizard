@@ -60,6 +60,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
         }
 
         SpellActivationDelay();
+
+        // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
+        // {
+        //     StartCoroutine(SpellDeactivation());
+        // }
     }
 
 
@@ -68,6 +73,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         if (SpellDataScriptableObject.spellActivationDelay > 0)
         {
+            gameObject.GetComponent<Collider>().enabled = false;
             StartCoroutine(ActivationDelay());
         }
         else
@@ -92,10 +98,47 @@ public class SpellsClass : NetworkBehaviour, ISpell
     void ActivateSpell()
     {
         // Logic to activate the spell
-        gameObject.GetComponentInChildren<Collider>().enabled = true;
+        gameObject.GetComponent<Collider>().enabled = true;
         isSpellActive.Value = true;
     }
 
+
+
+    public void SpellDeactivationDelay(Collider colliderToDeactivate = null)
+    {
+        Debug.LogFormat("<color=orange>111SpellDeactivationDelay called with null collider</color>");
+
+        if (colliderToDeactivate == null)
+        {
+            Debug.LogFormat("<color=orange>SpellDeactivationDelay called with null collider</color>");
+            colliderToDeactivate = gameObject.GetComponent<Collider>();
+        }
+        else
+        {
+            Debug.LogFormat("<color=orange>SpellDeactivationDelay called with collider: {0}</color>", colliderToDeactivate.name);
+            StartCoroutine(DeactivationDelay(colliderToDeactivate));
+        }
+
+        StartCoroutine(DeactivationDelay(colliderToDeactivate));
+    }
+
+    
+    IEnumerator DeactivationDelay(Collider colliderToDeactivate)
+    {
+        // Wait for the specified deactivation delay
+        yield return new WaitForSeconds(SpellDataScriptableObject.spellTimeBeforeDeactivation);
+
+        // Deactivate the spell
+        DeactivateSpell(colliderToDeactivate);
+    }
+
+
+
+    void DeactivateSpell(Collider colliderToDeactivate)
+    {
+        colliderToDeactivate.enabled = false;
+        isSpellActive.Value = false;
+    }
 
     //void ApplyDamageToSpell()
     //{
