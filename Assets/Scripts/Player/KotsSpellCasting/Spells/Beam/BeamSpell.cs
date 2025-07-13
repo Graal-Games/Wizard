@@ -66,7 +66,7 @@ public class BeamSpell : K_Spell
     void Update()
     {
         //Debug.Log($"OwnerClientIdOwnerClientId: " + OwnerClientId);
-        Debug.Log($"IsOwner: " + IsOwner + "- IsLocalPlayer: " + IsLocalPlayer + "- Parent: " + gameObject.transform.parent.GetChild(2));
+        //Debug.Log($"IsOwner: " + IsOwner + "- IsLocalPlayer: " + IsLocalPlayer + "- Parent: " + gameObject.transform.parent.GetChild(2));
         
         // Get the wand tip and move the beam the same way it moves
         if (gameObject.transform.parent.GetChild(2) != null)

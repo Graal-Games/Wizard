@@ -92,6 +92,14 @@ public class K_SpellLauncher : NetworkBehaviour
     }
 
 
+    string g_currentSpellSequence = "";
+    public String g_CurrentSpellSequence
+    {
+        get { return g_currentSpellSequence; }
+        set { g_currentSpellSequence = value; }
+    }
+    
+
     private KeyCode lastSpellType = KeyCode.None;
     private bool ignoreDrLock;
 
@@ -238,7 +246,7 @@ public class K_SpellLauncher : NetworkBehaviour
         //// END SpellUnlockManager
         ///
 
-        spellChargingManager = new SpellChargingManager(this);
+        spellChargingManager = new SpellChargingManager(this, spellBuilder);
 
         Debug.LogFormat($"<color=red> IsLocalPlayer {IsLocalPlayer} OwnerClientId {OwnerClientId} </color>");
     }
@@ -284,8 +292,10 @@ public class K_SpellLauncher : NetworkBehaviour
             //if (CastModeSpeedChange != null) CastModeSpeedChange(castModeMoveSpeedReset);
         }
 
-
-        if (isInSpellChargingMode) {
+        // >>>>>>>>>>>>>>>> CHARGING MODE ENTRY <<<<<<<<<<<<<<<<<
+        // If the player is in spell charging mode, the spell charging manager handles the input
+        if (isInSpellChargingMode)
+        {
             spellChargingManager.HandleSpellChargingInput();
             return;
         }
@@ -360,6 +370,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
         // Resets the spell sequence saved AND exits the player from Cast Mode (to idle)
         ResetSpellSequence();
+
         if (CastModeSpeedChange != null) CastModeSpeedChange(castModeMoveSpeedReset);
 
         // Handles deactivating the AOE visuallizer 
@@ -369,8 +380,9 @@ public class K_SpellLauncher : NetworkBehaviour
         }
     }
 
-    #region Spell Casting
 
+
+    #region Spell Casting
 
     /// <summary>
     /// Listens for spell casting related key presses, updates the
@@ -394,6 +406,8 @@ public class K_SpellLauncher : NetworkBehaviour
             {
                 //Debug.LogFormat($"<color=red> 3 {spellSequence} </color>");
                 currentSpellType = key;
+
+                g_CurrentSpellSequence = key.ToString();
 
                 // This method checks if DR should be activated and does so if yes
                 HandleDrLockActivation();
@@ -419,19 +433,29 @@ public class K_SpellLauncher : NetworkBehaviour
                     return;
                 }
 
+                // >>>>>>>>>>>>>>>> POST DR INPUT - SPELL CHARGING MODE ENTRY <<<<<<<<<<<<<<
                 // This method checks if SpellCharging should be activated
+                // Checks if there is a spell already being casted
+                // Checks if the spell type is a spell charging type
+                // Activates Charging keys if so
+                // if (SpellSequence.Length == 1)
+                // {
+                    //HandlePeriCastLockProcedure();
+                //}
+                // new - Check the type of peri cast lock and activate the correct associated spell
+                // Tried modifying this with the HandlePeriCastProcedure(); option above but it didn't work as expected
                 spellChargingManager.HandleSpellChargingActivation();
 
-                if (isInSpellChargingMode) {
+                
+
+                if (isInSpellChargingMode)
+                {
                     // If the spell charging was activated, return
                     //making way for the Spell Charging letters sequence activation and player input
                     return;
                 }
 
             }
-
-            // handle parry letters generation here
-            parryLetters.Value = "R";
 
             // This is for elements??
             // Add the button pressed to the spell sequence (the spell's existance is checked thereafter)
@@ -440,10 +464,14 @@ public class K_SpellLauncher : NetworkBehaviour
             // This writes the spell string sequence input on the top left corner of the screen
             spellText.text = K_SpellKeys.cast.ToString() + spellSequence;
 
+            // if (SpellSequence.Length == 1 || spellBuilder.GetPeriCastLockProcedure(spellSequence) == "Charging")
+            // {
+            //     HandlePeriCastLockProcedure();
+            // }
 
             // Check if the spell (spell sequence) exists. If not,
             // reset the sequence, the spellText & the casting status
-            if (!spellBuilder.SpellExists(spellSequence))
+            if (!spellBuilder.SpellExists(spellSequence)) // TO DO - Make this able to detect a spell with an unfinished sequence
             {
                 Debug.LogFormat($"<color=red> Spell does not exist {spellSequence} </color>");
                 // Note: No need to cancel anim here since the anim is not active here yet
@@ -463,8 +491,11 @@ public class K_SpellLauncher : NetworkBehaviour
             }
 
             InitCastProcedure(); // (exists in one other place in this script) This can be replaced by InitiateCastProcedure(spellSequence);
-        } 
+        }
     }
+
+
+
 
     void StopCastBufferAnimationIfActive()
     {
@@ -476,11 +507,17 @@ public class K_SpellLauncher : NetworkBehaviour
         }
     }
 
-    public void InitCastProcedure() 
+
+
+
+    public void InitCastProcedure()
     {
         //StopCastBufferAnimationIfActive();
 
         Debug.LogFormat($"<color=red> Anim is not playing > playing </color>");
+
+
+        //HandlePeriCastLockProcedure(); // If this is resolved, init cast procedure
 
         // Animate the cast buffer square
         InitiateCastProcedure(spellSequence);
@@ -491,13 +528,13 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
 
+    // A spell is only cast here if the sequence contains a spellcast procedure
     void InitiateCastProcedure(string spellSequence)
     {
 
         Debug.LogFormat($"<color=red> spellSequencespellSequence {spellSequence} </color>");
 
         string spellCastProcedure = spellBuilder.GetSpellCastProcedureType(spellSequence);
-
 
         switch (spellCastProcedure)
         {
@@ -527,15 +564,35 @@ public class K_SpellLauncher : NetworkBehaviour
                 Debug.Log("Exception Error: Spell not found");
                 break;
         }
-
-
-        // or 
-
-        // Check cast type and handle accordingly
     }
 
 
+    void HandlePeriCastLockProcedure()
+    {
+        // if (spellSequence.Contains("") 
+        // || spellSequence.Length == 0
+        // || spellBuilder.GetPeriCastLockProcedure(spellSequence).Contains("None"))
+        // return;
+        // Save the type of peri cast lock procedure it is
+        string periCastLockProcedure = spellBuilder.GetPeriCastLockProcedure(spellSequence);
 
+        Debug.LogFormat($"<color=orange>SpellLauncher > PeriCastLockProcedure: {periCastLockProcedure}</color>");
+
+        switch (periCastLockProcedure)
+        {
+            case "Charging":
+                // Charging locks a spell before it is casted
+                spellChargingManager.HandleSpellChargingActivation();
+                break;
+            case "Channeling":
+                // Channeling is a mid-spell lock whose resolution increases the lifetime of a spell
+                break;
+            default:
+                Debug.Log("Exception Error: Spell type not found");
+                return;
+        }
+    }
+    
 
 
     /// <summary>
@@ -590,9 +647,11 @@ public class K_SpellLauncher : NetworkBehaviour
                 ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position);
                 break;
             case "Sphere":
+                // A local instance of the sphere is created 
+                // to have the sphere spawn correctly in the center of the player
                 localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
 
-                // Disabling these so no errors are thrown when shield is being destoyed
+                // Disabling these on the local copy of the spell so no errors are thrown when shield is being destoyed
                 // otherwise the functionality does not work
                 localSpellInstance.GetComponent<K_SphereSpell>().enabled = false;
                 localSpellInstance.GetComponent<SphereCollider>().enabled = false;

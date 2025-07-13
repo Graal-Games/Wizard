@@ -4,26 +4,44 @@ using UnityEngine;
 
 public class SpellChargingManager
 {
-    private K_SpellLauncher spellLauncher;  
-    
+    private K_SpellLauncher spellLauncher;
 
-    public SpellChargingManager(K_SpellLauncher spellLauncher)
+    private K_SpellBuilder spellBuilder;
+    public SpellChargingManager(K_SpellLauncher spellLauncher, K_SpellBuilder spellBuilder)
     {
         this.spellLauncher = spellLauncher;
+        this.spellBuilder = spellBuilder;
     }
-    
+
 
     // This 
-    private bool isSpellChargingType(KeyCode spellType)
+    // private bool isSpellChargingType(KeyCode spellType)
+    // {
+    //     if (spellLauncher.CurrentSpellType.ToString() == "B" ||
+    //         spellLauncher.CurrentSpellType.ToString() == "R")
+    //     {
+    //         // If the spell type is bean spell, then it is a Spell Charging type
+    //         return true;
+    //     }
+    //     // Currently only bean spell is ChargingType
+    //     return false;
+    // }
+
+    private bool isSpellChargingType(string spellType)
     {
-        if (spellLauncher.CurrentSpellType.ToString() == "B" ||
-            spellLauncher.CurrentSpellType.ToString() == "R")
+        string periCastLockProcedure = spellBuilder.GetPeriCastLockProcedure(spellLauncher.g_CurrentSpellSequence);
+
+        switch (periCastLockProcedure)
         {
-            // If the spell type is bean spell, then it is a Spell Charging type
-            return true;
+            case "Charging":
+                return true;
+            case "None":
+                return false;
+            default:
+                Debug.LogError($"<color=red>SpellChargingManager > Unknown periCastLockProcedure: {periCastLockProcedure}</color>");
+                return false;
         }
-        // Currently only bean spell is ChargingType
-        return false;
+
     }
 
 
@@ -33,14 +51,27 @@ public class SpellChargingManager
     /// </summary>
     public void HandleSpellChargingActivation()
     {
+        /// <summary>
+        /// spellLauncher.SpellSequence.Length != 0
+
+        /// Checks if the spell sequence is not empty (i.e., the player has already started entering a spell sequence).
+        /// If true, the function exits early (return;), so spell charging will not be activated if a spell 
+        /// is already being built.
+        /// 
+        /// !isSpellChargingType(spellLauncher.CurrentSpellType)
+        /// Calls a helper function to check if the current spell type is a "charging" type 
+        /// (for example, a spell that requires holding or charging up).
+        /// If the current spell type is not a charging type, the function exits early.
+        /// </summary>
         if (spellLauncher.SpellSequence.Length != 0 ||
-            !isSpellChargingType(spellLauncher.CurrentSpellType))
+            !isSpellChargingType(spellLauncher.g_CurrentSpellSequence))
         {
             return;
         }
 
         Debug.LogFormat($"<color=orange>SpellChargingManager > Activate SpellCharging! </color>");
-        ActivateSpellChargingKeys(2);
+
+        ActivateSpellChargingKeys(2); // To manually pass a parameter for a variable number of keys
 
         spellLauncher.IsInSpellChargingMode = true;
         spellLauncher.InSpellCastModeOrWaitingSpellCategory = false;
@@ -60,6 +91,7 @@ public class SpellChargingManager
         if (!spellLauncher.spellBuilder.SpellExists(spellLauncher.SpellSequence))
         {
             //Debug.LogFormat($"<color=red> Spell does not exist </color>");
+            Debug.LogFormat($"<color=red> SPELL DOES NOT EXIST </color>");
 
             // Note: No need to cancel anim here since the anim is not active here yet
             spellLauncher.StopCastBuffer();

@@ -12,6 +12,8 @@ public class K_SpellData : ScriptableObject
     public SpellAttribute spellAttribute;
     [Tooltip("The spell's cast type or procedure")]
     public CastType castProcedure;
+    [Tooltip("The spell's peri-cast lock procedure")]
+    public PeriCastType periCastLockProcedure;
     //[Tooltip("The type of incapacitation")]
     //public IncapacitationType incapacitationType; 
     [Tooltip("The name of incapacitation")]

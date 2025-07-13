@@ -151,6 +151,12 @@ public class K_SpellBuilder : NetworkBehaviour
         return spellDictionary[spellStringSequence].castProcedure.ToString();
     }
 
+    // Peri includes pre and post "around the time" of the cast
+    public string GetPeriCastLockProcedure(string spellStringSequence)
+    {
+        return spellDictionary[spellStringSequence].periCastLockProcedure.ToString();
+    }
+
     /// <summary>
     /// Generates a queue of unique random DRKeyData. Applying the
     /// invisible and / or buffered properties to random keys within
