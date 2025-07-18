@@ -407,7 +407,10 @@ public class K_SpellLauncher : NetworkBehaviour
                 //Debug.LogFormat($"<color=red> 3 {spellSequence} </color>");
                 currentSpellType = key;
 
-                g_CurrentSpellSequence = key.ToString();
+                g_CurrentSpellSequence += key.ToString();
+    
+                // Add the new key to the sequence BEFORE checking
+                string tempSequence = spellSequence + key.ToString();
 
                 // This method checks if DR should be activated and does so if yes
                 HandleDrLockActivation();
@@ -444,7 +447,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 //}
                 // new - Check the type of peri cast lock and activate the correct associated spell
                 // Tried modifying this with the HandlePeriCastProcedure(); option above but it didn't work as expected
-                spellChargingManager.HandleSpellChargingActivation();
+                spellChargingManager.HandleSpellChargingActivation(tempSequence);
 
                 
 
@@ -457,6 +460,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
             }
 
+            spellText.text = K_SpellKeys.cast.ToString() + spellSequence;
+
             // This is for elements??
             // Add the button pressed to the spell sequence (the spell's existance is checked thereafter)
             spellSequence += key.ToString();
@@ -468,7 +473,7 @@ public class K_SpellLauncher : NetworkBehaviour
             // {
             //     HandlePeriCastLockProcedure();
             // }
-
+            spellChargingManager.HandleSpellChargingActivation(spellSequence);
             // Check if the spell (spell sequence) exists. If not,
             // reset the sequence, the spellText & the casting status
             if (!spellBuilder.SpellExists(spellSequence)) // TO DO - Make this able to detect a spell with an unfinished sequence
@@ -535,6 +540,9 @@ public class K_SpellLauncher : NetworkBehaviour
         Debug.LogFormat($"<color=red> spellSequencespellSequence {spellSequence} </color>");
 
         string spellCastProcedure = spellBuilder.GetSpellCastProcedureType(spellSequence);
+
+        //spellChargingManager.HandleSpellChargingActivation(spellSequence);
+
 
         switch (spellCastProcedure)
         {
@@ -653,7 +661,11 @@ public class K_SpellLauncher : NetworkBehaviour
 
                 // Disabling these on the local copy of the spell so no errors are thrown when shield is being destoyed
                 // otherwise the functionality does not work
-                localSpellInstance.GetComponent<K_SphereSpell>().enabled = false;
+                if (localSpellInstance.GetComponent<K_SphereSpell>())
+                {
+                    localSpellInstance.GetComponent<K_SphereSpell>().enabled = false;
+                }
+                
                 localSpellInstance.GetComponent<SphereCollider>().enabled = false;
                 localSpellInstance.GetComponent<NetworkObject>().enabled = false;
 
@@ -780,7 +792,10 @@ public class K_SpellLauncher : NetworkBehaviour
 
         netObj.TrySetParent(gameObject.GetComponent<NetworkObject>());
 
-        netObj.GetComponent<K_SphereSpell>().AssignParent(gameObject.transform);
+        if (netObj.GetComponent<K_SphereSpell>())
+        {
+            netObj.GetComponent<K_SphereSpell>().AssignParent(gameObject.transform);
+        }
 
         HideForOwnerRpc(netObj);
 
@@ -793,7 +808,7 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Owner)]
     void HideForOwnerRpc(NetworkObjectReference spellRef)
     {
-        if (spellRef.TryGet(out NetworkObject netObj))
+        if (spellRef.TryGet(out NetworkObject netObj) && netObj.gameObject.GetComponent<MeshRenderer>() != null)
         {
             //The network instance is spawning off center for the client. This is the workaround
             //The network instance is hidden to the local player and shown the local instance instead for a more accurate positioning
@@ -974,7 +989,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
 
-    public void ResetSpellSequence() 
+    public void ResetSpellSequence()
     {
 
         if (castKey.Anim.GetCurrentAnimatorStateInfo(0).IsName("BufferOnce"))
@@ -986,6 +1001,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
         this.spellSequence = "";
         this.spellText.text = "";
+        
+        g_CurrentSpellSequence = "";
     }
 
 

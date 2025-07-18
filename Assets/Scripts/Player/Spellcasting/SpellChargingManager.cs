@@ -29,7 +29,9 @@ public class SpellChargingManager
 
     private bool isSpellChargingType(string spellType)
     {
-        string periCastLockProcedure = spellBuilder.GetPeriCastLockProcedure(spellLauncher.g_CurrentSpellSequence);
+        string periCastLockProcedure = spellBuilder.GetPeriCastLockProcedure(spellType);
+
+        Debug.LogFormat($"<color=orange>SpellChargingManager > isSpellChargingType: {periCastLockProcedure} </color>");
 
         switch (periCastLockProcedure)
         {
@@ -49,7 +51,7 @@ public class SpellChargingManager
     /// Checks if the user should be presented with a Spell Charging instance, and displays
     /// the Spell Charging instance on his UI if so.
     /// </summary>
-    public void HandleSpellChargingActivation()
+    public void HandleSpellChargingActivation(string spellSequence = "")
     {
         /// <summary>
         /// spellLauncher.SpellSequence.Length != 0
@@ -63,11 +65,23 @@ public class SpellChargingManager
         /// (for example, a spell that requires holding or charging up).
         /// If the current spell type is not a charging type, the function exits early.
         /// </summary>
-        if (spellLauncher.SpellSequence.Length != 0 ||
-            !isSpellChargingType(spellLauncher.g_CurrentSpellSequence))
+        if (spellSequence == "")
         {
-            return;
+            if (spellLauncher.SpellSequence.Length != 0 ||
+                !isSpellChargingType(spellLauncher.g_CurrentSpellSequence))
+            {
+                return;
+            }
         }
+        else
+        {
+            if (spellLauncher.SpellSequence.Length != 0 ||
+                !isSpellChargingType(spellSequence))
+            {
+                return;
+            }
+        }
+
 
         Debug.LogFormat($"<color=orange>SpellChargingManager > Activate SpellCharging! </color>");
 

@@ -34,13 +34,20 @@ public class SpellsClass : NetworkBehaviour, ISpell
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
 
+    private float spellLifetimeTimer = 0f;
+    private float spellLifetimeDuration = 0f;
+    private bool spellLifetimeActive = false;
+
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb = GetComponent<Rigidbody>();
+            rb.isKinematic = false;
+            rb.useGravity = false;
+        }
 
-        rb.isKinematic = false;
-        rb.useGravity = false;
     }
 
 
@@ -50,7 +57,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         base.OnNetworkSpawn();
 
-        StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+        //StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+
+        StartLifeTime(SpellDataScriptableObject.spellDuration, this.gameObject);
 
         // If the spell has a health value greater than 0, set the healthPoints variable
         // This is used to apply damage to the spell itself and handle it's (delayed) destruction
@@ -68,6 +77,15 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        // Unsubscribe from the player hit event // To remember to do this where applicable 
+        //playerHitEvent -= EmitPayload;
+        Debug.LogFormat("<color=orange>Spell despawned</color>", gameObject.name);
+    }
+
 
     void SpellActivationDelay()
     {
@@ -84,7 +102,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
-        IEnumerator ActivationDelay()
+    IEnumerator ActivationDelay()
     {
         // Wait for the specified activation delay
         yield return new WaitForSeconds(SpellDataScriptableObject.spellActivationDelay);
@@ -286,22 +304,25 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public void HandleSpellToSpellInteractions(Collider colliderHit)
     {
+        var ISpellComponent = colliderHit.GetComponent<ISpell>();
+        bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
+        bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
+
+
         // Collider objectHit = colliderHit;
         // If the other object that this gameObject has interacted with is a spell
         //>>handle the behavior of the spell interaction
         if (colliderHit.CompareTag("Spell"))
         {
-            var spellComponent = colliderHit.GetComponent<ISpell>();
-
             Debug.LogFormat("<color=orange> Spell hit (" + colliderHit.name + ")</color>");
 
-            if (spellComponent != null && spellComponent.SpellName.Contains("Barrier"))
+            if (ISpellComponent != null && isBarrier)
             {
                 Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
-                BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
+                // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
-                if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
+                if (SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
                     Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
@@ -311,7 +332,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 DestroySpellRpc();
             }
-            else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Scepter"))
+            else if (ISpellComponent != null && isScepter)
             {
                 InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
 
@@ -331,6 +352,19 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+    void FixedUpdate()
+    {
+        if (spellLifetimeActive)
+        {
+            spellLifetimeTimer += Time.fixedDeltaTime;
+
+            if (spellLifetimeTimer >= spellLifetimeDuration)
+            {
+                spellLifetimeActive = false;
+                DestroySpellRpc();
+            }
+        }
+    }
 
 
     #region Spell Duration handling and destruction
@@ -338,10 +372,22 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         gameObjectToDestroy = spellObj;
 
+        Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} seconds</color>", spellObj.name, duration);
+
         yield return new WaitForSeconds(duration);
         DestroySpellRpc();
     }
 
+
+    public void StartLifeTime(float duration, GameObject spellObj)
+    {
+        gameObjectToDestroy = spellObj;
+        spellLifetimeDuration = duration;
+        spellLifetimeTimer = 0f;
+        spellLifetimeActive = true;
+
+        Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} physics seconds</color>", spellObj.name, duration);
+    }
 
 
 
@@ -358,14 +404,19 @@ public class SpellsClass : NetworkBehaviour, ISpell
     [Rpc(SendTo.Server)]
     public void DestroySpellRpc()
     {
-        Destroy(gameObjectToDestroy);
+
+        Debug.LogFormat($"<color=orange>Destroying spell {gameObjectToDestroy.name}</color>");
+        
+        //Destroy(gameObjectToDestroy);
 
         if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)
         {
+            Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} has a NetworkObject</color>");
             gameObjectToDestroy.GetComponent<NetworkObject>().Despawn();
         }
         else
         {
+            Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} does NOT have a NetworkObject</color>");
             gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
         }
     }

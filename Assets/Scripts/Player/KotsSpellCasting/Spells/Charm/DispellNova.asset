@@ -10,17 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Dispell
+  m_Name: DispellNova
   m_EditorClassIdentifier: 
-  spellType: 0
+  spellType: 6
   element: 0
-  spellAttribute: 0
-  castProcedure: 0
+  spellAttribute: 5
+  castProcedure: 1
+  periCastLockProcedure: 1
   incapacitationName: 0
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0
+  spellDuration: 0.5
+  spellActivationDelay: 0
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 0
@@ -39,5 +42,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 0}
+  prefab: {fileID: 7158813726689037303, guid: b547f7a3f6b37f643878c5db2bc2455a, type: 3}
   childPrefab: {fileID: 0}

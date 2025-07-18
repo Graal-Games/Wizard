@@ -154,6 +154,7 @@ public class K_SpellBuilder : NetworkBehaviour
     // Peri includes pre and post "around the time" of the cast
     public string GetPeriCastLockProcedure(string spellStringSequence)
     {
+        Debug.LogFormat($"<color=orange> GetPeriCastLockProcedure: {spellStringSequence} </color>");
         return spellDictionary[spellStringSequence].periCastLockProcedure.ToString();
     }
 

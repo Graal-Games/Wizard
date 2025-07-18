@@ -13,14 +13,17 @@ MonoBehaviour:
   m_Name: Beam_Arcane
   m_EditorClassIdentifier: 
   spellType: 2
-  element: 0
+  element: 1
   spellAttribute: 0
   castProcedure: 1
+  periCastLockProcedure: 1
   incapacitationName: 0
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 15
+  spellActivationDelay: 0
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 50
