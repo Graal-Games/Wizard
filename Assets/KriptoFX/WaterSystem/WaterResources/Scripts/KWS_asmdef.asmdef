@@ -1,0 +1,28 @@
+{
+    "name": "KWS",
+    "rootNamespace": "",
+    "references": [
+        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
+        "GUID:df380645f10b7bc4b97d4f5eb6303d95"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.xr",
+            "expression": "0.0",
+            "define": "ENABLE_XR_MODULE"
+        },
+        {
+            "name": "com.unity.modules.vr",
+            "expression": "0.0",
+            "define": "ENABLE_VR_MODULE"
+        }
+    ],
+    "noEngineReferences": false
+}
