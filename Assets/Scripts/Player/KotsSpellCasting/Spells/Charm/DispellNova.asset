@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
   m_Name: DispellNova
   m_EditorClassIdentifier: 
-  spellType: 6
+  spellType: 1
   element: 0
   spellAttribute: 5
   castProcedure: 1
@@ -21,7 +21,7 @@ MonoBehaviour:
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0.5
+  spellDuration: 3
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
