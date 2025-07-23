@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 9127425066406725040}
   - component: {fileID: -7514415382337745099}
   m_Layer: 0
-  m_Name: projectile_test
+  m_Name: New_Projectile_Arcane
   m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

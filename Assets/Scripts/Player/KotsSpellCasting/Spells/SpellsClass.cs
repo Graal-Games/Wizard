@@ -39,6 +39,19 @@ public class SpellsClass : NetworkBehaviour, ISpell
     private bool spellLifetimeActive = false;
 
 
+    /// <summary>
+    ///  1- Lifetime ----------------------------- Time until the spell is destroyed
+    ///  2- Activation Delay - Optional ---------- Time before the spell effect is activated after casting 
+    ///  3- Deactivation Delay - Optional -------- Time before the spell effect is deactivated after casting
+    ///  4- Player Hit --------------------------- Handles emitting the payload
+    ///  5- Spell To Player Interaction handler -- Handles the player hit check if shield is active and handle damage application
+    ///  6- Spell To Spell Interaction handler --- Handles the spell to spell interaction check and handles damage application
+    ///  >> Currently utilizes the individual script for each spell, to use an IInterface instead <<<<<<<<<<<<<<<<<< TO DO 
+    ///  7- Handle if hit player active shield --- Handles the interaction with the active shield and redirects damage to it
+    ///  8- Handle destroy spell ----------------- Handles the spell destruction logic
+    /// </summary>
+
+
     private void Start()
     {
         if (rb != null)
@@ -305,8 +318,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public void HandleSpellToSpellInteractions(Collider colliderHit)
     {
         var ISpellComponent = colliderHit.GetComponent<ISpell>();
-        bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
-        bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
+        //bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
+        //bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
 
 
         // Collider objectHit = colliderHit;
@@ -314,14 +327,15 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //>>handle the behavior of the spell interaction
         if (colliderHit.CompareTag("Spell"))
         {
-            Debug.LogFormat("<color=orange> Spell hit (" + colliderHit.name + ")</color>");
+            //Debug.LogFormat("<color=orange> Spell hit (" + colliderHit.name + ")</color>");
 
-            if (ISpellComponent != null && isBarrier)
+            if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
             {
                 Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
                 // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
+                // IF colliderHit.GetComponent<IDamageable>() != null
                 if (SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
                     Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
@@ -332,7 +346,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 DestroySpellRpc();
             }
-            else if (ISpellComponent != null && isScepter)
+            else if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Scepter"))
             {
                 InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
 
@@ -352,7 +366,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
-    void FixedUpdate()
+    public virtual void FixedUpdate()
     {
         if (spellLifetimeActive)
         {

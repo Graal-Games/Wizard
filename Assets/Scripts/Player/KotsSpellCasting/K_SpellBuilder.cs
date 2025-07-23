@@ -66,7 +66,7 @@ public class K_SpellBuilder : NetworkBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         // Below is a timer that expires the DR lock after a certain period of time
         // That period of time is set in the DR SO in the inspector
@@ -74,7 +74,7 @@ public class K_SpellBuilder : NetworkBehaviour
         {
             if (drCooldowns[spellType] > 0f)
             {
-                drCooldowns[spellType] -= Time.deltaTime;
+                drCooldowns[spellType] -= Time.fixedDeltaTime;
 
                 if (drCooldowns[spellType] <= 0)
                 {
@@ -100,36 +100,38 @@ public class K_SpellBuilder : NetworkBehaviour
         isIgnoreDRLock[spellKey] = isIgnore; 
     }
 
+    /// TO DELETE BELOW
     /// <summary>
     /// Retrieves a spell from the spellDictionary given a spellName and
     /// creates an instance of said spell. The spell names do NOT contain the cast key (G) in their names.
     /// </summary>
     /// <param name="spellName">The name of the spell, acts as a key for spellDictionary.</param>
     /// <returns>The spell component from the instanced spell.</returns>
-    public void StringToSpell(string spellName)
-    {
+    //public void StringToSpell(string spellName)
+    //{
 
-        if (!spellDictionary.ContainsKey(spellName))
-            return;
+    //    if (!spellDictionary.ContainsKey(spellName))
+    //        return;
 
-        SpellNetworkSpawnRpc();
-    }
+    //    SpellNetworkSpawnRpc();
+    //}
 
-    [Rpc(SendTo.Server)]
-    void SpellNetworkSpawnRpc()
-    {
-        float yRotation = transform.rotation.eulerAngles.y;
-        Quaternion newRotation = Quaternion.Euler(0, yRotation, 0);
-        // Change position here to a launch point gameObject
-        GameObject spellInstance = Instantiate(baseSpell, (this.transform.position = new Vector3 (1,2,3)), newRotation);
+    //[Rpc(SendTo.Server)]
+    //void SpellNetworkSpawnRpc()
+    //{
+    //    float yRotation = transform.rotation.eulerAngles.y;
+    //    Quaternion newRotation = Quaternion.Euler(0, yRotation, 0);
+    //    // Change position here to a launch point gameObject
+    //    GameObject spellInstance = Instantiate(baseSpell, (this.transform.position = new Vector3 (1,2,3)), newRotation);
 
-        K_Spell spellComponent = spellInstance.GetComponent<K_Spell>();
-        spellComponent.spellData = spellData;
+    //    K_Spell spellComponent = spellInstance.GetComponent<K_Spell>();
+    //    spellComponent.spellData = spellData;
 
-        NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
+    //    NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+    //    netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
 
-    }
+    //}
+    /// TO DELETE ABOVE
 
     /// <summary>
     /// Checks if a given spell exists in the spellDictionary.

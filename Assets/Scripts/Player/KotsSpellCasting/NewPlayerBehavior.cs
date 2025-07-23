@@ -1,12 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Netcode;
 using DamageOverTimeEffect;
 using DebuffEffect;
 using IncapacitationEffect;
-using UnityEngine.UIElements;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 public class NewPlayerBehavior : NetworkBehaviour
 {
@@ -329,6 +330,9 @@ public class NewPlayerBehavior : NetworkBehaviour
             }
         }
 
+
+
+
         // There is a delay upon exiting a fire AoE until the DoT tick damage begins to apply
         // Following my investigation, this is likely due to the fact that foreach is based upon an IEnumerator
         //and the delay follows the necessity to create an instance of it. (to investigate)
@@ -360,6 +364,12 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     }
 
+    // This was initially to revise how damage application is handled 
+    // with damage over time spells. To explore again later
+    public void ApplyDamageToPlayer(float dmg)
+    {
+        _healthBar.ApplyDamage(dmg);
+    }
 
     void HandleIncapacitation(ulong clientId, IncapacitationInfo incapacitation) // IncapacitationInfo is part of the spell payload emitted upon spell>player interaction
     {
@@ -537,6 +547,11 @@ public class NewPlayerBehavior : NetworkBehaviour
         // If the type of spell is aoe, repeat damage application until an exit event has been returned here
 
         // TD: Make this into a dictionary? bool persistant? > Persists until the player removes the dot spell off of himself
+
+
+        /// NEW - THIS PREVENTS STACKING OF DOT SPELL
+        if (currentDamageOverTimeList.Any(dot => dot.NetworkId == networkId)) return;
+
         currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
         Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
     }

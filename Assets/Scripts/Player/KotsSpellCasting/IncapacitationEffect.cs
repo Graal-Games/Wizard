@@ -4,6 +4,10 @@ using UnityEngine;
 using DebuffEffect;
 using Unity.Netcode;
 
+
+
+
+
 public enum IncapacitationType
 {
     None,
@@ -21,7 +25,8 @@ public enum IncapacitationName
     Stun,
     Slow,
     Fear,
-    Bind
+    Bind,
+    Silence
 }
 
 public struct IncapacitationInfo
@@ -38,27 +43,67 @@ public struct IncapacitationInfo
         AffectsMovement = affectsMovement;
         SlowsMovement = slowsMovementp;
         StopsMovement = stopsMovementp;
-        AffectsSpellCasting = affectsSpellCasting;
+        AffectsSpellCasting = affectsSpellCasting; // Currently only stops spell casting -- To rename
+        // To add spell casting buffer slow
+        // To add spell casting DR increase
+
     }
 }
 
 namespace IncapacitationEffect
 {
+
     public class Incapacitation : DebuffController
     {
+        protected static readonly bool isMovementAffected = true;
+        protected static readonly bool isMovementSlowed = true;
+        protected static readonly bool isStopsMovement = true;
+        protected static readonly bool isSpellCastingAffected = true;
+
         public delegate void PlayerIncapacitation(ulong clientId, IncapacitationInfo info);
         public static event PlayerIncapacitation playerIncapacitation;
 
         public bool isActivated = false;
 
         public static readonly Dictionary<IncapacitationName, IncapacitationInfo> incapacitationDict = new Dictionary<IncapacitationName, IncapacitationInfo>
-        {   // idk what i was thinking. to revise 
-            { IncapacitationName.Stun, new IncapacitationInfo(IncapacitationType.MovementAndSpellCasting, true, false, false, true) },
-            { IncapacitationName.Slow, new IncapacitationInfo(IncapacitationType.MovementSlow, false, true, false, false) },
-            { IncapacitationName.Bind, new IncapacitationInfo(IncapacitationType.MovementStop, false, false, true, false) },
-            { IncapacitationName.Fear, new IncapacitationInfo(IncapacitationType.MovementAndSpellCasting, true, false, false, true) },
-            { IncapacitationName.None, new IncapacitationInfo(IncapacitationType.None, false, false, false, false) }
-        };
+            {
+                { IncapacitationName.Stun, new IncapacitationInfo(      // STUN
+                    IncapacitationType.MovementAndSpellCasting, 
+                    !isMovementAffected, 
+                    !isMovementSlowed, 
+                    isStopsMovement, 
+                    isSpellCastingAffected) },
+                { IncapacitationName.Slow, new IncapacitationInfo(      // SLOW
+                    IncapacitationType.MovementSlow,
+                    !isMovementAffected, 
+                    isMovementSlowed,
+                    !isStopsMovement,
+                    !isSpellCastingAffected) },
+                { IncapacitationName.Bind, new IncapacitationInfo(      // BIND
+                    IncapacitationType.MovementStop, 
+                    !isMovementAffected,
+                    !isMovementSlowed, 
+                    isStopsMovement,
+                    !isSpellCastingAffected) },
+                { IncapacitationName.Fear, new IncapacitationInfo(      // FEAR
+                    IncapacitationType.MovementAndSpellCasting,
+                    isMovementAffected,
+                    !isMovementSlowed,
+                    !isStopsMovement, 
+                    isSpellCastingAffected) },
+                { IncapacitationName.Silence, new IncapacitationInfo(   // SILENCE
+                    IncapacitationType.SpellCasting,
+                    !isMovementAffected,
+                    !isMovementSlowed,
+                    !isStopsMovement, 
+                    isSpellCastingAffected) },
+                { IncapacitationName.None, new IncapacitationInfo(      // NONE
+                    IncapacitationType.None, 
+                    !isMovementAffected,
+                    !isMovementSlowed,
+                    !isStopsMovement,
+                    !isSpellCastingAffected) }
+            };
 
         float incapacitationDuration;
         ulong clientId;

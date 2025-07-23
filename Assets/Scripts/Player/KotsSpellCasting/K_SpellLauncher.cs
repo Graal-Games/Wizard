@@ -574,7 +574,8 @@ public class K_SpellLauncher : NetworkBehaviour
         }
     }
 
-
+    // This was to initially handle lock procedures preceding or proceeding a spell cast
+    // Such as charging or channeling
     void HandlePeriCastLockProcedure()
     {
         // if (spellSequence.Contains("") 
