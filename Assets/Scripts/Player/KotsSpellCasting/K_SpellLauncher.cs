@@ -701,6 +701,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 break;
             case "Charm":
                 // dispellGO.SetActive(true);
+                ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position, true);
                 break;
             case "Conjured":
                 break;
@@ -796,6 +797,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (netObj.GetComponent<K_SphereSpell>())
         {
             netObj.GetComponent<K_SphereSpell>().AssignParent(gameObject.transform);
+            netObj.TrySetParent(gameObject.transform);
         }
 
         HideForOwnerRpc(netObj);
@@ -819,7 +821,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
     [Rpc(SendTo.Server)]
-    void ProjectileSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, string spellId = null)
+    void ProjectileSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, bool isWithOwnership = false)
     {
         Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
@@ -827,7 +829,18 @@ public class K_SpellLauncher : NetworkBehaviour
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        netObj.Spawn();
+        if (isWithOwnership)
+        {
+            netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
+            if (netObj.GetComponent<HealSelf>())
+            {
+                netObj.GetComponent<HealSelf>().HealTarget(OwnerClientId);
+            }
+        }
+        else
+        {
+            netObj.Spawn();
+        }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 

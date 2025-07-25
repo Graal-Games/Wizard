@@ -52,11 +52,16 @@ public class K_SpellData : ScriptableObject
     [Min(0f)] public float pushForce; // A value between 100 and 150 is noticable
     [Tooltip("If the spell has pull the value of this should be > 0 to apply the effect")]
     [Min(0f)] public float pullForce; // A value between 100 and 150 is noticable
+    [Tooltip("The \"health\" of the spell. Set to 0 for infinite health")]
+    [Min(0f)] public float health; 
+    [Tooltip("The amount of Health the spell restores")]
+    [Min(0f)] public float healAmount; 
+    [Tooltip("The amount of Health the spell restores over time")]
+    [Min(0f)] public float healOverTimeAmount; 
+
     // debuff (slow, lower/increase resistance)
     //[Tooltip("DoT tick duration in seconds. Set to 0 to NOT cause DoT")]
     //[Min(0f)] public float dotTickDuration;
-    [Tooltip("The \"health\" of the spell. Set to 0 for infinite health")]
-    [Min(0f)] public float health; 
 
 
     [Header("Collision Settings")]

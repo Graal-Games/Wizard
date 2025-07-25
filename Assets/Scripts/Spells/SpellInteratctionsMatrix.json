@@ -1,0 +1,44 @@
+{
+    "Fireball": {
+        "IceBlast": { "reaction": "Cancel" },
+        "LightningStrike": { "reaction": "Explode" }
+    },
+    "IceBlast": {
+        "Fireball": { "reaction": "Cancel" }
+    }
+}
+
+
+///
+//SpellInteraction interaction = matrix.GetInteraction(spellA, spellB);
+
+//if (interaction.reaction == SpellReaction.Dispel)
+//{
+//    // Handle dispel logic
+//}
+///
+
+//using System.Collections.Generic;
+//using UnityEngine;
+//using Newtonsoft.Json; // Make sure Newtonsoft.Json is available (see below)
+
+//public class SimpleJsonToDict : MonoBehaviour
+//{
+//    void Start()
+//    {
+//        string json = @"{
+//            ""Fireball"": ""Explode"",
+//            ""IceBlast"": ""Freeze"",
+//            ""LightningStrike"": ""Shock""
+//        }";
+
+//        // Convert JSON to Dictionary<string, string>
+//        Dictionary<string, string> spellEffects = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+//        // Test output
+//        foreach (var pair in spellEffects)
+//        {
+//            Debug.Log($"Spell: {pair.Key}, Effect: {pair.Value}");
+//        }
+//    }
+//}

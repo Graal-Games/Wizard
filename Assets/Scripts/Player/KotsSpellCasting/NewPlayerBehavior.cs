@@ -104,7 +104,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         SpawnPlayerAtStartingLocationRpc(spawnPosition, spawnRotation);
     }
 
-
+    
 
     // This translates the player's position on the server
     [Rpc(SendTo.Server)]
@@ -513,6 +513,10 @@ public class NewPlayerBehavior : NetworkBehaviour
                 HybridDamage(emittedPlayerHitPayload.NetworkId, emittedPlayerHitPayload.SpellElement, emittedPlayerHitPayload.DirectDamageAmount, emittedPlayerHitPayload.DamageOverTimeAmount, emittedPlayerHitPayload.DamageOverTimeDuration);
                 return;
 
+            case "Heal":
+                Heal(emittedPlayerHitPayload.HealAmount);
+                return;
+
             default: break;
         }
 
@@ -521,6 +525,21 @@ public class NewPlayerBehavior : NetworkBehaviour
         // Debug.LogFormat($"<color=orange>NPB Damage Handler:\n Payload: \n Player ID: {emittedPlayerHitPayload.PlayerId} \n Damage Type: {emittedPlayerHitPayload.DamageType} \n Direct Damage Amount: {emittedPlayerHitPayload.DirectDamageAmount} \n DebugLog Source Player: {OwnerClientId} </color>");
 
     }
+
+
+    public void Heal(float healAmount)
+    {
+        Debug.LogFormat($"<color=orange> > 1 HEALING method - amount: {healAmount} </color>");
+
+        if (!IsOwner) return;
+        // This is used to heal the player
+        _healthBar.Heal(healAmount);
+
+        Debug.LogFormat($"<color=orange> > 2 HEALING method - amount: {healAmount} </color>");
+
+    }
+
+
 
     public void DirectDamage(float directDamageAmount)
     {

@@ -650,7 +650,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.keys.Array.size
-      value: 33
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: drDictionary.values.Array.data[1]
@@ -682,7 +682,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 508024dc160a18349a82d3928426038d, type: 2}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.values.Array.size
-      value: 33
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.keys.Array.data[1]
@@ -813,6 +813,18 @@ PrefabInstance:
       value: RHNV
       objectReference: {fileID: 0}
     - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[33]
+      value: RY
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[34]
+      value: RYU
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.keys.Array.data[35]
+      value: RYU
+      objectReference: {fileID: 0}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: spellDictionary.values.Array.data[1]
       value: 
       objectReference: {fileID: 11400000, guid: dfadc483c55c88844ae5372729de7043, type: 2}
@@ -940,6 +952,18 @@ PrefabInstance:
       propertyPath: spellDictionary.values.Array.data[32]
       value: 
       objectReference: {fileID: 11400000, guid: 29a7a10164ae02a4a899e85d0ba83c05, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[33]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1dfed0547dd9dc14db958913e0a83e65, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[34]
+      value: 
+      objectReference: {fileID: 11400000, guid: c74719e899361044f89ef4742466e778, type: 2}
+    - target: {fileID: 4445197102937803169, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: spellDictionary.values.Array.data[35]
+      value: 
+      objectReference: {fileID: 11400000, guid: c74719e899361044f89ef4742466e778, type: 2}
     - target: {fileID: 5734205734715665329, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_IsActive
       value: 0

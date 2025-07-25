@@ -7,5 +7,7 @@ public enum SpellAttribute
     HybridPersistentDamage,
     ActiveDefensive,
     PassiveDefensive,
+    Heal,
+    HealOverTime,
     None
 } 

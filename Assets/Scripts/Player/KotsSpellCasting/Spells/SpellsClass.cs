@@ -51,6 +51,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
     ///  8- Handle destroy spell ----------------- Handles the spell destruction logic
     /// </summary>
 
+    /// >>>> IMPORTANT <<<<
+    /// TO DO: This class should only define methods that are used by spells but are thereafter used and implemented by class and spell scripts
+    /// >>>> IMPORTANT <<<< 
+
 
     private void Start()
     {
@@ -218,6 +222,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 spellDataScriptableObject.directDamageAmount,
                 spellDataScriptableObject.damageOverTimeAmount,
                 spellDataScriptableObject.damageOverTimeDuration,
+                spellDataScriptableObject.healAmount,
+                spellDataScriptableObject.healOverTimeAmount,
                 spellDataScriptableObject.spellAttribute,
                 spellDataScriptableObject.pushback
             );

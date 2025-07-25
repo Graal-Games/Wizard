@@ -13,6 +13,8 @@ public struct PlayerHitPayload
     float directDamageAmount;
     float damageOverTimeAmount;
     float damageOverTimeDuration;
+    float healAmount;
+    float healOverTimeAmount;
     SpellAttribute spellAttribute;
     bool pushback;
 
@@ -91,10 +93,30 @@ public struct PlayerHitPayload
         set { pushback = value; }
     }
 
+    public float HealAmount 
+    {
+        get { return healAmount; }
+        set { healAmount = value; }
+    }
+
     //public float DotDuration { get; internal set; }
 
     // Constructor to initialize the fields
-    public PlayerHitPayload(int netId, ulong pId, string element, IncapacitationName incapName, float incapDur, VisionImpairment visionImp, float visionImpDur, float ddAmount, float dotAmount, float dotDuration, SpellAttribute attribute, bool pushbackp)
+    public PlayerHitPayload(
+        int netId, 
+        ulong pId, 
+        string element, 
+        IncapacitationName incapName, 
+        float incapDur, VisionImpairment 
+        visionImp, 
+        float visionImpDur, 
+        float ddAmount, 
+        float dotAmount, 
+        float dotDuration,
+        float hlAmount,
+        float hOTAmount,
+        SpellAttribute attribute, 
+        bool pushbackp)
     {
         networkId = netId;
         playerId = pId;
@@ -106,6 +128,8 @@ public struct PlayerHitPayload
         directDamageAmount = ddAmount; 
         damageOverTimeAmount = dotAmount;
         damageOverTimeDuration = dotDuration;
+        healAmount = hlAmount;
+        healOverTimeAmount = hOTAmount;
         spellAttribute = attribute;
         pushback = pushbackp;
     }

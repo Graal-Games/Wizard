@@ -58,6 +58,14 @@ public class HealthBarUi : NetworkBehaviour
         Debug.LogFormat($"<color=green>health is now at {_healthSlider.value}</color>");
     }
 
+    public void Heal(float healAmount)
+    {
+        Debug.LogFormat($"<color=orange> > 3 HEALING method - amount: {healAmount} </color>");
+
+        _healthSlider.value += healAmount;
+        text.text = _healthSlider.value.ToString();
+    }
+
     // public void UpdateHealthBar(float maxHealth, float currentHealth)
     // {
     //     _HealthBarForeground.fillAmount = currentHealth / maxHealth;
