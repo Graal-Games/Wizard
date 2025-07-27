@@ -75,8 +75,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
         base.OnNetworkSpawn();
 
         //StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
+        if (SpellDataScriptableObject)
+        {
+            StartLifeTime(SpellDataScriptableObject.spellDuration, this.gameObject);
 
-        StartLifeTime(SpellDataScriptableObject.spellDuration, this.gameObject);
+        } else
+        {
+            Debug.LogError("SpellDataScriptableObject is not assigned in " + gameObject.name);
+        }
 
         // If the spell has a health value greater than 0, set the healthPoints variable
         // This is used to apply damage to the spell itself and handle it's (delayed) destruction

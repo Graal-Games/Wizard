@@ -10,29 +10,29 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: HealSelf
+  m_Name: Nova_Arcane
   m_EditorClassIdentifier: 
-  spellType: 6
-  element: 0
-  spellAttribute: 7
+  spellType: 1
+  element: 1
+  spellAttribute: 2
   castProcedure: 1
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0.1
+  spellDuration: 0.5
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 0
+  directDamageAmount: 40
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
   pullForce: 0
   health: 0
-  healAmount: 33
+  healAmount: 0
   healOverTimeAmount: 0
   damageLayers:
     serializedVersion: 2
@@ -44,5 +44,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 5788416572347867604, guid: a492f31a9b3bb604e93019ca10140d65, type: 3}
+  prefab: {fileID: 7158813726689037303, guid: 036fb3cab49794044803c2ca0a1e8fc3, type: 3}
   childPrefab: {fileID: 0}
