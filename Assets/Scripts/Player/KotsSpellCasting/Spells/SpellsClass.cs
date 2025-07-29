@@ -91,7 +91,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
             healthPoints.Value = SpellDataScriptableObject.health;
         }
 
-        SpellActivationDelay();
+        if (SpellDataScriptableObject.spellActivationDelay > 0)
+        { 
+            SpellActivationDelay(); 
+        }
 
         // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
         // {
@@ -139,8 +142,12 @@ public class SpellsClass : NetworkBehaviour, ISpell
     void ActivateSpell()
     {
         // Logic to activate the spell
-        gameObject.GetComponent<Collider>().enabled = true;
-        isSpellActive.Value = true;
+        if (gameObject.GetComponent<Collider>() != null)
+        {
+            gameObject.GetComponent<Collider>().enabled = true;
+            isSpellActive.Value = true;
+        }
+
     }
 
 
