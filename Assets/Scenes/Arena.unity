@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.19602403, g: 0.18582417, b: 0.19245318, a: 1}
+  m_IndirectSpecularColor: {r: 0.05549401, g: 0.05646046, b: 0.063055106, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2562,7 +2562,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &58066304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27874,7 +27874,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: a937aa23a723fd644bb4493e93e9f65c, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 67b45621b54a10b488ccbb9e22b60ace, type: 2}
+      objectReference: {fileID: 2100000, guid: bd5afe81abed5e24d87a57b386480f06, type: 2}
     - target: {fileID: 919132149155446097, guid: a937aa23a723fd644bb4493e93e9f65c, type: 3}
       propertyPath: m_Name
       value: Brazier stand long7
@@ -29803,7 +29803,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &715709246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33673,7 +33673,7 @@ PrefabInstance:
     - target: {fileID: 6323714727474491034, guid: 80796f6e98eb0aa4cb755a031dc0b7f2, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: bd5afe81abed5e24d87a57b386480f06, type: 2}
+      objectReference: {fileID: 2100000, guid: 050446fe87a49af49be1b6a83c8b511a, type: 2}
     - target: {fileID: 6396228719553979393, guid: 80796f6e98eb0aa4cb755a031dc0b7f2, type: 3}
       propertyPath: m_Name
       value: Stairs2
@@ -55871,7 +55871,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: a238bdf6428b22c4981ec83348930d22, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 67b45621b54a10b488ccbb9e22b60ace, type: 2}
+      objectReference: {fileID: 2100000, guid: bd5afe81abed5e24d87a57b386480f06, type: 2}
     - target: {fileID: 919132149155446097, guid: a238bdf6428b22c4981ec83348930d22, type: 3}
       propertyPath: m_Name
       value: Brazier stand long8
@@ -64121,6 +64121,7 @@ GameObject:
   - component: {fileID: 1560171500}
   - component: {fileID: 1560171501}
   - component: {fileID: 1560171502}
+  - component: {fileID: 1560171503}
   m_Layer: 5
   m_Name: HealthBar
   m_TagString: Untagged
@@ -64215,6 +64216,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _healthSlider: {fileID: 1560171501}
   text: {fileID: 2024683995}
+--- !u!114 &1560171503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560171499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 1043776215
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &1561678203
 GameObject:
   m_ObjectHideFlags: 0
@@ -82909,6 +82931,10 @@ PrefabInstance:
     - target: {fileID: 4769844133479530940, guid: 66fb751fad995954885bd5fb7e4f5337, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 3405415416
+      objectReference: {fileID: 0}
+    - target: {fileID: 4769844133479530940, guid: 66fb751fad995954885bd5fb7e4f5337, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3013550117
       objectReference: {fileID: 0}
     - target: {fileID: 6843730428241410388, guid: 66fb751fad995954885bd5fb7e4f5337, type: 3}
       propertyPath: GlobalObjectIdHash
