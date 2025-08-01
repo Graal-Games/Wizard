@@ -10,7 +10,11 @@ public class ProjectileClass : SpellsClass
     List<Rigidbody> pullSpellsList = new List<Rigidbody>();
     List<Rigidbody> pushSpellsList = new List<Rigidbody>();
 
+    NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
+
     Vector3 pushDirection; // Adjust the direction of the force
+
+    protected NetworkVariable<bool> isMovement = new NetworkVariable<bool>(true);
 
     bool canDestroy = false;
 
@@ -45,8 +49,10 @@ public class ProjectileClass : SpellsClass
     }
 
     // Update is called once per frame
-    public virtual void FixedUpdate()
+    public override void FixedUpdate()
     {
+        base.FixedUpdate();
+
         MoveAndHitRegRpc();
 
         HandlePushback();
@@ -65,12 +71,16 @@ public class ProjectileClass : SpellsClass
 
 
     [Rpc(SendTo.Server)]
-    void MoveAndHitRegRpc()
+    public virtual void MoveAndHitRegRpc()
     {
         Vector3 currentPosition = transform.position;
 
-        Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
+        if (_isExplodeOnHit.Value == false)
+        {
+            Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+            rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
+
+        }
 
         RaycastHit hit;
 
@@ -80,54 +90,14 @@ public class ProjectileClass : SpellsClass
 
         if (Physics.SphereCast(currentPosition, radius, lastPosition - currentPosition, out hit, Vector3.Distance(currentPosition, lastPosition)))
         {
+            _isExplodeOnHit.Value = true;
+
             HandleAllInteractions(hit.collider);
 
-
-            //// If player has active shield, handle the shield interaction and don't process the player hit
-            //if (hit.collider.CompareTag("ActiveShield"))
-            //{
-            //    if (HandleIfPlayerHasActiveShield(hit.collider.gameObject) == false)
-            //    {
-            //        // Check for player hit
-            //        if (hit.collider.CompareTag("Player"))
-            //        {
-
-            //            // If player does not have active shield, handle the player hit
-            //            PlayerIsHit(hit.collider.gameObject);
-            //        }
-            //    }
-            //} else
-            //{
-            //    // Check for player hit
-            //    if (hit.collider.CompareTag("Player"))
-            //    {
-
-            //        // If player does not have active shield, handle the player hit
-            //        PlayerIsHit(hit.collider.gameObject);
-            //    }
-            //}
-
-            //// Check if the target is a spell instead 
-            //if (hit.collider.CompareTag("Spell"))
-            //{
-            //    //Handle the spell to spell interaction
-            //    HandleSpellToSpellInteractions(hit.collider.gameObject);
-            //}
             if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
             {
                 ApplyPushbackToTarget(hit.collider.gameObject);
             }
-
-            // if (hit.collider.gameObject.layer == 7)
-            // {
-            //     if (IsSpawned)
-            //     {
-            //         Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + hit.collider.name + ")</color>");
-            //         DestroySpellRpc();
-            //     }
-            // }
-            
-            // DestroySpellRpc();
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement

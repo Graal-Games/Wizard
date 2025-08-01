@@ -113,7 +113,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
-    void SpellActivationDelay()
+    protected void SpellActivationDelay()
     {
         if (SpellDataScriptableObject.spellActivationDelay > 0)
         {
@@ -138,8 +138,18 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+    protected void DeactivateSpell()
+    {
+        // Logic to deactivate the spell
+        if (gameObject.GetComponent<Collider>() != null)
+        {
+            gameObject.GetComponent<Collider>().enabled = false;
+            isSpellActive.Value = false;
+        }
+    }
 
-    void ActivateSpell()
+
+    protected void ActivateSpell()
     {
         // Logic to activate the spell
         if (gameObject.GetComponent<Collider>() != null)
@@ -451,6 +461,22 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} does NOT have a NetworkObject</color>");
             gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
+        }
+    }
+    #endregion
+
+    #region Only REFERENCABLE Charm Methods 
+    protected void GradualScale(float scaleSpeed, float maxScale)
+    {
+        //float scaleSpeed = 5f;
+        float deltaScale = scaleSpeed * Time.fixedDeltaTime;
+        //float maxScale = 1.4f;
+
+        // Only increase if current scale is less than maxScale
+        if (transform.localScale.x < maxScale)
+        {
+            float newScale = Mathf.Min(transform.localScale.x + deltaScale, maxScale);
+            transform.localScale = new Vector3(newScale, newScale, newScale);
         }
     }
     #endregion

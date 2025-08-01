@@ -4,6 +4,8 @@ using Unity.Netcode;
 using UnityEngine;
 using static K_SpellBuilder;
 
+// CURRENTLY HEALS ALL PLAYERS IN ITS TRIGGER. TO MAKE IT SO THAT ONLY THE FIRST PLAYER IN IT IS HEALED
+// NOT CURRENTLY A PRIORITY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 public class HealTargetScepter : SpellsClass
 {
     private float timer = 0f;
@@ -13,6 +15,7 @@ public class HealTargetScepter : SpellsClass
 
     Collider triggerZone;
 
+    // TO CHANGE THIS TO A NETWORK LIST
     Dictionary<ulong, GameObject> playersInTrigger = new Dictionary<ulong, GameObject>();
 
     public override void OnNetworkSpawn()

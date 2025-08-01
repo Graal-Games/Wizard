@@ -9,23 +9,10 @@ public class DispellNova : SpellsClass
     {
         base.FixedUpdate();
 
-        GradualScale();
+        // The variables used below to be passed from the Scriptable Object itself
+        // Which are properties to be defined under or within an 'Explosive' or 'Nova' field
+        GradualScale(5, 1.4f);
 
-    }
-
-    // Increase the size of the spell gradually over time.
-    void GradualScale()
-    {
-        float scaleSpeed = 5f;
-        float deltaScale = scaleSpeed * Time.fixedDeltaTime;
-        float maxScale = 1.4f;
-
-        // Only increase if current scale is less than maxScale
-        if (transform.localScale.x < maxScale)
-        {
-            float newScale = Mathf.Min(transform.localScale.x + deltaScale, maxScale);
-            transform.localScale = new Vector3(newScale, newScale, newScale);
-        }
     }
 
     void OnTriggerEnter(Collider other)

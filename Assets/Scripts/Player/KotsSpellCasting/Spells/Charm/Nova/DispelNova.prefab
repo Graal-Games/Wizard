@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: -6760759331188089743}
   - component: {fileID: 7508176724355122860}
   m_Layer: 0
-  m_Name: DispellNova
+  m_Name: DispelNova
   m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

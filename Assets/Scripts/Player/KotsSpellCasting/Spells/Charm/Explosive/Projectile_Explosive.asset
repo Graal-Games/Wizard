@@ -10,28 +10,30 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: DispellNova
+  m_Name: Projectile_Explosive
   m_EditorClassIdentifier: 
-  spellType: 1
+  spellType: 0
   element: 0
-  spellAttribute: 5
+  spellAttribute: 2
   castProcedure: 1
-  periCastLockProcedure: 1
-  incapacitationName: 0
+  periCastLockProcedure: 0
+  incapacitationName: 2
   visionImpairmentType: 0
   castMultiplier: 1
-  moveSpeed: 0
-  spellDuration: 0.5
+  moveSpeed: 140
+  spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
-  incapacitationDuration: 0
+  incapacitationDuration: 2
   visionImpairmentDuration: 0
-  directDamageAmount: 0
+  directDamageAmount: 30
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
   pullForce: 0
   health: 0
+  healAmount: 0
+  healOverTimeAmount: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -42,5 +44,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 7158813726689037303, guid: b547f7a3f6b37f643878c5db2bc2455a, type: 3}
+  prefab: {fileID: 4716045805267283745, guid: 679fff839c66f1541b4a5b8dc98a0c5f, type: 3}
   childPrefab: {fileID: 0}
