@@ -11,6 +11,7 @@ public class ProjectileExplosive : ProjectileClass
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        _isExplodeOnHit.Value = true;
         DeactivateSpell(); // Deactivate the spell initially
     }
 

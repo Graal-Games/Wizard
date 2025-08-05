@@ -10,7 +10,8 @@ public class ProjectileClass : SpellsClass
     List<Rigidbody> pullSpellsList = new List<Rigidbody>();
     List<Rigidbody> pushSpellsList = new List<Rigidbody>();
 
-    NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
+    protected NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
+    NetworkVariable<bool> hasExploded = new NetworkVariable<bool>(false);
 
     Vector3 pushDirection; // Adjust the direction of the force
 
@@ -75,12 +76,20 @@ public class ProjectileClass : SpellsClass
     {
         Vector3 currentPosition = transform.position;
 
-        if (_isExplodeOnHit.Value == false)
-        {
+        //Debug.LogFormat($"<color=blue>Current Position: {currentPosition}</color>");
+
+
+        //if (_isExplodeOnHit.Value == false)
+        //{
             Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
             rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
-
-        }
+        //} 
+        
+        //if (_isExplodeOnHit.Value == true && rb.isKinematic == true)
+        //{
+            rb.isKinematic = false; // Stop the rigidbody from moving
+            rb.useGravity = false; // Enable gravity if needed
+        //}
 
         RaycastHit hit;
 
@@ -90,7 +99,19 @@ public class ProjectileClass : SpellsClass
 
         if (Physics.SphereCast(currentPosition, radius, lastPosition - currentPosition, out hit, Vector3.Distance(currentPosition, lastPosition)))
         {
-            _isExplodeOnHit.Value = true;
+            Vector3 hitPosition = hit.point;
+
+            Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+
+            Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
+
+            //_isExplodeOnHit.Value = true;
+
+            if (_isExplodeOnHit.Value == true && hasExploded.Value == false)
+            {
+                SpawnExplosionAtTargetLocationRpc(hitPosition);
+                hasExploded.Value = true;
+            }
 
             HandleAllInteractions(hit.collider);
 
@@ -101,6 +122,32 @@ public class ProjectileClass : SpellsClass
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement
+    }
+
+
+    [Rpc(SendTo.Server)]
+    void SpawnExplosionAtTargetLocationRpc(Vector3 position)
+    {
+            Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
+
+            GameObject spellInstance = Instantiate(this.gameObject, position, Quaternion.identity);
+
+            NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+
+            //if (isWithOwnership)
+            //{
+            //    netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
+            //    if (netObj.GetComponent<HealSelf>())
+            //    {
+            //        netObj.GetComponent<HealSelf>().HealTarget(OwnerClientId);
+            //    }
+            //}
+            //else
+            //{
+                netObj.Spawn();
+            //}
+
+        
     }
 
     void HandleSpecificSpellToSpellInteractions()

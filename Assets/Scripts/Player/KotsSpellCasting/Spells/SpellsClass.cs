@@ -12,6 +12,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     GameObject gameObjectToDestroy;
 
+    [SerializeField]
+    protected GameObject explosionGO;
+
     public K_SpellData SpellDataScriptableObject
     {
         get { return spellDataScriptableObject; }
@@ -95,6 +98,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         { 
             SpellActivationDelay(); 
         }
+
 
         // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
         // {
