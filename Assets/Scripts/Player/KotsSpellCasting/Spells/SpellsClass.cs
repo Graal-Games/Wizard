@@ -4,7 +4,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
 using static ProjectileSpell;
- 
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
 public class SpellsClass : NetworkBehaviour, ISpell
 {
     [SerializeField]
@@ -14,6 +16,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     [SerializeField]
     protected GameObject explosionGO;
+
+    //private static GameObject spellsExplosionGO;
+
+    //private static AssetReferenceGameObject spellsExplosionAR;
+
 
     public K_SpellData SpellDataScriptableObject
     {
@@ -98,6 +105,15 @@ public class SpellsClass : NetworkBehaviour, ISpell
         { 
             SpellActivationDelay(); 
         }
+
+
+        //if (spellsExplosionAR == null)
+        //{
+        //    // Replace the line causing the error with the following code:
+        //    spellsExplosionAR.LoadAssetAsync("Assets/Scripts/Player/KotsSpellCasting/Spells/Charm/Explosive/Explosion.prefab").Completed += ;
+
+        //    Debug.LogFormat($"<color=orange>Spells Explosion GameObject loaded: {spellsExplosionGO}</color>");
+        //}
 
 
         // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
