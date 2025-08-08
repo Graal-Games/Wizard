@@ -13,14 +13,17 @@ MonoBehaviour:
   m_Name: Projectile_Arcane
   m_EditorClassIdentifier: 
   spellType: 0
-  element: 0
+  element: 1
   spellAttribute: 2
   castProcedure: 1
+  periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
   castMultiplier: 1
   moveSpeed: 130
   spellDuration: 5
+  spellActivationDelay: 0
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 40
@@ -29,6 +32,8 @@ MonoBehaviour:
   pushForce: 0
   pullForce: 0
   health: 0
+  healAmount: 0
+  healOverTimeAmount: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0

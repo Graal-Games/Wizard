@@ -367,9 +367,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public void HandleSpellToSpellInteractions(Collider colliderHit)
     {
         var ISpellComponent = colliderHit.GetComponent<ISpell>();
+        var ISpellComponentInParent = colliderHit.GetComponentInParent<ISpell>();
         //bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
         //bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
 
+        //Debug.LogFormat("<color=brown> Handle Spell To Spell Interactions (" + colliderHit.name + ")</color>");
 
         // Collider objectHit = colliderHit;
         // If the other object that this gameObject has interacted with is a spell
@@ -392,11 +394,15 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
                 }
-
-                DestroySpellRpc();
+                if (!gameObject.name.Contains("Explosion"))
+                {
+                    DestroySpellRpc();
+                }
             }
-            else if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Scepter"))
+            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
             {
+                Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
+
                 InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
 
                 if (invocationSpell.SpellDataScriptableObject.health > 1)
@@ -404,7 +410,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                DestroySpellRpc();
+                if (!gameObject.name.Contains("Explosion"))
+                {
+                    DestroySpellRpc();
+                }
+
 
             }
             // else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Projectile"))

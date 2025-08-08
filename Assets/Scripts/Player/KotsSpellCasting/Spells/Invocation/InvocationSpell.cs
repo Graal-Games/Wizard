@@ -46,7 +46,7 @@ public class InvocationSpell : K_Spell
 
     GameObject InitializeObjectToSpawnPrefab()
     {
-        //Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
+        Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
 
 
 
