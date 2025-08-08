@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DispellNova : SpellsClass
 {
-
+    // This script as well as Explosion are very similar (MERGE?)
     public override void FixedUpdate()
     {
         base.FixedUpdate();
@@ -17,18 +17,7 @@ public class DispellNova : SpellsClass
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Spell"))
-        {
-            if (other.GetComponent<K_Spell>())
-            {
-                other.GetComponent<K_Spell>().DestroySpell(other.gameObject);
-            } else if (other.GetComponent<SpellsClass>())
-            {
-                DestroySpell(other.gameObject);
-            }
-            // Handle dispel effect on player
-            //DestroySpell(other.gameObject); // Destroy the spell object
-        }
+        Dispel(other);
     }
 
     public override void OnNetworkDespawn()

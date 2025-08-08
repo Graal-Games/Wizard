@@ -19,6 +19,7 @@ MonoBehaviour:
   periCastLockProcedure: 1
   incapacitationName: 0
   visionImpairmentType: 0
+  isDispelResistant: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 0.5
@@ -32,6 +33,9 @@ MonoBehaviour:
   pushForce: 0
   pullForce: 0
   health: 0
+  healAmount: 0
+  healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0

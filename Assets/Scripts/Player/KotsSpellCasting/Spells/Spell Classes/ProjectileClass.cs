@@ -114,7 +114,7 @@ public class ProjectileClass : SpellsClass
 
             
             // If the projectile is explosive, 
-            if (_isExplodeOnHit.Value == true && hasExploded.Value == false && !hit.collider.gameObject.name.Contains("Projectile_Explosive"))
+            if (SpellDataScriptableObject.isExplosive == true && hasExploded.Value == false && !hit.collider.gameObject.name.Contains("Projectile_Explosive"))
             {
                 SpawnExplosionAtTargetLocationRpc(hitPosition);
                 hasExploded.Value = true;
@@ -126,6 +126,12 @@ public class ProjectileClass : SpellsClass
             {
                 ApplyPushbackToTarget(hit.collider.gameObject);
             }
+
+            //// Gameobject destroys self after collision of this is ticked in its SO
+            //if (SpellDataScriptableObject.destroyOnCollision)
+            //{
+            //    DestroySpell(gameObject);
+            //}
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement

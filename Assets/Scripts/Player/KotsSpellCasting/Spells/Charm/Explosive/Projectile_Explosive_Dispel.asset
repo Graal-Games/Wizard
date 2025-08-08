@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Aoe_Arcane
+  m_Name: Projectile_Explosive_Dispel
   m_EditorClassIdentifier: 
-  spellType: 3
-  element: 1
-  spellAttribute: 2
-  castProcedure: 3
+  spellType: 0
+  element: 0
+  spellAttribute: 5
+  castProcedure: 1
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
   isDispelResistant: 0
-  isExplosive: 0
+  isExplosive: 1
   castMultiplier: 1
-  moveSpeed: 0
-  spellDuration: 40
+  moveSpeed: 130
+  spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 40
+  directDamageAmount: 0
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
@@ -36,7 +36,7 @@ MonoBehaviour:
   health: 0
   healAmount: 0
   healOverTimeAmount: 0
-  dispel: 0
+  dispel: 1
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -47,5 +47,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 4454155518266441410, guid: e838861e4e3e7c843944008093c37b25, type: 3}
+  prefab: {fileID: 4716045805267283745, guid: 449de674b022d124f845606e5b2c0341, type: 3}
   childPrefab: {fileID: 0}

@@ -32,7 +32,12 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     protected Rigidbody rb;
 
+
+    // These are being defined in the scriptable object associated to each prefab
     public string SpellName => SpellDataScriptableObject.name;
+    public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
+
+
 
     NetworkVariable<bool> hasHitShield = new NetworkVariable<bool>(false,
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
@@ -232,6 +237,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
+
+
+
+
     public virtual void PlayerIsHit(GameObject other)
     {
         // Get the NetworkObject ID of the player that was hit
@@ -284,12 +293,33 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+    // Dispel destorys the other gameObject no matter its health points
+    protected void Dispel(Collider other)
+    {
+        DestroyOtherSpell(other);
+    }
+
+
+    void DestroyOtherSpell(Collider colliderHit)
+    {
+        if (colliderHit.GetComponent<K_Spell>())
+        {
+            colliderHit.GetComponent<K_Spell>().DestroySpell(colliderHit.gameObject);
+        }
+        else if (colliderHit.GetComponent<SpellsClass>())
+        {
+            DestroySpell(colliderHit.gameObject);
+        }
+    }
+
 
 
     public void HandleAllInteractions(Collider colliderHit)
     {
         HandleSpellToSpellInteractions(colliderHit);
         HandleSpellToPlayerInteractions(colliderHit);
+
+        // DestroyOnLayerImpact(colliderHit); 
     }
 
     //serverRPC
@@ -322,6 +352,17 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
+    void DestroyOnLayerImpact(Collider colliderHit)
+    {
+        if (colliderHit.gameObject.layer == 7)
+        {
+            if (IsSpawned)
+            {
+                Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
+                DestroySpellRpc();
+            }
+        }
+    }
 
 
 
@@ -349,14 +390,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
         // DO NOT DELETE
         // If the collider of the other gameObjecy belongs to layer 7 (layer of gameObjects that destroy a projectile)
         //>>destroy the projectile
-        // if (colliderHit.gameObject.layer == 7)
-        // {
-        //     if (IsSpawned)
-        //     {
-        //         Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
-        //         DestroySpellRpc();
-        //     }
-        // }
+        //if (colliderHit.gameObject.layer == 7)
+        //{
+        //    if (IsSpawned)
+        //    {
+        //        Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
+        //        DestroySpellRpc();
+        //    }
+        //}
     }
 
     // DO NOT DELETE
@@ -378,7 +419,22 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //>>handle the behavior of the spell interaction
         if (colliderHit.CompareTag("Spell"))
         {
-            //Debug.LogFormat("<color=orange> Spell hit (" + colliderHit.name + ")</color>");
+            //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
+
+            // && colliderHit.GetComponent<ProjectileSpell>().Spell
+
+            //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
+
+
+            // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
+            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false)
+            {
+                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
+
+                DestroyOtherSpell(colliderHit);
+            }
+
+
 
             if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
             {
@@ -417,12 +473,30 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
             }
-            // else if (colliderHit.GetComponentInParent<ISpell>() != null && colliderHit.GetComponentInParent<ISpell>().SpellName.Contains("Projectile"))
-            // {
+            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
+            {
+                Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
 
-            // }
+                AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
+
+                if (aoeSpell.SpellDataScriptableObject.health > 1)
+                {
+                    aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+                }
+
+                if (!gameObject.name.Contains("Explosion"))
+                {
+                    DestroySpellRpc();
+                }
+            }
         }
     }
+
+
+    //public void ApplyDamage(float one)
+    //{
+
+    //}
 
 
     public virtual void FixedUpdate()

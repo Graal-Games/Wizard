@@ -105,17 +105,17 @@ public class InvocationSpell : K_Spell
 
 
 
-    public void ApplyDamage(float damage)
-    {
-        localHealth.Value -= damage;
-        Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
+    //public void ApplyDamage(float damage)
+    //{
+    //    localHealth.Value -= damage;
+    //    Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
 
-        if (localHealth.Value <= 0)
-        {
-            // DestroyBarrierRpc();
-            DestroySpellRpc(gameObject);
-        }
-    }
+    //    if (localHealth.Value <= 0)
+    //    {
+    //        // DestroyBarrierRpc();
+    //        DestroySpellRpc(gameObject);
+    //    }
+    //}
 
 
 

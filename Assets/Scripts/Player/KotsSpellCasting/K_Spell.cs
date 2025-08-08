@@ -35,15 +35,11 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     private float speed;
 
-    float? healthPoints = null; // Nullable
+    protected NetworkVariable<float> healthPoints = new NetworkVariable<float>(0,
+    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
     public string SpellName => SpellDataScriptableObject.name;
-
-    public float? HealthPoints
-    {
-        get { return healthPoints; }
-        set { healthPoints = value; }
-    }
+    public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
 
     // Spell caster
     [HideInInspector] public Transform caster;
@@ -85,6 +81,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     NetworkVariable <bool> hasHitShield = new NetworkVariable <bool>(false,
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
     bool hasHitPlayer = false;
+
 
     public bool HasHitPlayer
     {
@@ -165,6 +162,17 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     }
 
 
+    public void ApplyDamage(float damage)
+    {
+        healthPoints.Value -= damage;
+        Debug.LogFormat($"<color=orange>armorPoints: {healthPoints.Value}</color>");
+
+        if (healthPoints.Value <= 0)
+        {
+            // DestroyBarrierRpc();
+            DestroySpellRpc(gameObject);
+        }
+    }
 
 
     public PlayerHitPayload Payload(Collider other)
