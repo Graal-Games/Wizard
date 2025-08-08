@@ -12,21 +12,21 @@ public class ProjectileExplosive : ProjectileClass
     {
         base.OnNetworkSpawn();
         _isExplodeOnHit.Value = true;
-        DeactivateSpell(); // Deactivate the spell initially
+        // DeactivateSpell(); // Deactivate the spell initially
     }
 
-    public override void FixedUpdate()
-    {
-        base.FixedUpdate();
+    //public override void FixedUpdate()
+    //{
+    //    base.FixedUpdate();
 
-        // Expand the projectile's collider over time // Explosive effect
-        if (isHit.Value == true)
-        {
-            // The variables used below to be passed from the Scriptable Object itself
-            // Which are properties to be defined under or within an 'Explosive' or 'Nova' field
-            GradualScale(5, 1.2f);
-        }
-    }
+    //    // Expand the projectile's collider over time // Explosive effect
+    //    if (isHit.Value == true)
+    //    {
+    //        // The variables used below to be passed from the Scriptable Object itself
+    //        // Which are properties to be defined under or within an 'Explosive' or 'Nova' field
+    //        GradualScale(5, 1.2f);
+    //    }
+    //}
 
 
 

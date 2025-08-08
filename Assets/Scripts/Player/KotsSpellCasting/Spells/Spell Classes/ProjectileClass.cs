@@ -97,17 +97,24 @@ public class ProjectileClass : SpellsClass
         // The following can be made only if the GameObject is a uniformly scaled sphere
         float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
 
-        if (Physics.SphereCast(currentPosition, radius, lastPosition - currentPosition, out hit, Vector3.Distance(currentPosition, lastPosition)))
+        Vector3 direction = currentPosition - lastPosition;
+        float distance = direction.magnitude;
+
+        
+        // Throw a sphere cast IN FRONT OF the projectile gO
+        // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
+        // The hit was being registered on exiting a collider instead of upon entering it
+        if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
         {
             Vector3 hitPosition = hit.point;
 
-            Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+            //Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
 
-            Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
+            //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
-            //_isExplodeOnHit.Value = true;
-
-            if (_isExplodeOnHit.Value == true && hasExploded.Value == false)
+            
+            // If the projectile is explosive, 
+            if (_isExplodeOnHit.Value == true && hasExploded.Value == false && !hit.collider.gameObject.name.Contains("Projectile_Explosive"))
             {
                 SpawnExplosionAtTargetLocationRpc(hitPosition);
                 hasExploded.Value = true;
@@ -130,7 +137,7 @@ public class ProjectileClass : SpellsClass
     {
             Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
-            GameObject spellInstance = Instantiate(this.gameObject, position, Quaternion.identity);
+            GameObject spellInstance = Instantiate(explosionGO, position, Quaternion.identity);
 
             NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 

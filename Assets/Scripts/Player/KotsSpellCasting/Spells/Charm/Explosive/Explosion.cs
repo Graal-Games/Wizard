@@ -11,4 +11,10 @@ public class Explosion : SpellsClass
         Debug.LogFormat($"<color=yellow>Explosion spell has spawned on the network.</color>");    
     }
 
+    public override void FixedUpdate()
+    {
+        base.FixedUpdate();
+        GradualScale(18, 1.8f);
+    }
+
 }

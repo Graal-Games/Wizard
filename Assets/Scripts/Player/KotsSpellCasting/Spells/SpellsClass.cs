@@ -497,6 +497,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             float newScale = Mathf.Min(transform.localScale.x + deltaScale, maxScale);
             transform.localScale = new Vector3(newScale, newScale, newScale);
+        } else
+        {
+            // After the gameObject/ sphere has reached max size, destroy the gameObject
+            DestroySpell(gameObject);
         }
     }
     #endregion
