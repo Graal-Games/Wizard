@@ -15,7 +15,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     GameObject gameObjectToDestroy;
 
     [SerializeField]
-    protected GameObject explosionGO;
+    protected GameObject secondaryGameObjectToSpawn;
 
     //private static GameObject spellsExplosionGO;
 

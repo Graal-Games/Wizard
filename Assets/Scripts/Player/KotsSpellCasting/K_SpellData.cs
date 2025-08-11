@@ -9,7 +9,7 @@ public class K_SpellData : ScriptableObject
     public SpellType spellType;
 
     [Tooltip("The spell element (Water, Fire, Air, etc...)")]
-    public Element element;    
+    public Element element;
 
     [Tooltip("damage type(Damage-over-time, Direct Damage, Hybrid")]
     public SpellAttribute spellAttribute;
@@ -21,16 +21,19 @@ public class K_SpellData : ScriptableObject
     public PeriCastType periCastLockProcedure;
 
     [Tooltip("The name of incapacitation")]
-    public IncapacitationName incapacitationName; 
+    public IncapacitationName incapacitationName;
 
     [Tooltip("The name of incapacitation")]
-    public VisionImpairment visionImpairmentType; 
-    
+    public VisionImpairment visionImpairmentType;
+
     [Tooltip("Is Dispellable?")]
-    public bool isDispelResistant; 
+    public bool isDispelResistant;
 
     [Tooltip("Is explosive?")]
-    public bool isExplosive; 
+    public bool isExplosive;
+
+    [Tooltip("Is explosive?")]
+    public bool spawnsSecondaryEffectOnCollision;
 
 
 
@@ -53,13 +56,13 @@ public class K_SpellData : ScriptableObject
 
 
     [Tooltip("The amount of time the player is incapacitated for")]
-    [Min(0f)] public float incapacitationDuration; 
+    [Min(0f)] public float incapacitationDuration;
 
     [Tooltip("The amount of time the inflicted player will be vision impaired")]
-    [Min(0f)] public float visionImpairmentDuration; 
+    [Min(0f)] public float visionImpairmentDuration;
 
     [Tooltip("The amount of damage on contact with the spell")]
-    [Min(0f)] public float directDamageAmount;    
+    [Min(0f)] public float directDamageAmount;
 
     [Tooltip("The amount of  over time on contact with the spell")]
     [Min(0f)] public float damageOverTimeAmount;
@@ -74,18 +77,18 @@ public class K_SpellData : ScriptableObject
     [Min(0f)] public float pullForce; // A value between 100 and 150 is noticable
 
     [Tooltip("The \"health\" of the spell. Set to 0 for infinite health")]
-    [Min(0f)] public float health; 
+    [Min(0f)] public float health;
 
     [Tooltip("The amount of Health the spell restores")]
-    [Min(0f)] public float healAmount; 
+    [Min(0f)] public float healAmount;
 
     [Tooltip("The amount of Health the spell restores over time")]
-    [Min(0f)] public float healOverTimeAmount; 
+    [Min(0f)] public float healOverTimeAmount;
 
 
 
     [Header("Collision Settings")]
-    [Tooltip("The spell dispels other spells")]
+    [Tooltip("The spell destroys other spells")]
     public bool dispel;
     [Tooltip("The layers that can recive damage from this spell")]
     public LayerMask damageLayers;

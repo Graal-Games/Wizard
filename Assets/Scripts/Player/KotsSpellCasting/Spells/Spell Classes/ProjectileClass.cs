@@ -11,13 +11,14 @@ public class ProjectileClass : SpellsClass
     List<Rigidbody> pushSpellsList = new List<Rigidbody>();
 
     protected NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
-    NetworkVariable<bool> hasExploded = new NetworkVariable<bool>(false);
+    NetworkVariable<bool> hasCollided = new NetworkVariable<bool>(false);
 
     Vector3 pushDirection; // Adjust the direction of the force
 
     protected NetworkVariable<bool> isMovement = new NetworkVariable<bool>(true);
 
     bool canDestroy = false;
+
 
     public bool CanDestroy
     {
@@ -113,12 +114,18 @@ public class ProjectileClass : SpellsClass
             //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
             
-            // If the projectile is explosive, 
-            if (SpellDataScriptableObject.isExplosive == true && hasExploded.Value == false && !hit.collider.gameObject.name.Contains("Projectile_Explosive"))
+            // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
+            if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile"))
             {
-                SpawnExplosionAtTargetLocationRpc(hitPosition);
-                hasExploded.Value = true;
+                 Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
+                 Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
+                SpawnEffectAtTargetLocationRpc(hitPosition);
+                hasCollided.Value = true;
             }
+
+            // Method: Spawns something at the end
+            // gO to spawn source: Where should the gO be gotten from?
+            // Solution 1: Assigned in inspector 
 
             HandleAllInteractions(hit.collider);
 
@@ -127,11 +134,13 @@ public class ProjectileClass : SpellsClass
                 ApplyPushbackToTarget(hit.collider.gameObject);
             }
 
-            //// Gameobject destroys self after collision of this is ticked in its SO
-            //if (SpellDataScriptableObject.destroyOnCollision)
-            //{
-            //    DestroySpell(gameObject);
-            //}
+            // Gameobject destroys self after collision of this is ticked in its SO
+            if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.name.Contains("Projectile"))
+            {
+                Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
+
+                DestroySpell(gameObject);
+            }
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement
@@ -139,11 +148,11 @@ public class ProjectileClass : SpellsClass
 
 
     [Rpc(SendTo.Server)]
-    void SpawnExplosionAtTargetLocationRpc(Vector3 position)
+    void SpawnEffectAtTargetLocationRpc(Vector3 position)
     {
             Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
-            GameObject spellInstance = Instantiate(explosionGO, position, Quaternion.identity);
+            GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab, position, Quaternion.identity);
 
             NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 

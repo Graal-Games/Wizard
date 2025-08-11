@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Projectile_Explosive
+  m_Name: Projectile_To_Aoe_Fire
   m_EditorClassIdentifier: 
   spellType: 0
   element: 0
-  spellAttribute: 2
-  castProcedure: 1
+  spellAttribute: 0
+  castProcedure: 0
   periCastLockProcedure: 0
-  incapacitationName: 2
+  incapacitationName: 0
   visionImpairmentType: 0
   isDispelResistant: 0
-  isExplosive: 1
-  spawnsSecondaryEffectOnCollision: 1
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
-  moveSpeed: 140
-  spellDuration: 20
+  moveSpeed: 0
+  spellDuration: 0
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
-  incapacitationDuration: 2
+  incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 30
+  directDamageAmount: 0
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
@@ -44,9 +44,9 @@ MonoBehaviour:
   collisionLayers:
     serializedVersion: 2
     m_Bits: 0
-  destroyOnCollision: 1
+  destroyOnCollision: 0
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 4716045805267283745, guid: 679fff839c66f1541b4a5b8dc98a0c5f, type: 3}
-  childPrefab: {fileID: 4716045805267283745, guid: f8f273a3b8c0ab24386abd91b8c19563, type: 3}
+  prefab: {fileID: 0}
+  childPrefab: {fileID: 0}

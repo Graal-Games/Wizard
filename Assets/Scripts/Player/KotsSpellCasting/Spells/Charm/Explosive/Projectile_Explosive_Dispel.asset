@@ -21,6 +21,7 @@ MonoBehaviour:
   visionImpairmentType: 0
   isDispelResistant: 0
   isExplosive: 1
+  spawnsSecondaryEffectOnCollision: 1
   castMultiplier: 1
   moveSpeed: 130
   spellDuration: 20
@@ -43,9 +44,9 @@ MonoBehaviour:
   collisionLayers:
     serializedVersion: 2
     m_Bits: 0
-  destroyOnCollision: 0
+  destroyOnCollision: 1
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
   prefab: {fileID: 4716045805267283745, guid: 449de674b022d124f845606e5b2c0341, type: 3}
-  childPrefab: {fileID: 0}
+  childPrefab: {fileID: 4716045805267283745, guid: 3c59ab55972e1a24aa1c736f653117db, type: 3}
