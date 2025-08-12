@@ -48,5 +48,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 0}
-  childPrefab: {fileID: 0}
+  prefab: {fileID: 4716045805267283745, guid: 6bd7ff29d2e7a484d8dc8b0a2dec6064, type: 3}
+  childPrefab: {fileID: 4454155518266441410, guid: b457492cb03d57a44abd093c20883af9, type: 3}
