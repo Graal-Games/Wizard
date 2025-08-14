@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4181651026
+  GlobalObjectIdHash: 2479502856
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -171,8 +171,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 609b5178f7edb284489a60f43dfd5a67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellDataScriptableObject: {fileID: 11400000, guid: 9cbf9e1eb358b7f4993456ea8fe41220, type: 2}
-  secondaryGameObjectToSpawn: {fileID: 4454155518266441410, guid: e838861e4e3e7c843944008093c37b25, type: 3}
+  spellDataScriptableObject: {fileID: 11400000, guid: 23077228cac024d49a8bba498291b626, type: 2}
+  secondaryGameObjectToSpawn: {fileID: 4454155518266441410, guid: b771a0e762992a5489eb60dff548f05d, type: 3}
+  checkRadius: 2
+  triggerLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &6514538205735283431
 MonoBehaviour:
   m_ObjectHideFlags: 0

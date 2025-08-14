@@ -19,8 +19,11 @@ MonoBehaviour:
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
-  moveSpeed: 130
+  moveSpeed: 140
   spellDuration: 5
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -34,6 +37,7 @@ MonoBehaviour:
   health: 0
   healAmount: 0
   healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0

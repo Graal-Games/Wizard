@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7490101602373852797}
   - component: {fileID: -8232890662643468206}
   - component: {fileID: 1408540604344441765}
+  - component: {fileID: -5028755942101037186}
   m_Layer: 8
   m_Name: Aoe_Dispel
   m_TagString: Spell
@@ -64,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 236b572f07840c047b8dc7843bc2bfc5, type: 2}
+  - {fileID: 2100000, guid: 94889b18a8b73664b843c545ede72300, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -121,7 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 559706140
+  GlobalObjectIdHash: 577769549
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -150,4 +151,16 @@ MonoBehaviour:
   dotTickTimer: 0
   rb: {fileID: 0}
   caster: {fileID: 0}
-  spellDataScriptableObject: {fileID: 11400000, guid: 0204e301fd873b44788102134e755ffe, type: 2}
+  spellDataScriptableObject: {fileID: 11400000, guid: 17bd4ae3645b67741ae8d537c9fc70f7, type: 2}
+--- !u!114 &-5028755942101037186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4454155518266441410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abece8d90462ef94da7787131e8593d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

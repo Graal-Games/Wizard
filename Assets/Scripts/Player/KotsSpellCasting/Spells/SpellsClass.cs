@@ -54,6 +54,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
     private bool spellLifetimeActive = false;
 
 
+    public float checkRadius = 2f;    // Match your trigger size
+    public LayerMask triggerLayer;    // Layer for the kill trigger
+
+
     /// <summary>
     ///  1- Lifetime ----------------------------- Time until the spell is destroyed
     ///  2- Activation Delay - Optional ---------- Time before the spell effect is activated after casting 
@@ -296,7 +300,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
     // Dispel destorys the other gameObject no matter its health points
     protected void Dispel(Collider other)
     {
-        DestroyOtherSpell(other);
+        if (!other.gameObject.name.Contains("Projectile)"))
+        {
+            Debug.LogFormat($"<color=blue>!!!!!!!!!!!!!! DISPEL {other.gameObject.name}</color>");
+            DestroyOtherSpell(other);
+        }
     }
 
 
@@ -304,10 +312,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         if (colliderHit.GetComponent<K_Spell>())
         {
+            Debug.LogFormat($"<color=blue>11111111!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
+
             colliderHit.GetComponent<K_Spell>().DestroySpell(colliderHit.gameObject);
         }
         else if (colliderHit.GetComponent<SpellsClass>())
         {
+            Debug.LogFormat($"<color=blue>22222222!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
+
             DestroySpell(colliderHit.gameObject);
         }
     }
@@ -427,9 +439,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
             // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
-            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false)
+            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
             {
-                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
+                Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
 
                 DestroyOtherSpell(colliderHit);
             }
@@ -484,7 +496,12 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
                 }
 
-                if (!gameObject.name.Contains("Explosion"))
+                //if (!gameObject.name.Contains("Explosion"))
+                //{
+                //    DestroySpellRpc();
+                //}
+
+                if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
                 {
                     DestroySpellRpc();
                 }
@@ -511,6 +528,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 DestroySpellRpc();
             }
         }
+
+
     }
 
 

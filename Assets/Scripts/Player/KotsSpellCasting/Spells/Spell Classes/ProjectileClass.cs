@@ -115,7 +115,7 @@ public class ProjectileClass : SpellsClass
 
             
             // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
-            if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile"))
+            if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
             {
                  Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
                  Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
@@ -134,8 +134,8 @@ public class ProjectileClass : SpellsClass
                 ApplyPushbackToTarget(hit.collider.gameObject);
             }
 
-            // Gameobject destroys self after collision of this is ticked in its SO
-            if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.name.Contains("Projectile"))
+            // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
+            if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.CompareTag("Spell") && !hit.collider.gameObject.name.Contains("Projectile"))
             {
                 Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
 

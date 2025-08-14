@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
   m_Name: Aoe_Dispel
   m_EditorClassIdentifier: 
-  spellType: 0
+  spellType: 3
   element: 0
-  spellAttribute: 0
+  spellAttribute: 5
   castProcedure: 0
   periCastLockProcedure: 0
   incapacitationName: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0
+  spellDuration: 30
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
@@ -37,7 +37,7 @@ MonoBehaviour:
   health: 0
   healAmount: 0
   healOverTimeAmount: 0
-  dispel: 0
+  dispel: 1
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -48,5 +48,5 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  prefab: {fileID: 0}
+  prefab: {fileID: 4454155518266441410, guid: b771a0e762992a5489eb60dff548f05d, type: 3}
   childPrefab: {fileID: 0}
