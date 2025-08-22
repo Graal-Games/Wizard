@@ -6,6 +6,11 @@ using UnityEngine.InputSystem.HID;
 
 public class ProjectileClass : SpellsClass
 {
+
+    [SerializeField] private ProjectileParryHandler projectileParryHandler;
+
+    [SerializeField] private TriggerListener projectileTrigger;
+
     private Vector3 lastPosition;
 
     List<Rigidbody> pullSpellsList = new List<Rigidbody>();
@@ -31,7 +36,17 @@ public class ProjectileClass : SpellsClass
 
     }
 
+    private void Awake()
+    {
+        projectileTrigger.OnEnteredTrigger += ProjectileTrigger_OnEnteredTrigger;
+    }
 
+    private void ProjectileTrigger_OnEnteredTrigger(Collider collider)
+    {
+
+        Debug.Log("ProjectileTrigger_OnEnteredTrigger (" + collider.gameObject.name + ")");
+
+    }
 
     private void Start()
     {
@@ -52,6 +67,37 @@ public class ProjectileClass : SpellsClass
         rb.useGravity = false;
 
         pushDirection = transform.forward;
+
+        if (IsParriable())
+        {
+            projectileParryHandler.OnAnyPlayerPerformedParry += ProjectileParryHandler_OnAnyPlayerPerformedParry;
+
+
+            // todo uncommend this
+            string parryLetter = parryLetters.Value.ToString();
+
+            // todo remove -> just for testing auto spawn in the arena
+            System.Random random = new System.Random();
+            int res = random.Next(0, K_SpellKeys.spellTypes.Length);
+            string parryLetterTesting = K_SpellKeys.spellTypes[res].ToString();
+
+            if (System.Array.Exists(K_SpellKeys.spellTypes, element => element.ToString() == parryLetter))
+            {
+                projectileParryHandler.OnProjectileSpawned(parryLetter);
+            }
+            else
+            {
+                projectileParryHandler.OnProjectileSpawned(parryLetterTesting);
+            }
+        }
+    }
+
+    // This method is triggered when a player successfully performs a parry
+    private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
+    {
+        // Request the server to destroy the object
+        //RequestDestroyProjectileServerRpc();
+        StartCoroutine(DelayedDestruction());
     }
 
     // Update is called once per frame

@@ -48,6 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: Air
-  prefab: {fileID: 4716045805267283745, guid: c174efd721ec6f94194bb87c373d2990, type: 3}
+  prefab: {fileID: 8899761816857630871, guid: 1bb3860e3a8b84e4b83aab8009222e9d, type: 3}
   childPrefab: {fileID: 0}
+  isParriable: 1

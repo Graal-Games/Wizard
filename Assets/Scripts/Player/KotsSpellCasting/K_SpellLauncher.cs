@@ -150,8 +150,10 @@ public class K_SpellLauncher : NetworkBehaviour
 
     NewPlayerBehavior newPlayerBehaviorScript;
 
+    [SerializeField] private PlayerSpellParryManager playerSpellParryManager;
+
     public NetworkVariable<FixedString32Bytes> parryLetters = new NetworkVariable<FixedString32Bytes>(default,
-    NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public NetworkVariable<FixedString32Bytes>  ParryLetters {
         get { return parryLetters; }
@@ -327,7 +329,7 @@ public class K_SpellLauncher : NetworkBehaviour
             HandleSpellCasting();
             if (!isInDRLockMode && !isInSpellChargingMode)
                 UpdateDynamicNextKeysUI();
-           
+
         }
         else // >>>>>>>>> This places the player in SPELLCAST MODE
         {
@@ -343,12 +345,27 @@ public class K_SpellLauncher : NetworkBehaviour
                 spellText.text = K_SpellKeys.cast.ToString();
                 if (!isInDRLockMode && !isInSpellChargingMode)
                     ShowDynamicStartKeys();
+                return;
             }
+
+            // If the player is in idle mode, and can parry a spell handle the input
+            AllowParryInput();
         }
 
     }
 
-    // When a spell object interacts with a player, an event is emitted and then ingested in the script (global) 
+    private void AllowParryInput()
+    {
+        KeyCode key = SpellKeyPressed();
+
+        // Currently Active Parry Key clould be any of the SpellTypes keys
+        if (K_SpellKeys.spellTypes.Contains(key))
+        {
+            playerSpellParryManager.TryToParry(key.ToString());
+        }
+    }
+
+    // When a spell object interacts with a player, an event is emitted and then ingested in the script (global)
     //where this function is called to ONLY handle spell casting incapacitation
     // If it is the case, the player is hereafter prevented from casting spells
     void HandleIncapacitation(ulong clientId, IncapacitationInfo incapacitation) // IncapacitationInfo is part of the spell payload emitted upon spell>player interaction
@@ -536,9 +553,24 @@ public class K_SpellLauncher : NetworkBehaviour
 
         // Instead if the switch case above, the cast procedure could be gotten from the spell
         //or spell prefab itself
+        if (this.spellBuilder.GetIsSpellParriable(spellSequence))
+        {
+            SetParryLetterServerRpc(playerSpellParryManager.GeneratePlayerParryAnticipation(spellSequence));
+        }
     }
 
+    [ServerRpc(RequireOwnership = false)]
+    private void SetParryLetterServerRpc(string parryLetter)
+    {
+        if (!IsServer) // Ensure this runs only on the server
+        {
+            Debug.LogError("SetParryLetterServerRpc called on a client! This should only run on the server.");
+            return;
+        }
 
+        // This method will be executed on the server to set the value of the NetworkVariable
+        this.parryLetters.Value = parryLetter;
+    }
 
     // A spell is only cast here if the sequence contains a spellcast procedure
     void InitiateCastProcedure(string spellSequence)
@@ -834,6 +866,12 @@ public class K_SpellLauncher : NetworkBehaviour
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
+        if (this.spellBuilder.GetIsSpellParriable(spellSequence))
+        {
+            SpellsClass projectile = spellInstance.GetComponent<SpellsClass>();
+            projectile.parryLetters = this.parryLetters;
+        }
+
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
         if (isWithOwnership)
@@ -1024,6 +1062,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
     public void ResetSpellSequence()
     {
+        playerSpellParryManager.HidePlayerParryAnticipation();
 
         if (castKey.Anim.GetCurrentAnimatorStateInfo(0).IsName("BufferOnce"))
         {

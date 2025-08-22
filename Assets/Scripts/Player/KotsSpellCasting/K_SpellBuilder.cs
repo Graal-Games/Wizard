@@ -30,6 +30,9 @@ public class K_SpellBuilder : NetworkBehaviour
     private static Random rng = new Random();
     //public static K_SpellBuilder Instance { get; private set; }
 
+    // The parry letter asigned
+    private string parryLetter;
+
     K_Spell spellComponent;
     GameObject spellGO;
     K_SpellData spellData;
@@ -361,5 +364,10 @@ public class K_SpellBuilder : NetworkBehaviour
         }
 
         return arr;
+    }
+
+    public bool GetIsSpellParriable(string spellStringSequence)
+    {
+        return spellDictionary[spellStringSequence].isParriable;
     }
 }

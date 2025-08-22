@@ -10,7 +10,13 @@ public class K_DRKey : MonoBehaviour
     [Header("Key Parameters")]
     [SerializeField] private KeyCode keyCode;
     [SerializeField] private Color keyColor;
-    [SerializeField] private bool castKey;
+
+    public enum keyType
+    {
+        DrKey, CastKey, ParryKey, ChargingKey
+    }
+
+    [SerializeField] private keyType type;
 
     [Header("Buffer Square Settings")]
     [SerializeField] private Color bufferSquareStartColor;
@@ -48,7 +54,7 @@ public class K_DRKey : MonoBehaviour
 
     private void OnEnable()
     {
-        if (!castKey)
+        if (type != keyType.CastKey)
             SetActive(false);
 
         keyText.gameObject.SetActive(!invisible);
@@ -62,7 +68,7 @@ public class K_DRKey : MonoBehaviour
 
     private void OnValidate()
     {
-        if (castKey)
+        if (type == keyType.CastKey)
         {
             keyText.color = keyColor;
             invisibleImage.color = new Color(keyColor.r, keyColor.g, keyColor.b, INVISIBLE_IMG_ACTIVE_OPACITY);
@@ -83,9 +89,21 @@ public class K_DRKey : MonoBehaviour
         {
             keyText.color = keyColor;
             invisibleImage.color = new Color(keyColor.r, keyColor.g, keyColor.b, INVISIBLE_IMG_ACTIVE_OPACITY);
-            border.color = Color.black;
 
-            solvable = !(buffered || castKey);
+            switch (type)
+            {
+                case keyType.ParryKey:
+                    border.color = Color.yellow;
+                    break;
+                case keyType.ChargingKey:
+                    border.color = new Color(11, 210, 31, 255);
+                    break;
+                default:
+                    border.color = Color.black;
+                    break;
+            }
+
+            solvable = !(buffered || type == keyType.CastKey);
 
             if (buffered)
                 StartCastBufferAnim();
@@ -96,7 +114,19 @@ public class K_DRKey : MonoBehaviour
 
             keyText.color = inactiveKeyColor;
             invisibleImage.color = inactiveKeyColor;
-            border.color = new Color(0f, 0f, 0f, INACTIVE_KEY_OPACITY);
+
+            switch (type)
+            {
+                case keyType.ParryKey:
+                    border.color = new Color(237f, 214f, 46f, INACTIVE_KEY_OPACITY);
+                    break;
+                case keyType.ChargingKey:
+                    border.color = new Color(11, 210, 31, INACTIVE_KEY_OPACITY);
+                    break;
+                default:
+                    border.color = new Color(0f, 0f, 0f, INACTIVE_KEY_OPACITY);
+                    break;
+            }
 
             solvable = false;
         }
@@ -143,7 +173,7 @@ public class K_DRKey : MonoBehaviour
     /// and if it's currently solvable, otherwise it evaluates as false.</returns>
     public bool TryCast()
     {
-        return castKey && solvable;
+        return type == keyType.CastKey && solvable;
     }
 
 
@@ -214,7 +244,7 @@ public class K_DRKey : MonoBehaviour
 
         if (onPlayerFailedToSyncInputToBuffer != null) onPlayerFailedToSyncInputToBuffer();
 
-        if (!castKey)
+        if (type != keyType.CastKey)
         {
             Debug.LogFormat($"<color=blue> 2 BufferFailed </color>");
             bufferSquareImage.color = bufferSquareFailColor;

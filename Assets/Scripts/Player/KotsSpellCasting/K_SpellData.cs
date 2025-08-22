@@ -114,4 +114,8 @@ public class K_SpellData : ScriptableObject
     public GameObject childPrefab;
     //[Tooltip("The placement prefab that gives visual feedback for placeable spells")]
     //public GameObject placementPrefab;
+
+    [Header("Parry")]
+    [Tooltip("If true, the spell is parriable")]
+    public bool isParriable;
 }

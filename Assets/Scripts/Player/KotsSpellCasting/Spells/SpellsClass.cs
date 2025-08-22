@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.HID;
 using static ProjectileSpell;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Unity.Collections;
 
 public class SpellsClass : NetworkBehaviour, ISpell
 {
@@ -52,6 +53,15 @@ public class SpellsClass : NetworkBehaviour, ISpell
     private float spellLifetimeTimer = 0f;
     private float spellLifetimeDuration = 0f;
     private bool spellLifetimeActive = false;
+
+    public NetworkVariable<FixedString32Bytes> parryLetters = new NetworkVariable<FixedString32Bytes>(default,
+  NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
+    public NetworkVariable<FixedString32Bytes> ParryLetters
+    {
+        get { return parryLetters; }
+        set { parryLetters = value; }
+    }
 
 
     protected float checkRadius = 2f;    // Match your trigger size
@@ -392,6 +402,11 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     }
 
+
+    public bool IsParriable()
+    {
+        return spellDataScriptableObject != null && spellDataScriptableObject.isParriable;
+    }
 
 
     void DestroyOnLayerImpact(Collider colliderHit)
