@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 
 public class ProjectileClass : SpellsClass
 {
@@ -19,6 +20,9 @@ public class ProjectileClass : SpellsClass
 
     bool canDestroy = false;
 
+    Dictionary<ulong, bool> playerHitID = new Dictionary<ulong, bool>();
+
+    NetworkVariable<bool> isHitPlayer = new NetworkVariable<bool>(false);
 
     public bool CanDestroy
     {
@@ -59,7 +63,7 @@ public class ProjectileClass : SpellsClass
 
         HandlePushback();
 
-        if (CanDestroy)
+        if (CanDestroy) // I figured that if I added a delay to the destruction of the spell then then the apply pushback would have enough time to apply its effect
         {
             StartCoroutine(DelayedDestruction());
         }
@@ -79,18 +83,15 @@ public class ProjectileClass : SpellsClass
 
         //Debug.LogFormat($"<color=blue>Current Position: {currentPosition}</color>");
 
+        Vector3 forceDirection = transform.forward; // RESET SPEED 
 
-        //if (_isExplodeOnHit.Value == false)
-        //{
-            Vector3 forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-            rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
-        //} 
-        
-        //if (_isExplodeOnHit.Value == true && rb.isKinematic == true)
-        //{
-            rb.isKinematic = false; // Stop the rigidbody from moving
-            rb.useGravity = false; // Enable gravity if needed
-        //}
+        forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+        // rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
+        rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+
+        rb.isKinematic = false; // Stop the rigidbody from moving
+        rb.useGravity = false; // Enable gravity if needed
+
 
         RaycastHit hit;
 
@@ -101,7 +102,10 @@ public class ProjectileClass : SpellsClass
         Vector3 direction = currentPosition - lastPosition;
         float distance = direction.magnitude;
 
-        
+        // If the object is moving faster than a specific speed = Use the below method
+        // Otherwise, OnTriggerEnter handlles the collision
+        if (SpellDataScriptableObject.moveSpeed < 39) return;
+
         // Throw a sphere cast IN FRONT OF the projectile gO
         // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
         // The hit was being registered on exiting a collider instead of upon entering it
@@ -109,41 +113,77 @@ public class ProjectileClass : SpellsClass
         {
             Vector3 hitPosition = hit.point;
 
-            //Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+            Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
 
             //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
+            HandleCollision(hit.collider, hitPosition);
             
-            // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
-            if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
-            {
-                 Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
-                 Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
-                SpawnEffectAtTargetLocationRpc(hitPosition);
-                hasCollided.Value = true;
-            }
+            //// If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
+            //if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
+            //{
+            //     Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
+            //     Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
+            //    SpawnEffectAtTargetLocationRpc(hitPosition);
+            //    hasCollided.Value = true;
+            //}
 
-            // Method: Spawns something at the end
-            // gO to spawn source: Where should the gO be gotten from?
-            // Solution 1: Assigned in inspector 
+            //// Method: Spawns something at the end
+            //// gO to spawn source: Where should the gO be gotten from?
+            //// Solution 1: Assigned in inspector 
 
-            HandleAllInteractions(hit.collider);
+            //HandleAllInteractions(hit.collider);
 
-            if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
-            {
-                ApplyPushbackToTarget(hit.collider.gameObject);
-            }
+            //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
+            //{
+            //    ApplyPushbackToTarget(hit.collider.gameObject);
+            //}
 
-            // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-            if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.CompareTag("Spell") && !hit.collider.gameObject.name.Contains("Projectile"))
-            {
-                Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
+            //// Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
+            //if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.CompareTag("Spell") && !hit.collider.gameObject.name.Contains("Projectile"))
+            //{
+            //    Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
 
-                DestroySpell(gameObject);
-            }
+            //    DestroySpell(gameObject);
+            //}
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement
+    }
+
+
+    void HandleCollision(Collider colliderHit, Vector3 hitPosition = default)
+    {
+        // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
+        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.CompareTag("Spell"))
+        {
+            Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
+            Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
+            SpawnEffectAtTargetLocationRpc(hitPosition);
+            hasCollided.Value = true;
+        }
+
+        // Method: Spawns something at the end
+        // gO to spawn source: Where should the gO be gotten from?
+        // Solution 1: Assigned in inspector 
+        //if (hasCollided.Value == false)
+        //{
+        HandleAllInteractions(colliderHit);
+        //    hasCollided.Value = true;
+        //}
+
+        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
+        {
+            ApplyPushbackToTarget(colliderHit.gameObject);
+        }
+
+        // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
+        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.CompareTag("Spell") && !colliderHit.gameObject.name.Contains("Projectile"))
+        {
+            Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
+
+            DestroySpell(gameObject);
+        }
     }
 
 
@@ -325,5 +365,27 @@ public class ProjectileClass : SpellsClass
                 }
             }
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!IsServer) return;
+
+        if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
+        {
+            ulong hitPlayerOwnerID = other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
+
+            if (!playerHitID.ContainsKey(hitPlayerOwnerID) && isHitPlayer.Value == false)
+            {
+                isHitPlayer.Value = true;
+
+                playerHitID.Add(hitPlayerOwnerID, true);
+
+                Vector3 hitPosition = other.ClosestPoint(transform.position);
+
+                HandleCollision(other, hitPosition);
+            }
+        }
+
     }
 }

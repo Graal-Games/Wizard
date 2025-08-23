@@ -3,6 +3,7 @@ using DebuffEffect;
 using IncapacitationEffect;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
@@ -175,14 +176,14 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     public void AssignPlayerCenter(NetworkObject netObjParam)
     {
-        Debug.Log("SETTING SPAWN CENTER 222222");
+        UnityEngine.Debug.Log("SETTING SPAWN CENTER 222222");
         _spellLauncherScript.SetSpawnCenter(netObjParam);
     }
 
 
     public void DoSomething()
     {
-        Debug.LogFormat($"<color=blue> 2 NEW DAMAGE APPLICATION / OWNER: {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=blue> 2 NEW DAMAGE APPLICATION / OWNER: {OwnerClientId} </color>");
 
     }
 
@@ -208,11 +209,11 @@ public class NewPlayerBehavior : NetworkBehaviour
         if (spellObj.TryGet(out NetworkObject networkObject))
         {
             // Successfully got the NetworkObject from the reference
-            Debug.Log("NetworkObject found: " + networkObject);
+            UnityEngine.Debug.Log("NetworkObject found: " + networkObject);
 
             //networkObject.gameObject.transform.SetParent(gameObject.transform.GetChild(2).gameObject.transform);
             networkObject.TrySetParent(gameObject.transform.GetChild(2).gameObject.transform); // >>>>>>>>>>>>>>>>>>>>>>>  DANGER --- TO REVISE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-            Debug.Log("If the beam is not spawning correctly check this ^");
+            UnityEngine.Debug.Log("If the beam is not spawning correctly check this ^");
 
 
             //spellNetBehaviorScript
@@ -220,7 +221,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         else
         {
             // Handle the case where the NetworkObject could not be found
-            Debug.LogError("Failed to get the NetworkObject from the reference.");
+            UnityEngine.Debug.LogError("Failed to get the NetworkObject from the reference.");
         }
     }
 
@@ -376,7 +377,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         // Checks if the script instance belongs to the player the spell has interacted with
         if (clientId != OwnerClientId) return;
 
-        Debug.LogFormat($"<color=brown> incapacitationincapacitation {incapacitation.SlowsMovement}</color>");
+        UnityEngine.Debug.LogFormat($"<color=brown> incapacitationincapacitation {incapacitation.SlowsMovement}</color>");
 
         // Blocks spellcasting if the spell contains a true value for spell casting incapacitation
         //isSilenced.Value = incapacitation.AffectsSpellCasting;
@@ -401,7 +402,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     private void UpdateScore(int current, int previous)
     {
-        Debug.LogFormat($"<color=brown> WHAT IS BEING CALLED {OwnerClientId}</color>");
+        UnityEngine.Debug.LogFormat($"<color=brown> WHAT IS BEING CALLED {OwnerClientId}</color>");
         if (IsServer)
         {
             return;
@@ -418,7 +419,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     {
         if (p_clientId != OwnerClientId) return;
 
-        Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
 
         // Evaluates to true when a shield is spawned and is active on the player character
         //and is thereafter used to check whether or not to deal damage to the player
@@ -427,7 +428,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         isShieldActive = isShieldAvailable;
 
 
-        Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
 
     }
 
@@ -436,17 +437,17 @@ public class NewPlayerBehavior : NetworkBehaviour
     void DamageHandler(PlayerHitPayload emittedPlayerHitPayload) 
     {
 
-        Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 1 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 1 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId}  </color>");
         // if (!IsOwner)
         if (emittedPlayerHitPayload.PlayerId != GetComponent<NetworkObject>().OwnerClientId) return;
 
-        Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        //Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
 
         // Make sure the the event is being processed by the respective script of the player that was hit
         // xx Lets say the projectile is owned by player 2 and emits that it hit player 1, if this script is indeed owned by player 1 then run the code otherwise skip it
         //if (emittedPlayerHitPayload.PlayerId != OwnerClientId) return;
          
-        Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 3 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        //Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 3 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
         // Received from an event emitted by the spawed sphere
         // If the player has a shield on, don-t apply damage to the player
         // Damage applied to the shield is handled elsewhere
@@ -458,7 +459,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         // If the projectile spell has not already hit the player, add it to the list for future reference
         spellsIds.Add(emittedPlayerHitPayload.NetworkId); // This was not useful so far - Queued for deletion
 
-        Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 4 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        //Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 4 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
         
 
         /// Applies slow to player character
@@ -485,10 +486,12 @@ public class NewPlayerBehavior : NetworkBehaviour
                 DirectDamage(emittedPlayerHitPayload.DirectDamageAmount);
                 return;
 
+            // DoT while player is in contact with the spell
             case "DamageOverTime":
                 DamageOverTimeHandler(emittedPlayerHitPayload.NetworkId, emittedPlayerHitPayload.SpellElement, emittedPlayerHitPayload.DamageOverTimeAmount, emittedPlayerHitPayload.DamageOverTimeDuration);
                 return;
 
+            // DoT while the player is no longer (has exited) contact with the spell
             case "PersistentDamageOverTime":
                 // Deal an initial damage amount to player upon spell entry only
                 // Note: This is accessed also on player exit and therefore the below logic handles
@@ -529,21 +532,32 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     public void Heal(float healAmount)
     {
-        Debug.LogFormat($"<color=orange> > 1 HEALING method - amount: {healAmount} </color>");
+        LogCaller();
+
+        UnityEngine.Debug.LogFormat($"<color=orange> > 1 HEALING method - amount: {healAmount} </color>");
 
         if (!IsOwner) return;
         // This is used to heal the player
         _healthBar.Heal(healAmount);
 
-        Debug.LogFormat($"<color=orange> > 2 HEALING method - amount: {healAmount} </color>");
+        UnityEngine.Debug.LogFormat($"<color=orange> > 2 HEALING method - amount: {healAmount} </color>");
 
     }
 
+    void LogCaller()
+    {
+        StackTrace stackTrace = new StackTrace(true); // true = include file info if available
+        foreach (StackFrame frame in stackTrace.GetFrames())
+        {
+            var method = frame.GetMethod();
+            UnityEngine.Debug.Log($"Method: {method.DeclaringType}.{method.Name}, Line: {frame.GetFileLineNumber()}");
+        }
+    }
 
 
     public void DirectDamage(float directDamageAmount)
     {
-        Debug.LogFormat($"<color=orange> >1Direct Damage method - Damage amount: {directDamageAmount} </color>");
+        UnityEngine.Debug.LogFormat($"<color=orange> >1Direct Damage method - Damage amount: {directDamageAmount} </color>");
 
         if (!IsOwner) return;    
 
@@ -553,7 +567,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         // edit health on local class
         // send event for game manager
-        Debug.LogFormat($"<color=orange> >2Direct Damage method - Damage amount: {directDamageAmount} </color>");
+        UnityEngine.Debug.LogFormat($"<color=orange> >2Direct Damage method - Damage amount: {directDamageAmount} </color>");
     }
 
     void DamageOverTimeHandler(int networkId, string element, float damageOverTimeAmount, float damageOverTimeDuration)
@@ -572,7 +586,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         if (currentDamageOverTimeList.Any(dot => dot.NetworkId == networkId)) return;
 
         currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
-        Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
+        UnityEngine.Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
     }
 
     void PersistentDamageOverTimeHandler(int networkId, string element, float damageOverTimeAmount, float damageOverTimeDuration)

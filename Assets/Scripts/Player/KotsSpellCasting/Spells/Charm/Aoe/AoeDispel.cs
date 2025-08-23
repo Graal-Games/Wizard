@@ -55,6 +55,10 @@ public class AoeDispel : AoeSpell
         Dispel(collider);
     }
 
+    //IEnumerator aasd()
+    //{
+    //}
+
     void Dispel(Collider hitCollider)
     {
         var spellScript = hitCollider.GetComponent<SpellsClass>();

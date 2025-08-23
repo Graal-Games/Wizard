@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class InvocationSpawner : K_Spell
+public class InvocationSpawner : NetworkBehaviour
 {
     [SerializeField] GameObject spawnLocation;
     [SerializeField] GameObject invocationRadius;
@@ -94,7 +94,4 @@ public class InvocationSpawner : K_Spell
     //    netObj.SpawnWithOwnership(OwnerClientId);
     //}
 
-    public override void Fire()
-    {
-    }
 }
