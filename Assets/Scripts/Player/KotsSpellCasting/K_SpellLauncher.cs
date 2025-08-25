@@ -869,7 +869,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (this.spellBuilder.GetIsSpellParriable(spellSequence))
         {
             SpellsClass projectile = spellInstance.GetComponent<SpellsClass>();
-            projectile.parryLetters = this.parryLetters;
+            projectile.parryLetters.Value = this.parryLetters.Value;
         }
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
