@@ -550,6 +550,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 break;
             case "Buffered":
                 castKey.StartCastBufferAnim((isInSpellChargingMode) ? 0.7f : 1f);
+                castKey.SetAllowImmediateCast(true);
 
                 // Maybe we should add this into a conditional or something?
                 //invocationBoundsGO.SetActive(true);
@@ -566,6 +567,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 // Wand tip implements raycast using 'using'
                 wandTipScript.ActivateAoePlacementVisualizer();
                 castKey.StartCastBufferAnim();
+                castKey.SetAllowImmediateCast(true);
                 //Activate Raycast
                 break;
             default:
@@ -628,10 +630,12 @@ public class K_SpellLauncher : NetworkBehaviour
             //which will be used to track the DR status for each spell category
             lastSpellType = currentSpellType;
             StopCastBufferAnimationIfActive();
+            castKey.SetAllowImmediateCast(false);
         } else
         {
             // if the G button is pressed repeatedly, take the player out of Cast Mode (CM)
             StopCastBufferAnimationIfActive();
+            castKey.SetAllowImmediateCast(false);
         }
         inSpellCastModeOrWaitingSpellCategory = false;
         ResetSpellSequence();
@@ -907,6 +911,7 @@ public class K_SpellLauncher : NetworkBehaviour
     public void StopCastBuffer()
     {
         castKey.StopCastBufferAnim();
+        castKey.SetAllowImmediateCast(false);
         
         inSpellCastModeOrWaitingSpellCategory = false;
         ResetSpellSequence();

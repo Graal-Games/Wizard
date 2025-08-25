@@ -30,6 +30,8 @@ public class K_DRKey : MonoBehaviour
     private const float INVISIBLE_IMG_ACTIVE_OPACITY = 0.5f;
     private bool active;
     private bool solvable;
+    // Allows immediate casting on G without waiting for the buffer animation window
+    [SerializeField] private bool allowImmediateCast = false;
 
     public event OnBufferFailedEventHandler OnBufferFailed;
 
@@ -55,6 +57,7 @@ public class K_DRKey : MonoBehaviour
         invisibleImage.gameObject.SetActive(invisible);
         bufferSquareImage.color = bufferSquareStartColor;
         anim.speed = 1f;
+        allowImmediateCast = false;
     }
 
 
@@ -99,6 +102,7 @@ public class K_DRKey : MonoBehaviour
             border.color = new Color(0f, 0f, 0f, INACTIVE_KEY_OPACITY);
 
             solvable = false;
+            allowImmediateCast = false;
         }
 
         this.active = active;
@@ -143,7 +147,7 @@ public class K_DRKey : MonoBehaviour
     /// and if it's currently solvable, otherwise it evaluates as false.</returns>
     public bool TryCast()
     {
-        return castKey && solvable;
+        return castKey && (solvable || allowImmediateCast);
     }
 
 
@@ -174,6 +178,7 @@ public class K_DRKey : MonoBehaviour
     {
         //if (anim.GetCurrentAnimatorStateInfo(0).IsName("CastBuffer") || anim.IsInTransition(0))
         anim.SetTrigger("StopCastBuffer");
+        allowImmediateCast = false;
     }
 
 
@@ -204,7 +209,10 @@ public class K_DRKey : MonoBehaviour
         this.solvable = solvable == 1;
     }
 
-
+    public void SetAllowImmediateCast(bool value)
+    {
+        allowImmediateCast = value;
+    }
 
 
     public void BufferFailed()
