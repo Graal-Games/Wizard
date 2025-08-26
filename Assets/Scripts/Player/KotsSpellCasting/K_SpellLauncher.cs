@@ -32,6 +32,7 @@ public class K_SpellLauncher : NetworkBehaviour
     [UDictionary.Split(20, 80)] public DrUiKeys drUiKeysDictionary;
     [UDictionary.Split(20, 80)] public DrUiKeys spellChargingUiKeysDictionary;
     [Serializable] public class DrUiKeys : UDictionary<string, K_DRKey> { }
+    [UDictionary.Split(20, 80)] public DrUiKeys spellCastingUiKeysDictionary;
 
     [Header("DR Settings")]
     [Tooltip("The maximum amount of keys to be activated at the start of a DR lock.")]
@@ -319,10 +320,13 @@ public class K_SpellLauncher : NetworkBehaviour
 
                 // This fires the spell, and changes the bool value of the 'inSpellCastModeOrWaitingSpellCategory' parameter to false
                 HandleSpellFiring();
+                UpdateDynamicNextKeysUI();
             }
           
             // SPELL BUILDING // Handles for spell category inputs + exceptions
             HandleSpellCasting();
+            if (!isInDRLockMode && !isInSpellChargingMode)
+                UpdateDynamicNextKeysUI();
            
         }
         else // >>>>>>>>> This places the player in SPELLCAST MODE
@@ -337,6 +341,8 @@ public class K_SpellLauncher : NetworkBehaviour
                 // This writes the sequence input on the top right corner of the screen
                 // note: G is not saved here to the spell sequence array
                 spellText.text = K_SpellKeys.cast.ToString();
+                if (!isInDRLockMode && !isInSpellChargingMode)
+                    ShowDynamicStartKeys();
             }
         }
 
@@ -496,6 +502,7 @@ public class K_SpellLauncher : NetworkBehaviour
             }
 
             InitCastProcedure(); // (exists in one other place in this script) This can be replaced by InitiateCastProcedure(spellSequence);
+            UpdateDynamicNextKeysUI();
         }
     }
 
@@ -910,6 +917,7 @@ public class K_SpellLauncher : NetworkBehaviour
         
         inSpellCastModeOrWaitingSpellCategory = false;
         ResetSpellSequence();
+        HideAllDynamicNextKeys();
 
         if (wandTipScript.IsAoeRaycastActive)
         {
@@ -968,29 +976,40 @@ public class K_SpellLauncher : NetworkBehaviour
 
             if (keyCount > 0)
             {
-                int activatedKeys = 0;
+                // Hide all DR keys first
+                foreach (var kv in drUiKeysDictionary.Values)
+                {
+                    if (kv.gameObject.activeSelf)
+                        kv.gameObject.SetActive(false);
+                }
 
+                Debug.LogFormat($"<color=orange>DR> keys to activate: {keyCount}</color>");
+
+                // Activate ALL keys provided by the ScriptableObject for this tier
                 for (int i = 0; i < keyCount; i++)
                 {
                     K_DRKeyData drKeyData = drLockKeysQueue.ElementAt(i);
-                    K_DRKey drKey = drUiKeysDictionary[drKeyData.keyCode.ToString()];
+                    string keyName = drKeyData.keyCode.ToString();
+                    if (!drUiKeysDictionary.ContainsKey(keyName))
+                    {
+                        Debug.LogWarning($"DR> Missing UI key for '{keyName}' in drUiKeysDictionary");
+                        continue;
+                    }
+                    K_DRKey drKey = drUiKeysDictionary[keyName];
 
                     drKey.invisible = drKeyData.invisible;
                     drKey.buffered = drKeyData.buffered;
                     drKey.gameObject.SetActive(true);
-
-                    if (i < maxStartingDrKeys)
-                    {
-                        drKey.SetActive(true);
-                        activatedKeys++;
-                    }
+                    drKey.SetActive(true);
+                    Debug.LogFormat($"DR> Activated key '{keyName}' (invisible={drKeyData.invisible}, buffered={drKeyData.buffered})");
                 }
 
-                for (int i = 0; i < activatedKeys; i++)
-                    drLockKeysQueue.Dequeue();
+                // Do not dequeue here; we show all keys from the SO directly
 
                 isInDRLockMode = true;
                 inSpellCastModeOrWaitingSpellCategory = false;
+                // Ensure dynamic hint keys are hidden during DR
+                HideAllDynamicNextKeys();
 
                 //ResetSpellSequence();
 
@@ -1017,6 +1036,91 @@ public class K_SpellLauncher : NetworkBehaviour
         this.spellText.text = "";
         
         g_CurrentSpellSequence = "";
+        HideAllDynamicNextKeys();
+    }
+
+    private void ShowDynamicStartKeys()
+    {
+        HideAllDynamicNextKeys();
+        foreach (KeyCode key in K_SpellKeys.spellTypes)
+        {
+            string k = key.ToString();
+            if (spellCastingUiKeysDictionary.ContainsKey(k))
+            {
+                var uiKey = spellCastingUiKeysDictionary[k];
+                // Only skip if DR or SpellCharging is currently active
+                if ((isInDRLockMode || isInSpellChargingMode) &&
+                    ((drUiKeysDictionary != null && drUiKeysDictionary.Values.Contains(uiKey)) ||
+                     (spellChargingUiKeysDictionary != null && spellChargingUiKeysDictionary.Values.Contains(uiKey))))
+                    continue;
+                uiKey.invisible = false;
+                uiKey.buffered = false;
+                uiKey.gameObject.SetActive(true);
+                uiKey.SetActive(true);
+            }
+        }
+    }
+
+    private void UpdateDynamicNextKeysUI()
+    {
+        // Do not show dynamic spell-casting hints while in DR or SpellCharging modes
+        if (isInDRLockMode || isInSpellChargingMode)
+        {
+            HideAllDynamicNextKeys();
+            return;
+        }
+
+        if (!inSpellCastModeOrWaitingSpellCategory)
+        {
+            HideAllDynamicNextKeys();
+            return;
+        }
+
+        var nextKeys = spellBuilder.GetNextValidKeys(spellSequence);
+
+        // First hide all dynamic-only keys
+        HideAllDynamicNextKeys();
+
+        // Show only next valid keys
+        foreach (var key in nextKeys)
+        {
+            string k = key.ToString();
+            if (spellCastingUiKeysDictionary.ContainsKey(k))
+            {
+                var uiKey = spellCastingUiKeysDictionary[k];
+                // Only skip if DR or SpellCharging is currently active
+                if ((isInDRLockMode || isInSpellChargingMode) &&
+                    ((drUiKeysDictionary != null && drUiKeysDictionary.Values.Contains(uiKey)) ||
+                     (spellChargingUiKeysDictionary != null && spellChargingUiKeysDictionary.Values.Contains(uiKey))))
+                    continue;
+                uiKey.invisible = false;
+                uiKey.buffered = false;
+                uiKey.gameObject.SetActive(true);
+                uiKey.SetActive(true);
+            }
+        }
+    }
+
+    private void HideAllDynamicNextKeys()
+    {
+        if (spellCastingUiKeysDictionary == null) return;
+        foreach (var kv in spellCastingUiKeysDictionary.Values)
+        {
+            // Only preserve DR/Charging keys while those modes are active
+            if ((isInDRLockMode || isInSpellChargingMode) &&
+                ((drUiKeysDictionary != null && drUiKeysDictionary.Values.Contains(kv)) ||
+                 (spellChargingUiKeysDictionary != null && spellChargingUiKeysDictionary.Values.Contains(kv))))
+                continue;
+            if (kv.gameObject.activeSelf)
+            {
+                kv.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void RefreshDynamicSpellCastingHints()
+    {
+        UpdateDynamicNextKeysUI();
     }
 
 
@@ -1122,6 +1226,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 if (!isInSpellChargingMode)
                 {
                     inSpellCastModeOrWaitingSpellCategory = true;
+                    RefreshDynamicSpellCastingHints();
                 }
                     
                 // Initiate the cast procedure 

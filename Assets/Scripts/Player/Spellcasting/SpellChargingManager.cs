@@ -89,6 +89,8 @@ public class SpellChargingManager
 
         spellLauncher.IsInSpellChargingMode = true;
         spellLauncher.InSpellCastModeOrWaitingSpellCategory = false;
+        // Hide dynamic hints while in SpellCharging
+        spellLauncher.RefreshDynamicSpellCastingHints();
 
         // handle parry letters generation here
         spellLauncher.ParryLetters.Value = "R";
@@ -134,6 +136,13 @@ public class SpellChargingManager
         int keyCount = spellLauncher.spellChargingKeysQueue.Count;
 
         int activatedKeys = 0;
+
+        // Deactivate all SpellCharging UI keys first to avoid showing extra keys
+        foreach (var kv in spellLauncher.spellChargingUiKeysDictionary.Values)
+        {
+            if (kv.gameObject.activeSelf)
+                kv.gameObject.SetActive(false);
+        }
 
         for (int i = 0; i < keyCount; i++)
         {
@@ -219,6 +228,8 @@ public class SpellChargingManager
                 // If all SpellCharging letters have been solved exit the player from SpellCharging mode
                 spellLauncher.IsInSpellChargingMode = false;
                 spellLauncher.InSpellCastModeOrWaitingSpellCategory = true;
+                // Resume dynamic hints from current sequence
+                spellLauncher.RefreshDynamicSpellCastingHints();
             }
         }
         else

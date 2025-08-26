@@ -161,6 +161,43 @@ public class K_SpellBuilder : NetworkBehaviour
     }
 
     /// <summary>
+    /// Returns the set of next valid keys that can follow the provided spell sequence prefix.
+    /// If the prefix is empty, this returns the available spell type keys.
+    /// </summary>
+    /// <param name="currentSequence">The current spell sequence prefix (without the initial cast key).</param>
+    /// <returns>List of KeyCodes representing valid next inputs.</returns>
+    public List<KeyCode> GetNextValidKeys(string currentSequence)
+    {
+        var nextKeys = new HashSet<KeyCode>();
+
+        if (string.IsNullOrEmpty(currentSequence))
+        {
+            // First letter options are the spell types
+            foreach (var key in K_SpellKeys.spellTypes)
+                nextKeys.Add(key);
+            return nextKeys.ToList();
+        }
+
+        foreach (var kvp in spellDictionary)
+        {
+            string spellKey = kvp.Key;
+            if (spellKey.StartsWith(currentSequence, StringComparison.Ordinal))
+            {
+                if (spellKey.Length > currentSequence.Length)
+                {
+                    char nextChar = spellKey[currentSequence.Length];
+                    if (Enum.TryParse(nextChar.ToString(), out KeyCode nextKeyCode))
+                    {
+                        nextKeys.Add(nextKeyCode);
+                    }
+                }
+            }
+        }
+
+        return nextKeys.ToList();
+    }
+
+    /// <summary>
     /// Generates a queue of unique random DRKeyData. Applying the
     /// invisible and / or buffered properties to random keys within
     /// the array. The queue length depends on the current DR tier for
