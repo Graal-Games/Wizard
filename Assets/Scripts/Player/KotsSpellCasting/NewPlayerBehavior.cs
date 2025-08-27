@@ -498,7 +498,9 @@ public class NewPlayerBehavior : NetworkBehaviour
                 //the exception of dealing damage only upon player entry 
                 if (!spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
                 {
+                    // Deal an initial amount of damage on spell entry
                     DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
+
                     spellsTriggeredList.Add(emittedPlayerHitPayload.NetworkId);
                 }
                 else

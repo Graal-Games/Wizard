@@ -2,17 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BarrierClass : MonoBehaviour
+public class BarrierClass : SpellsClass
 {
-    // Start is called before the first frame update
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        if (other.gameObject.name.Contains("Player"))
+        {
+            HandleAllInteractions(other);
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerExit(Collider other)
     {
-        
+        if (other.gameObject.name.Contains("Player"))
+        {
+            HandleAllInteractions(other);
+        }
     }
 }

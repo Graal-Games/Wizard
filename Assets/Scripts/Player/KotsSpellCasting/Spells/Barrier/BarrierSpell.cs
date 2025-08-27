@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class BarrierSpell : SpellsClass // WARNING: TO RENAME TO BARRIERCLASS
+public class BarrierSpell : BarrierClass // WARNING: TO RENAME TO BARRIERCLASS
 {
     // For health, get reference to the associated spellData
     NetworkVariable<float> localHealth = new NetworkVariable<float>();
