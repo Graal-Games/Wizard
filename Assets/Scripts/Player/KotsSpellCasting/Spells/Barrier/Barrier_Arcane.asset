@@ -16,11 +16,17 @@ MonoBehaviour:
   element: 0
   spellAttribute: 2
   castProcedure: 1
+  periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 60
+  spellActivationDelay: 0
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 30
@@ -29,6 +35,9 @@ MonoBehaviour:
   pushForce: 0
   pullForce: 0
   health: 50
+  healAmount: 0
+  healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -39,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Barrier
   prefab: {fileID: 1407102744089258733, guid: 3fdf242fb65357b4188097edf1ad45e8, type: 3}
   childPrefab: {fileID: 0}

@@ -19,6 +19,9 @@ MonoBehaviour:
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 1
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 117
   spellDuration: 15
@@ -34,6 +37,7 @@ MonoBehaviour:
   health: 0
   healAmount: 0
   healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -44,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Water
   prefab: {fileID: 4716045805267283745, guid: 103d624101f5ffb4184b3af664a6947c, type: 3}
   childPrefab: {fileID: 0}

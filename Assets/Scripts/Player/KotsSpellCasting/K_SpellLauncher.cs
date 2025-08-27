@@ -1097,6 +1097,17 @@ public class K_SpellLauncher : NetworkBehaviour
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
+
+                // Optional: set context-specific icon/label
+                var context = spellBuilder.GetNextKeyContextTag(spellSequence, key);
+                var uiHelper = uiKey.GetComponent<K_SpellKeyUI>();
+                if (uiHelper != null)
+                {
+                    // You can map context->Sprite via a small ScriptableObject or a serialized dictionary
+                    // Here we set just the label; icon mapping can be added later.
+                    if (!string.IsNullOrEmpty(context))
+                        uiHelper.SetLabel(context);
+                }
             }
         }
     }

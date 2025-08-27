@@ -48,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: ProjectilexAoe
   prefab: {fileID: 0}
   childPrefab: {fileID: 0}

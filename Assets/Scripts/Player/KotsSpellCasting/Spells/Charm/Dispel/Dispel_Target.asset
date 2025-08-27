@@ -19,6 +19,9 @@ MonoBehaviour:
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 150
   spellDuration: 20
@@ -34,6 +37,7 @@ MonoBehaviour:
   health: 0
   healAmount: 0
   healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -44,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Target Dispel
   prefab: {fileID: 4716045805267283745, guid: d0a4aa7bae64fdb4c953bd9d7b1e933d, type: 3}
   childPrefab: {fileID: 0}

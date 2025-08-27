@@ -20,6 +20,8 @@ MonoBehaviour:
   incapacitationName: 0
   visionImpairmentType: 0
   isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 60
@@ -46,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Earth
   prefab: {fileID: 705924895072455061, guid: c0a2e1fea99c3224b90c796661cf55b9, type: 3}
   childPrefab: {fileID: 4716045805267283745, guid: 20172c3301cb46c4cb1a95500dc68d0f, type: 3}

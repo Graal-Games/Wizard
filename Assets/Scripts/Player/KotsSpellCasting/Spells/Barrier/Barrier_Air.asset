@@ -16,11 +16,17 @@ MonoBehaviour:
   element: 3
   spellAttribute: 7
   castProcedure: 1
+  periCastLockProcedure: 0
   incapacitationName: 2
   visionImpairmentType: 0
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 15
+  spellActivationDelay: 0
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 5
   visionImpairmentDuration: 0
   directDamageAmount: 10
@@ -29,6 +35,9 @@ MonoBehaviour:
   pushForce: 200
   pullForce: 0
   health: 50
+  healAmount: 0
+  healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -39,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 1
+  contextTag: Air
   prefab: {fileID: 386818984567356104, guid: c6e640043f3af5147add35eb47d51578, type: 3}
   childPrefab: {fileID: 0}
