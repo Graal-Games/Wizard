@@ -103,6 +103,10 @@ public class K_SpellData : ScriptableObject
     [Tooltip("If true, the spell causes pushback")]
     public bool pushback;
 
+    [Header("UI")]
+    [Tooltip("Optional tag used for dynamic UI (e.g., Barrier, Order)")]
+    public string contextTag;
+
     [Header("Spell Body")]
     [Tooltip("The prefab to be created for this Spell")]
     public GameObject prefab;

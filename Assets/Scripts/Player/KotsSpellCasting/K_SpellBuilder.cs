@@ -198,6 +198,32 @@ public class K_SpellBuilder : NetworkBehaviour
     }
 
     /// <summary>
+    /// Returns an optional semantic tag for the next key at a given sequence stage,
+    /// based on the first matching spell. Can be used to pick a context icon.
+    /// Example: at "Y" stage show "Barrier" icon, at "YY" show "Order" icon.
+    /// </summary>
+    public string GetNextKeyContextTag(string currentSequence, KeyCode nextKey)
+    {
+        string candidatePrefix = currentSequence + nextKey.ToString();
+        foreach (var kvp in spellDictionary)
+        {
+            string spellKey = kvp.Key;
+            if (spellKey.StartsWith(candidatePrefix, StringComparison.Ordinal))
+            {
+                // Choose a representative tag from the spell data; fallback to spell type
+                // You can extend K_SpellData to expose a contextTags array or similar
+                var data = kvp.Value;
+                if (data != null && data.contextTag != null && data.contextTag.Length > 0)
+                {
+                    return data.contextTag; // string
+                }
+                return data != null ? data.spellType.ToString() : "";
+            }
+        }
+        return "";
+    }
+
+    /// <summary>
     /// Generates a queue of unique random DRKeyData. Applying the
     /// invisible and / or buffered properties to random keys within
     /// the array. The queue length depends on the current DR tier for

@@ -16,12 +16,17 @@ MonoBehaviour:
   element: 4
   spellAttribute: 2
   castProcedure: 1
+  periCastLockProcedure: 0
   incapacitationName: 1
   visionImpairmentType: 2
+  isDispelResistant: 0
+  isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 15
   spellActivationDelay: 40
+  spellTimeBeforeDeactivation: 0
   incapacitationDuration: 3
   visionImpairmentDuration: 3
   directDamageAmount: 25
@@ -30,6 +35,9 @@ MonoBehaviour:
   pushForce: 0
   pullForce: 0
   health: 100
+  healAmount: 0
+  healOverTimeAmount: 0
+  dispel: 0
   damageLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -40,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Earth
   prefab: {fileID: 3940154183010903383, guid: fb1911a99ade9994c92280c89f1a9a5e, type: 3}
   childPrefab: {fileID: 0}

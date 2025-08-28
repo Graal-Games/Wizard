@@ -21,6 +21,7 @@ MonoBehaviour:
   visionImpairmentType: 0
   isDispelResistant: 0
   isExplosive: 0
+  spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
   spellDuration: 40
@@ -47,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Aoe
   prefab: {fileID: 4454155518266441410, guid: e838861e4e3e7c843944008093c37b25, type: 3}
   childPrefab: {fileID: 0}

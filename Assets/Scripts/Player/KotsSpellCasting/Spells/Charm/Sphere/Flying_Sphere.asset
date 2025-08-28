@@ -48,5 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Flying
   prefab: {fileID: 6722711384614343251, guid: 273090a0f680bbd4aa67860760253d16, type: 3}
   childPrefab: {fileID: 0}
