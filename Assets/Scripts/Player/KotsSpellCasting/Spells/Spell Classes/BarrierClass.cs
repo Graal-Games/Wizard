@@ -16,6 +16,8 @@ public class BarrierClass : SpellsClass
 
     private void OnTriggerExit(Collider other)
     {
+        Debug.LogFormat($"<color=purple>BARRIER OTEX</color>");
+
         if (other.gameObject.CompareTag("Player"))
         {
             HandleAllInteractions(other);

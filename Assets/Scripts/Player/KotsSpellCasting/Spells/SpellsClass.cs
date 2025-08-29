@@ -193,16 +193,16 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public void SpellDeactivationDelay(Collider colliderToDeactivate = null)
     {
-        Debug.LogFormat("<color=orange>111SpellDeactivationDelay called with null collider</color>");
+        //Debug.LogFormat("<color=orange>111SpellDeactivationDelay called with null collider</color>");
 
         if (colliderToDeactivate == null)
         {
-            Debug.LogFormat("<color=orange>SpellDeactivationDelay called with null collider</color>");
+            //Debug.LogFormat("<color=orange>SpellDeactivationDelay called with null collider</color>");
             colliderToDeactivate = gameObject.GetComponent<Collider>();
         }
         else
         {
-            Debug.LogFormat("<color=orange>SpellDeactivationDelay called with collider: {0}</color>", colliderToDeactivate.name);
+            //Debug.LogFormat("<color=orange>SpellDeactivationDelay called with collider: {0}</color>", colliderToDeactivate.name);
             StartCoroutine(DeactivationDelay(colliderToDeactivate));
         }
 
@@ -302,7 +302,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         if (!other.gameObject.name.Contains("Projectile)"))
         {
-            Debug.LogFormat($"<color=blue>!!!!!!!!!!!!!! DISPEL {other.gameObject.name}</color>");
+            //Debug.LogFormat($"<color=blue>!!!!!!!!!!!!!! DISPEL {other.gameObject.name}</color>");
             DestroyOtherSpell(other);
         }
     }
@@ -312,13 +312,13 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         if (colliderHit.GetComponent<K_Spell>())
         {
-            Debug.LogFormat($"<color=blue>11111111!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
+            //Debug.LogFormat($"<color=blue>11111111!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
 
             colliderHit.GetComponent<K_Spell>().DestroySpell(colliderHit.gameObject);
         }
         else if (colliderHit.GetComponent<SpellsClass>())
         {
-            Debug.LogFormat($"<color=blue>22222222!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
+            //Debug.LogFormat($"<color=blue>22222222!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
 
             DestroySpell(colliderHit.gameObject);
         }
@@ -346,7 +346,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //{
             if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
             {
-                Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+                //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
 
                 // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
                 other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
@@ -408,22 +408,22 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
+        //.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
         
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
-            Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
+            //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
 
             // If player does not have active shield, handle the player hit
             PlayerIsHit(colliderHit.gameObject);
         
-            Debug.LogFormat($"<color=purple>1 SPELLS CLASS: ApplyForce</color>");
+            //Debug.LogFormat($"<color=purple>1 SPELLS CLASS: ApplyForce</color>");
             if (SpellDataScriptableObject.pushForce > 0)
             {
-                Debug.LogFormat($"<color=purple>2 SPELLS CLASS: ApplyForce</color>");
+                //Debug.LogFormat($"<color=purple>2 SPELLS CLASS: ApplyForce</color>");
                 colliderHit.gameObject.GetComponent<Pushback>().ApplyForce(transform.forward, SpellDataScriptableObject.pushForce);
             }
         }
@@ -481,7 +481,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
             if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
             {
-                Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
+                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
 
                 DestroyOtherSpell(colliderHit);
             }
@@ -490,14 +490,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
             if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
             {
-                Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+                //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
                 // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
                 // IF colliderHit.GetComponent<IDamageable>() != null
                 if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
-                    Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+                    //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
                     colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
@@ -509,7 +509,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             }
             else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
             {
-                Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
+                //Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
 
                 InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
 
@@ -527,7 +527,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             }
             else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
             {
-                Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
+                //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
 
                 AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
 
@@ -578,7 +578,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         gameObjectToDestroy = spellObj;
 
-        Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} seconds</color>", spellObj.name, duration);
+        //Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} seconds</color>", spellObj.name, duration);
 
         yield return new WaitForSeconds(duration);
         DestroySpellRpc();
@@ -592,7 +592,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         spellLifetimeTimer = 0f;
         spellLifetimeActive = true;
 
-        Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} physics seconds</color>", spellObj.name, duration);
+        //Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} physics seconds</color>", spellObj.name, duration);
     }
 
 
@@ -611,18 +611,18 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public void DestroySpellRpc()
     {
 
-        Debug.LogFormat($"<color=orange>Destroying spell {gameObjectToDestroy.name}</color>");
+        //Debug.LogFormat($"<color=orange>Destroying spell {gameObjectToDestroy.name}</color>");
         
         //Destroy(gameObjectToDestroy);
 
         if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)
         {
-            Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} has a NetworkObject</color>");
+            //Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} has a NetworkObject</color>");
             gameObjectToDestroy.GetComponent<NetworkObject>().Despawn();
         }
         else
         {
-            Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} does NOT have a NetworkObject</color>");
+            //Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} does NOT have a NetworkObject</color>");
             gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
         }
     }

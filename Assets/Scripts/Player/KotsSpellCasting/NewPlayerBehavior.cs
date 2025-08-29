@@ -90,6 +90,11 @@ public class NewPlayerBehavior : NetworkBehaviour
         set { playerClass = value; }
     }
 
+    public HealthBarUi HealthBar
+    {
+        get { return _healthBar; }
+        set { _healthBar = value; }
+    }
 
     [SerializeField] GameObject wandTip2;
 
@@ -132,6 +137,9 @@ public class NewPlayerBehavior : NetworkBehaviour
         // Get the health bar instance reference that was assigned to this player
         NewHealthBarSingleton.Instance.GetPlayer(gameObject.transform);
         _healthBar = NewHealthBarSingleton.Instance.GetComponent<NewHealthBarSingleton>().GetComponentInChildren<HealthBarUi>();
+
+        // For external access - DoTHandler, .
+        HealthBar = _healthBar;
 
         // Debug.Log("NetworkObject found12321321321321321312312: " + NewHealthBarSingleton.Instance.GetComponent<NewHealthBarSingleton>());
 
@@ -251,6 +259,9 @@ public class NewPlayerBehavior : NetworkBehaviour
             // make this an event to reset the health of all players
             // ++ This implicates the introduction of a Game Manager that is continuously keeping
             //track of the player stats, health accuracy and so on.
+
+            // RemoveAny pertsisting dot
+            // Remove any debuff effects
         }
 
         // Have the timer method here with the dictionary being iterated over handled by the class
@@ -267,6 +278,8 @@ public class NewPlayerBehavior : NetworkBehaviour
                 // Check if the spell duration has expired
                 if (dot.TimeExpired)
                 {
+                    UnityEngine.Debug.LogFormat($"<color=purple>DOT EXPIRED</color>");
+
                     // If spell duration has expired, remove the DoT effect instance
                     currentDamageOverTimeList.RemoveAt(i);
                     return;
@@ -277,6 +290,8 @@ public class NewPlayerBehavior : NetworkBehaviour
                     // The method returns 'true' at a specified (per second) time interval and applies damage
                     if (dot.Timer())
                     {
+                        UnityEngine.Debug.LogFormat($"<color=purple>DOT APPLY DAMAGE</color>");
+
                         // Apply damage to the player
                         _healthBar.ApplyDamage(dot.DamagePerSecond);
 
@@ -587,6 +602,8 @@ public class NewPlayerBehavior : NetworkBehaviour
         /// NEW - THIS PREVENTS STACKING OF DOT SPELL
         if (currentDamageOverTimeList.Any(dot => dot.NetworkId == networkId)) return;
 
+        UnityEngine.Debug.LogFormat($"<color=purple>DOT ADD</color>");
+
         currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
         UnityEngine.Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
     }
@@ -629,6 +646,8 @@ public class NewPlayerBehavior : NetworkBehaviour
                 }
                 else
                 {
+                    UnityEngine.Debug.LogFormat($"<color=purple>DOT REMOVE</color>");
+
                     currentDamageOverTimeList.Remove(netObj);
                     activePersistentDamageOverTimeSpells.Add(networkId, new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
                 }

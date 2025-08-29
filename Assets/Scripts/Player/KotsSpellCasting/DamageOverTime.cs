@@ -70,13 +70,6 @@ namespace DamageOverTimeEffect {
             // chatgpt did this
             timer += Time.deltaTime; // output is 100+ each second
 
-            // Apply damage upon initial entry
-            //if (firstEntry)
-            //{
-            //    firstEntry = false;
-            //    return dealDamage;
-            //}
-
             // Check if 1 second has elapsed
             // Each second return a 'true' bool value. Following this return, the PlayerBehaviour script applies damage to the player.
             if (timer == 0 || timer >= 1f)
