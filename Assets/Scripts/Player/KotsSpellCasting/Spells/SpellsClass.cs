@@ -365,14 +365,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         //if (other.gameObject.CompareTag("Player"))
         //{
-        if (!other.CompareTag("Player")) return false;
+        //if (!other.CompareTag("Player")) return false;
 
         if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
         {
             // If the spell has hit an active shield, change the following value
             //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
             hasHitShield.Value = true;
-
+            //other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
             if (SpellsClassScript(other) != null)
             {
                 SpellsClass spellsClass = SpellsClassScript(other);
