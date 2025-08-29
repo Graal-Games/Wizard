@@ -37,6 +37,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     // These are being defined in the scriptable object associated to each prefab
     public string SpellName => SpellDataScriptableObject.name;
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
+    public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
 
 
 
