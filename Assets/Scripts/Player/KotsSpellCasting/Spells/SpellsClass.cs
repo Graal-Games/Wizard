@@ -365,6 +365,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         //if (other.gameObject.CompareTag("Player"))
         //{
+        if (!other.CompareTag("Player")) return false;
+
         if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
         {
             // If the spell has hit an active shield, change the following value
