@@ -4881,7 +4881,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1264923871227602188, guid: 95f63515a22212a42be617e6eba14475, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 868155282
+      value: 872415231
       objectReference: {fileID: 0}
     - target: {fileID: 1316294981753691673, guid: 95f63515a22212a42be617e6eba14475, type: 3}
       propertyPath: m_Pivot.x
@@ -8597,7 +8597,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 3678171229
+      value: 2647693706
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2

@@ -345,6 +345,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 spellText.text = K_SpellKeys.cast.ToString();
                 if (!isInDRLockMode && !isInSpellChargingMode)
                     ShowDynamicStartKeys();
+
                 return;
             }
 
@@ -1109,22 +1110,43 @@ public class K_SpellLauncher : NetworkBehaviour
 
     private void ShowDynamicStartKeys()
     {
+        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys()</color>");
         HideAllDynamicNextKeys();
+
+
+        
+        foreach (string key in spellCastingUiKeysDictionary.Keys) {
+            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -2  spellCastingUiKeysDictionary.key = {key}</color>");
+        }
+
+        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -1  spellCastingUiKeysDictionary.Count = {spellCastingUiKeysDictionary.Count()}</color>");
+
         foreach (KeyCode key in K_SpellKeys.spellTypes)
         {
+            
             string k = key.ToString();
+            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 0  key = {k}</color>");
             if (spellCastingUiKeysDictionary.ContainsKey(k))
             {
+                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 1</color>");
+
+                if ((isInDRLockMode || isInSpellChargingMode)) {
+                    Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 2 pero salta</color>");
+                }
+
+
                 var uiKey = spellCastingUiKeysDictionary[k];
                 // Only skip if DR or SpellCharging is currently active
                 if ((isInDRLockMode || isInSpellChargingMode) &&
                     ((drUiKeysDictionary != null && drUiKeysDictionary.Values.Contains(uiKey)) ||
                      (spellChargingUiKeysDictionary != null && spellChargingUiKeysDictionary.Values.Contains(uiKey))))
                     continue;
+
                 uiKey.invisible = false;
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
+                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 3 sucesss</color>");
             }
         }
     }
@@ -1165,6 +1187,8 @@ public class K_SpellLauncher : NetworkBehaviour
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
+
+                Debug.LogFormat($"<color=orange>************** UpdateDynamicNextKeysUI  iteration valid </color>");
 
                 // Optional: set context-specific icon/label
                 var context = spellBuilder.GetNextKeyContextTag(spellSequence, key);
