@@ -48,6 +48,7 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Water
   prefab: {fileID: 5519018947295672184, guid: 8f592e3e0ec88864eb72a390b1d26cae, type: 3}
   childPrefab: {fileID: 0}
   isParriable: 1

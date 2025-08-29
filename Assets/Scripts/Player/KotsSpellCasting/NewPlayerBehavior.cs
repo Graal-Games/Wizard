@@ -103,7 +103,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     // This correctly spawns and respawns the player at the spawn point's location
     void SpawnPlayerAtStartingLocation()
     {
-        Debug.Log($"****************************************SpawnPlayerAtStartingLocation!");
+        UnityEngine.Debug.Log($"****************************************SpawnPlayerAtStartingLocation!");
         Vector3 spawnPosition = SpawnManager.Instance.AssignSpawnPoint(OwnerClientId);
         Quaternion spawnRotation = SpawnManager.Instance.AssignSpawnRotation(OwnerClientId);
 
@@ -130,7 +130,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     // ! Start is run after OnNetworkSpawn
     void Start()
     {
-        Debug.Log($"****************************************StartPlayerBehaviour!");
+        UnityEngine.Debug.Log($"****************************************StartPlayerBehaviour!");
 
         if (!IsOwner || !IsLocalPlayer) return;
         // Debug.LogFormat($"<color=brown> Player Access {OwnerClientId} </color>");
@@ -464,7 +464,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         lastAttackerId = emittedPlayerHitPayload.AttackerId;
 
-        Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
 
         // Make sure the the event is being processed by the respective script of the player that was hit
         // xx Lets say the projectile is owned by player 2 and emits that it hit player 1, if this script is indeed owned by player 1 then run the code otherwise skip it

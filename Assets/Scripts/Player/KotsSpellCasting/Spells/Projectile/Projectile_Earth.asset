@@ -48,6 +48,7 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
+  contextTag: Earth
   prefab: {fileID: 2626502478987842554, guid: fbc49fc8dbd267d488ea0a6c9f1946a0, type: 3}
   childPrefab: {fileID: 0}
   isParriable: 1
