@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Barrier_Air
   m_EditorClassIdentifier: 
   spellType: 4
-  element: 3
-  spellAttribute: 7
+  element: 4
+  spellAttribute: 5
   castProcedure: 1
   periCastLockProcedure: 0
   incapacitationName: 2

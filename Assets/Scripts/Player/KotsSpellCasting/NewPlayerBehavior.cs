@@ -74,7 +74,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     [SerializeField]
     GameObject parryLetterGO;
 
-    bool isShieldActive = false;
+    //bool isShieldActive = false;
 
     bool isIncapacitated = false; // This is used to lock player movement and spellcasting if the player is stunned
 
@@ -419,16 +419,16 @@ public class NewPlayerBehavior : NetworkBehaviour
     {
         if (p_clientId != OwnerClientId) return;
 
-        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {localSphereShieldActive.Value}  Owner ccc : {OwnerClientId} </color>");
 
         // Evaluates to true when a shield is spawned and is active on the player character
         //and is thereafter used to check whether or not to deal damage to the player
         // !! This method is further elaborated so that damage to the player is not made at the same time a projectile destroys it (the problem this code is solving)
         //ShieldIsActiveServerRpc();
-        isShieldActive = isShieldAvailable;
+        //isShieldActive = isShieldAvailable;
+        localSphereShieldActive.Value = isShieldAvailable;
 
-
-        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {isShieldActive}  Owner ccc : {OwnerClientId} </color>");
+        UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {localSphereShieldActive.Value}  Owner ccc : {OwnerClientId} </color>");
 
     }
 
@@ -451,7 +451,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         // Received from an event emitted by the spawed sphere
         // If the player has a shield on, don-t apply damage to the player
         // Damage applied to the shield is handled elsewhere
-        if (isShieldActive) return;
+        if (localSphereShieldActive.Value) return;
 
         // USE THIS TO ACTIVATE SHADERS ALTERIOR FROM BLOOD
         //if (shaderActivation != null) shaderActivation(OwnerClientId, emittedPlayerHitPayload.VisionImpairment.ToString(), emittedPlayerHitPayload.VisionImpairmentDuration);

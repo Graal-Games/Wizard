@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Barrier_Arcane
   m_EditorClassIdentifier: 
   spellType: 4
-  element: 0
+  element: 1
   spellAttribute: 2
   castProcedure: 1
   periCastLockProcedure: 0

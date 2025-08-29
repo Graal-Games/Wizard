@@ -150,9 +150,9 @@ public class PlayerController : NetworkBehaviour
 
     // Processes events that are emitted when casting beam and slows the movement down 
     //relatively to the existence of the beam
-    private void PlayerMoveSpeedOnIsCastingBeam(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehaviorScript, bool status)
+    private void PlayerMoveSpeedOnIsCastingBeam(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehaviorScript, bool isCastingBeam)
     {
-        if (status)
+        if (isCastingBeam)
         {
             CastModeSpeedSlow();
             // CastingLookSlow();

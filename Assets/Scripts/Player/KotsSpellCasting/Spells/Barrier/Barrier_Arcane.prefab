@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1667025515
+  GlobalObjectIdHash: 3151212773
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -154,15 +154,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48af42deb96f27148a95f9ce66374afe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  materialDictionary:
-    keys: 
-    values: []
-  spellData: {fileID: 0}
-  aliveTimer: 0
-  dotTickTimer: 0
-  rb: {fileID: 0}
-  caster: {fileID: 0}
   spellDataScriptableObject: {fileID: 11400000, guid: 3e37dca9e53590d4c8462b68234d79a4, type: 2}
+  secondaryGameObjectToSpawn: {fileID: 0}
+  checkRadius: 2
+  triggerLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!54 &934860316581456473
 Rigidbody:
   m_ObjectHideFlags: 0

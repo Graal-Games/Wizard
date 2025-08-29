@@ -54,8 +54,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     private bool spellLifetimeActive = false;
 
 
-    public float checkRadius = 2f;    // Match your trigger size
-    public LayerMask triggerLayer;    // Layer for the kill trigger
+    protected float checkRadius = 2f;    // Match your trigger size
+    protected LayerMask triggerLayer;    // Layer for the kill trigger
 
 
     /// <summary>
@@ -342,24 +342,52 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        // If shield is detected redirect damage to it
-        // And DO NOT proceed to apply damage to the related player
-        if (other.CompareTag("ActiveShield"))
-        {
-            // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-            other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+        //if (other.gameObject.CompareTag("Player"))
+        //{
+            if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+            {
+                Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
 
-            hasHitShield.Value = true;
+                // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+                other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
 
-            // What?
-            if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-                DestroySpellRpc();
+                hasHitShield.Value = true;
+
+                // What?
+                if (spellDataScriptableObject.spellType.ToString() == "Projectile")
+                    DestroySpellRpc();
 
 
-            return true;
-        }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        //}
 
-        return false;
+        //// If shield is detected redirect damage to it
+        //// And DO NOT proceed to apply damage to the related player
+        //if (other.CompareTag("ActiveShield"))
+        //{
+        //    Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+
+        //    // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+        //    other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+
+        //    hasHitShield.Value = true;
+
+        //    // What?
+        //    if (spellDataScriptableObject.spellType.ToString() == "Projectile")
+        //        DestroySpellRpc();
+
+
+        //    return true;
+        //} else
+        //{
+        //    return false;
+        //}
+
     }
 
 
@@ -380,17 +408,27 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
+        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
 
-        if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == false)
+        if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
+        
+        // Check for player hit
+        if (colliderHit.CompareTag("Player"))
         {
-            // Check for player hit
-            if (colliderHit.CompareTag("Player"))
+            Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
+
+            // If player does not have active shield, handle the player hit
+            PlayerIsHit(colliderHit.gameObject);
+        
+            Debug.LogFormat($"<color=purple>1 SPELLS CLASS: ApplyForce</color>");
+            if (SpellDataScriptableObject.pushForce > 0)
             {
-                // If player does not have active shield, handle the player hit
-                PlayerIsHit(colliderHit.gameObject);
+                Debug.LogFormat($"<color=purple>2 SPELLS CLASS: ApplyForce</color>");
+                colliderHit.gameObject.GetComponent<Pushback>().ApplyForce(transform.forward, SpellDataScriptableObject.pushForce);
             }
-            return;
         }
+
+
 
         // Check if the target is a spell instead 
         if (colliderHit.CompareTag("Spell"))
@@ -398,6 +436,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
             //Handle the spell to spell interaction
             HandleSpellToSpellInteractions(colliderHit);
         }
+
+
 
         // DO NOT DELETE
         // If the collider of the other gameObjecy belongs to layer 7 (layer of gameObjects that destroy a projectile)
@@ -455,7 +495,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
 
                 // IF colliderHit.GetComponent<IDamageable>() != null
-                if (SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
+                if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
                     Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 

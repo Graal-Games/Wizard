@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Barrier_Water
   m_EditorClassIdentifier: 
   spellType: 0
-  element: 0
+  element: 2
   spellAttribute: 0
   castProcedure: 0
   periCastLockProcedure: 0

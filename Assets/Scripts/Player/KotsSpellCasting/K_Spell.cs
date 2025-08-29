@@ -451,7 +451,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
             if (other.GetComponent<ISpell>().SpellName.Contains("Barrier") && other.gameObject.GetComponent<BarrierSpell>() != null)
             {
-                BarrierSpell barrierScript = other.gameObject.GetComponentInParent<BarrierSpell>();
+                BarrierSpell barrierScript = other.gameObject.GetComponent<BarrierSpell>();
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {

@@ -3676,7 +3676,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6457356757344062716, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 1803049746
+      value: 2647693706
       objectReference: {fileID: 0}
     - target: {fileID: 6520573013930998891, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: wandTip2
@@ -4046,6 +4046,9 @@ PrefabInstance:
       addedObject: {fileID: -171204414962751956}
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 2044511450771373617}
+    - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 7824028449871128872}
     - targetCorrespondingSourceObject: {fileID: 6321212135877629326, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       insertIndex: -1
@@ -4151,6 +4154,18 @@ MonoBehaviour:
   healthBarGO: {fileID: 0}
   parryLetterGO: {fileID: 7171643856280183222}
   wandTip2: {fileID: 4905085348294074034}
+--- !u!114 &2044511450771373617
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4170498834935349083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30d0955afa51b894fb2588c3481c4ab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7824028449871128872
 MonoBehaviour:
   m_ObjectHideFlags: 0
