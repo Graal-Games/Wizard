@@ -9,10 +9,10 @@ EditorBuildSettings:
     path: Assets/Scenes/Main Menu.unity
     guid: 6c79d5116fb92f64aa33854db952271e
   - enabled: 1
-    path: Assets/Scenes/Arena.unity
-    guid: a71f753c4d828af499de22f3c45b2654
-  - enabled: 1
     path: Assets/Scenes/TestMap.unity
     guid: f9b9f71a1a5eae741b03257ee16abaeb
+  - enabled: 1
+    path: Assets/Scenes/Arena.unity
+    guid: a71f753c4d828af499de22f3c45b2654
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 4813ee0bc5dfe5140a3ab62ef6a5229d, type: 2}

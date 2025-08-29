@@ -17,6 +17,8 @@ public class ProjectileSpell : ProjectileClass
 
     public override void FixedUpdate()
     {
+        if (!IsSpawned) return;
+
         base.FixedUpdate();
     }
 }

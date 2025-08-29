@@ -50,8 +50,7 @@ public class BarrierSpell : BarrierClass // WARNING: TO RENAME TO BARRIERCLASS
 
         if (localHealth.Value <= 0)
         {
-            // DestroyBarrierRpc();
-            DestroySpellRpc();
+            DestroySpell(gameObject);
         }
     }
 

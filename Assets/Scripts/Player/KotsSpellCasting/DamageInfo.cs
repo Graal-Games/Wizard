@@ -4,7 +4,6 @@ using UnityEngine;
 public struct PlayerHitPayload
 {
     int networkId;
-    ulong playerId;
     string spellElement;
     IncapacitationName incapacitationName;
     float incapacitationDuration;
@@ -18,16 +17,13 @@ public struct PlayerHitPayload
     SpellAttribute spellAttribute;
     bool pushback;
 
+    public ulong PlayerId { get; set; } // The ID of the player who was HIT (Victim)
+    public ulong AttackerId { get; set; } // The ID of the player who ATTACKED (Scorer)
+
     public int NetworkId
     { 
         get { return networkId; } 
         set { networkId = value; }
-    }
-
-    public ulong PlayerId
-    { 
-        get { return playerId; } 
-        set { playerId = value; }
     }
 
     public string SpellElement
@@ -103,8 +99,9 @@ public struct PlayerHitPayload
 
     // Constructor to initialize the fields
     public PlayerHitPayload(
-        int netId, 
-        ulong pId, 
+        int netId,
+        ulong victimId,      
+        ulong attackerId,
         string element, 
         IncapacitationName incapName, 
         float incapDur, VisionImpairment 
@@ -119,7 +116,8 @@ public struct PlayerHitPayload
         bool pushbackp)
     {
         networkId = netId;
-        playerId = pId;
+        PlayerId = victimId;
+        AttackerId = attackerId;
         spellElement = element;
         incapacitationName = incapName;
         incapacitationDuration = incapDur;

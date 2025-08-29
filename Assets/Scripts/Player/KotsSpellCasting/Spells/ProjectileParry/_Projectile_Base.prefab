@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5042042026787392186}
   - component: {fileID: 3035627931777810661}
   - component: {fileID: 4418230668407782760}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ParryCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -114,7 +114,7 @@ GameObject:
   - component: {fileID: 4732015512049678808}
   - component: {fileID: 4943272192812233644}
   - component: {fileID: 3019099447557012801}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ParryTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -186,7 +186,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2357012882969017477}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ParryTriggers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -223,7 +223,7 @@ GameObject:
   - component: {fileID: 8815630753571614258}
   - component: {fileID: 8377893757027999422}
   - component: {fileID: 8707480003571244818}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ProjectileTrigger
   m_TagString: Spell
   m_Icon: {fileID: 0}
@@ -339,7 +339,7 @@ GameObject:
   - component: {fileID: 2980173892791744595}
   - component: {fileID: 4818419815174008081}
   - component: {fileID: 156454819690351330}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ParryHolderPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -419,7 +419,7 @@ GameObject:
   - component: {fileID: 3957066003139771662}
   - component: {fileID: 4634593527686550598}
   - component: {fileID: -1038719287676735608}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: _Projectile_Base
   m_TagString: Spell
   m_Icon: {fileID: 0}
@@ -613,7 +613,7 @@ GameObject:
   - component: {fileID: 816993819122586995}
   - component: {fileID: 8477225913731907946}
   - component: {fileID: 6597769721527106773}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: ParryText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -748,7 +748,7 @@ GameObject:
   - component: {fileID: 4909710813244956685}
   - component: {fileID: 6166658844574634364}
   - component: {fileID: 5423619793627176363}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: AnticipationTrigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}

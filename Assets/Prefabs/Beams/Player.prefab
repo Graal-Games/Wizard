@@ -1435,7 +1435,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 546945515145198645}
-  - component: {fileID: 6790498259946532789}
   - component: {fileID: 498166336916744876}
   m_Layer: 5
   m_Name: HealthBar
@@ -1465,19 +1464,6 @@ RectTransform:
   m_AnchoredPosition: {x: -10.821411, y: 215.7951}
   m_SizeDelta: {x: -354.5886, y: 16.3806}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6790498259946532789
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2315258429359900117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fbbcb6c7e12a734b9c30f23432e921a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _healthSlider: {fileID: 498166336916744876}
 --- !u!114 &498166336916744876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3922,7 +3908,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 4101324097
+  GlobalObjectIdHash: 1097828207
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -7323,7 +7309,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 999167153934383911}
-  - component: {fileID: 5050446203746585618}
   m_Layer: 0
   m_Name: BarrierCastPoint
   m_TagString: Untagged
@@ -7346,21 +7331,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3605426238134393535}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5050446203746585618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3927710927548227161}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0527f82435ee1a4fb1735740fb1009a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  arcaneBarrierObject: {fileID: 1407102744089258733, guid: f333a05c961d87c43a83242827345035, type: 3}
-  fireBarrierObject: {fileID: 1407102744089258733, guid: fe6624b3340bb754e922553f1e605c24, type: 3}
-  earthBarrierObject: {fileID: 1407102744089258733, guid: 172316fd7c73a0d498f9cb304191ba2c, type: 3}
 --- !u!1 &3982004044409982025
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,6 +13,8 @@ public class Explosion : SpellsClass
 
     public override void FixedUpdate()
     {
+        if (!IsSpawned) return;
+
         base.FixedUpdate();
         GradualScale(20, 2.5f);
 

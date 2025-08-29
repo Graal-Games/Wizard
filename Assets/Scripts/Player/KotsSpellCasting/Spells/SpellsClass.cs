@@ -276,10 +276,20 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             GameObject other = netObj.gameObject;
 
+            // The ID of the player who cast THIS spell
+            ulong theAttackerId = this.OwnerClientId;
+
+            // The ID of the player that was HIT
+            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
+
+            // Prevent self-damage
+            if (theAttackerId == theVictimId) return;
+
             PlayerHitPayload spellPayload = new PlayerHitPayload
             (
                 this.gameObject.GetInstanceID(),
-                other.GetComponent<NetworkObject>().OwnerClientId,
+                 theVictimId,
+                theAttackerId,
                 spellDataScriptableObject.element.ToString(),
                 spellDataScriptableObject.incapacitationName,
                 spellDataScriptableObject.incapacitationDuration,
@@ -365,9 +375,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 hasHitShield.Value = true;
 
-                // What?
-                if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-                    DestroySpellRpc();
+            // What?
+            if (spellDataScriptableObject.spellType.ToString() == "Projectile")
+                DestroySpell(gameObject);
 
 
                 return true;
@@ -416,7 +426,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             if (IsSpawned)
             {
                 Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
-                DestroySpellRpc();
+                DestroySpell(gameObject);
             }
         }
     }
@@ -428,7 +438,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
-        
+
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
@@ -436,7 +446,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
             // If player does not have active shield, handle the player hit
             PlayerIsHit(colliderHit.gameObject);
-        
+
             //Debug.LogFormat($"<color=purple>1 SPELLS CLASS: ApplyForce</color>");
             if (SpellDataScriptableObject.pushForce > 0)
             {
@@ -521,7 +531,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 }
                 if (!gameObject.name.Contains("Explosion"))
                 {
-                    DestroySpellRpc();
+                    DestroySpell(gameObject);
                 }
             }
             else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
@@ -537,7 +547,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 if (!gameObject.name.Contains("Explosion"))
                 {
-                    DestroySpellRpc();
+                    DestroySpell(gameObject);
                 }
 
 
@@ -560,7 +570,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
                 {
-                    DestroySpellRpc();
+                    DestroySpell(gameObject);
                 }
             }
         }
@@ -575,6 +585,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public virtual void FixedUpdate()
     {
+        if (!IsSpawned) return;
+
         if (spellLifetimeActive)
         {
             spellLifetimeTimer += Time.fixedDeltaTime;
@@ -582,7 +594,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             if (spellLifetimeTimer >= spellLifetimeDuration)
             {
                 spellLifetimeActive = false;
-                DestroySpellRpc();
+                DestroySpell(gameObject);
             }
         }
 
@@ -598,7 +610,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         //Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} seconds</color>", spellObj.name, duration);
 
         yield return new WaitForSeconds(duration);
-        DestroySpellRpc();
+        DestroySpell(gameObject);
     }
 
 
@@ -616,31 +628,36 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public void DestroySpell(GameObject spellObj)
     {
-        gameObjectToDestroy = spellObj;
-
-        DestroySpellRpc();
+        NetworkObject netObj = spellObj.GetComponent<NetworkObject>();
+        if (netObj != null && netObj.IsSpawned)
+        {
+            DestroySpellRpc(netObj);
+        }
     }
 
 
 
 
     [Rpc(SendTo.Server)]
-    public void DestroySpellRpc()
+    public void DestroySpellRpc(NetworkObjectReference netObjRef)
     {
-
-        //Debug.LogFormat($"<color=orange>Destroying spell {gameObjectToDestroy.name}</color>");
-        
-        //Destroy(gameObjectToDestroy);
-
-        if (gameObjectToDestroy.GetComponent<NetworkObject>() != null)
+        // Try to get the NetworkObject from the reference passed as a parameter.
+        if (netObjRef.TryGet(out NetworkObject netObjToDestroy))
         {
-            //Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} has a NetworkObject</color>");
-            gameObjectToDestroy.GetComponent<NetworkObject>().Despawn();
+            // Check if the object still exists and is spawned before trying to despawn it.
+            if (netObjToDestroy != null && netObjToDestroy.IsSpawned)
+            {
+                Debug.LogFormat($"<color=orange>Server is despawning {netObjToDestroy.name}</color>");
+                netObjToDestroy.Despawn();
+            }
+            else
+            {
+                Debug.LogWarning($"Server received DestroySpellRpc, but the object was already destroyed or despawned.");
+            }
         }
         else
         {
-            //Debug.LogFormat($"<color=orange>Spell to destroy {gameObjectToDestroy.name} does NOT have a NetworkObject</color>");
-            gameObjectToDestroy.GetComponentInParent<NetworkObject>().Despawn();
+            Debug.LogWarning($"Server could not find the NetworkObject from the reference in DestroySpellRpc.");
         }
     }
     #endregion

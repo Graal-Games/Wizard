@@ -21,6 +21,7 @@ public class GameManager2 : NetworkBehaviour
 
     private void OnEnable()
     {
+        Debug.Log($"****************************************OnEnable!");
         _networkObject = this.GetComponent<NetworkObject>();
         // Specifies the method to be used that will handle the player spawn event, which sends a payload upon player connection
         NewPlayerBehavior.playerHasSpawnedEvent += AccessTest;
@@ -33,6 +34,7 @@ public class GameManager2 : NetworkBehaviour
 
     private void Start()
     {
+        Debug.Log($"****************************************StartGameMAnager!");
         //_healthBarUi = StatsUi.Instance.GetComponent<StatsUi>().GetComponentInChildren<HealthBar>();
         //_healthBarUi.SetMaxHealth(100f);
 
@@ -80,7 +82,7 @@ public class GameManager2 : NetworkBehaviour
 
     void AccessTest2(ulong id, PlayerClass playerClass)
     {
-
+        Debug.Log($"****************************************OnAccessTest2!");
         SaveOnServerRpc(id);
     }
 
@@ -88,6 +90,7 @@ public class GameManager2 : NetworkBehaviour
     // This is called whenever a player connects to the game
     void AccessTest(ulong clientId, NetworkObjectReference playerObjRef, NetworkBehaviour playerBehaviorNetScript, NetworkObject netObj)
     {
+        Debug.Log($"****************************************OnAccessTest!");
 
         // Create a player class instance here with the information passed through from the player behavior script event
 
@@ -98,8 +101,8 @@ public class GameManager2 : NetworkBehaviour
          */
 
         // playerClass = new PlayerClass(playerObjRef, playerBehaviorNetScript, netObj);
-        
-        
+
+
         // Save it to a dictionary on the server
         SaveOnServerRpc(clientId);
 

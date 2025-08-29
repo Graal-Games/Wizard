@@ -12,6 +12,9 @@ using UnityEngine.EventSystems;
 public class PlayerController : NetworkBehaviour
 {
 
+    [Tooltip("The Cinemachine FreeLook camera for this player.")]
+    public CinemachineFreeLook freeLookCamera;
+
     [SerializeField] private GameInput gameInput; 
     // [SerializeField] private Incapacitation incapacitationScript; 
 
@@ -100,25 +103,53 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!IsLocalPlayer) return;
-
-        _baseMoveSpeedCache = moveSpeed; // Cache the base movement speed for future references and calculations.
-
-        this.rb = GetComponent<Rigidbody>();
-        this.rb.freezeRotation = true;
-
-        if (gameInput == null)
-            gameInput = FindObjectOfType<GameInput>(); 
-        if (cameraTransform == null)
+        if (!IsOwner)
         {
-            cameraTransform = FindObjectOfType<Camera>()?.transform; 
-
-            CinemachineFreeLook freeLook = FindObjectOfType<CinemachineFreeLook>();
-            freeLook.Follow = followTarget;
-            freeLook.LookAt = followTarget;
+            if (freeLookCamera != null)
+            {
+                freeLookCamera.gameObject.SetActive(false);
+            }
+            return; // Stop execution for non-owners.
         }
 
-        base.OnNetworkSpawn();
+        // --- All local player setup code goes below this line ---
+        cameraTransform = Camera.main.transform;
+        // Safety check to make sure the camera was found
+        if (cameraTransform == null)
+        {
+            Debug.LogError("Main Camera could not be found in the scene! Ensure it has the 'MainCamera' tag.", this.gameObject);
+            return;
+        }
+
+        _baseMoveSpeedCache = moveSpeed;
+
+        this.rb = GetComponent<Rigidbody>();
+        if (this.rb != null)
+        {
+            this.rb.freezeRotation = true;
+        }
+
+        // It's still better to assign GameInput and Camera via the inspector if possible
+        if (gameInput == null)
+            gameInput = FindObjectOfType<GameInput>();
+
+        // This is the new, reliable way to set up the camera
+        if (freeLookCamera != null)
+        {
+            if (followTarget != null)
+            {
+                freeLookCamera.Follow = followTarget;
+                freeLookCamera.LookAt = followTarget;
+            }
+            else
+            {
+                Debug.LogError("Follow Target is not assigned in the PlayerController inspector!", this.gameObject);
+            }
+        }
+        else
+        {
+            Debug.LogError("FreeLook Camera is not assigned in the PlayerController inspector!", this.gameObject);
+        }
     }
 
     private void Start()
@@ -288,14 +319,12 @@ public class PlayerController : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (!IsLocalPlayer) return;
+        // All physics and movement logic should be in FixedUpdate
+        if (!IsOwner) return;
 
         if (movementStopped == true) return;
 
         HandleMovement();
-        // Check if player is incapacitated
-        // Migrate to playerBehaviour script?
-        //HandleMovement();
     }
 
     private bool isGrounded()
@@ -331,62 +360,39 @@ public class PlayerController : NetworkBehaviour
 
     public void HandleMovement()
     {
-
+        // --- 1. Calculate Direction (This part is still the same) ---
         Vector2 inputVector = gameInput.GetMovementVector();
-
-
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
-
-        // Apply rotation base on the camare angle
         moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
-
         moveDir.Normalize();
-
-
-        float playerRadius = .7f;
-        float moveDistance = moveSpeed * Time.deltaTime;
-        Vector3 point2 = transform.position + Vector3.up * this.playerHeight;
-
-
-        transform.position = GetNewPosition(
-            transform.position,
-           point2,
-           playerRadius,
-           moveDir,
-           moveDistance
-           );
 
         isWalking = moveDir != Vector3.zero;
 
+        // --- 2. Move the Player with Physics ---
+        Vector3 newPosition = rb.position + moveDir * moveSpeed * Time.fixedDeltaTime;
+        rb.MovePosition(newPosition);
 
-        float rotateSpeed = 5f;
-
-        // y axis rotation
-        if (inputVector.y > 0)
+        // --- 3. Rotate the Player with Physics ---
+        if (isWalking)
         {
-            transform.forward = Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed);
-        }
-        else if (inputVector.y < 0) {
-            transform.forward = Vector3.Slerp(transform.forward, -moveDir, Time.deltaTime * rotateSpeed);
-        }
+            float rotateSpeed = 10f;
+            // Create the target rotation based on the movement direction.
+            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
 
-
-        // x axis rotation
-        if (inputVector.x > 0)
-        {
-            transform.right = Vector3.Slerp(transform.right, moveDir, Time.deltaTime * rotateSpeed);
-        }
-        else if (inputVector.x < 0)
-        {
-            transform.right = Vector3.Slerp(transform.right, -moveDir, Time.deltaTime * rotateSpeed);
+            // Instead of using transform.forward, use rb.MoveRotation with a Slerp for smoothing.
+            Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
+            rb.MoveRotation(newRotation);
         }
 
 
-        this.rb.AddForce(Vector3.Slerp(transform.forward, moveDir, Time.deltaTime * rotateSpeed), ForceMode.Force);
+        // --- 4. Calculate Local Velocity for Animations ---
+        // Convert the world-space moveDir to the player's local space
+        Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
 
-
-        verticalAxis = gameInput.GetVerticalAxis();
-        horizontalAxis = gameInput.GetHorizontalAxis();
+        // Now, verticalAxis is how much we're moving in our forward/backward direction
+        // and horizontalAxis is how much we're moving in our left/right direction
+        verticalAxis = localMoveDir.z;
+        horizontalAxis = localMoveDir.x;
     }
 
     private void SpeedControl()
@@ -398,80 +404,6 @@ public class PlayerController : NetworkBehaviour
         {
             Vector3 limitedVel = flatVel.normalized * moveSpeed;
             rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-        }
-    }
-
-    private Vector3 GetNewPosition(Vector3 position, Vector3 point2, float playerRadius, Vector3 moveDir, float moveDistance)
-    {
-
-        RaycastHit hit;
-
-        // Define layer mask to exclude triggers
-        int layerMask = whatIsGround.value & ~LayerMask.GetMask("Spell");
-
-        bool canMove = !Physics.CapsuleCast(
-           position,
-           point2,
-           playerRadius,
-           moveDir,
-           out hit,
-           moveDistance,
-           layerMask,
-           QueryTriggerInteraction.Ignore
-           );
-
-        if (!canMove)
-        {
-            // Cannot move towards moveDir
-
-            // Attempt only x movement
-            Vector3 moveDirX = new Vector3(moveDir.x, 0, 0).normalized;
-
-
-            canMove = (moveDir.x < -.5f || moveDir.x > +.5f) && !Physics.CapsuleCast(
-            position,
-            point2,
-            playerRadius,
-            moveDirX,
-            moveDistance
-            );
-
-            if (canMove)
-            {
-                // Can move only in the X
-                return position += moveDirX * moveDistance;
-            }
-            else
-            {
-                // Cannot move towards X
-
-                // Attempt only Z movement
-                Vector3 moveDirZ = new Vector3(0, 0, moveDir.z).normalized;
-
-                canMove = (moveDir.z < -.5f || moveDir.z > +.5f) && !Physics.CapsuleCast(
-                position,
-                point2,
-                playerRadius,
-                moveDirZ,
-                moveDistance
-                );
-
-                if (canMove)
-                {
-                    // Can move only in the Z
-                    return position += moveDirZ * moveDistance;
-                }
-                else
-                {
-                    // Cannot move anywere, return original position
-                    return position;
-                }
-            }
-        }
-        else
-        {
-            // Can move towards moveDir
-            return position += moveDir * moveDistance;
         }
     }
 }

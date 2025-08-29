@@ -11,12 +11,12 @@ public class DispelTarget : ProjectileClass
             if (other.GetComponent<K_Spell>())
             {
                 other.GetComponent<K_Spell>().DestroySpell(other.gameObject);
-                DestroySpellRpc();
+                DestroySpell(gameObject);
             }
             else if (other.GetComponent<SpellsClass>())
             {
                 DestroySpell(other.gameObject);
-                DestroySpellRpc();
+                DestroySpell(gameObject);
             }
             // Handle dispel effect on player
             //DestroySpell(other.gameObject); // Destroy the spell object

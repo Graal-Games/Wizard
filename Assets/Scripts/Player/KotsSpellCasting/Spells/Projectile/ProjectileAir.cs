@@ -6,6 +6,8 @@ public class ProjectileAir : ProjectileClass
 {
     public override void FixedUpdate()
     {
+        if (!IsSpawned) return;
+
         base.FixedUpdate();
     }
 

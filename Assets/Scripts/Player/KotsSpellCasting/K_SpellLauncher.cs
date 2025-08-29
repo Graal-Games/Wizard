@@ -661,7 +661,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
             // This can be written better. Calling the Fire() method in each spell
             // The difficulty is making sure that the spells are casted the same way
-            CastBySpellType(spellBuilder.GetSpellType(spellSequence));
+            CastBySpellType();
 
             // This is to be replaced with the spellDRStatus dict
             //which will be used to track the DR status for each spell category
@@ -680,9 +680,10 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
 
-    void CastBySpellType(string spellType)
+    void CastBySpellType()
     {
-        switch (spellType)
+        string sequenceToCast = this.spellSequence;
+        switch (spellBuilder.GetSpellType(sequenceToCast))
         {
             case "Projectile":
                 //localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], wandTip.transform.position, wandTip.transform.rotation);
@@ -692,12 +693,12 @@ public class K_SpellLauncher : NetworkBehaviour
                 //localSpellInstances.Add(localSpellId, localSpellInstance);
 
                 //ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position, localSpellId);
-                ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position);
+                ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position);
                 break;
             case "Sphere":
                 // A local instance of the sphere is created 
                 // to have the sphere spawn correctly in the center of the player
-                localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
+                localSpellInstance = Instantiate(spellPrefabsReferences[sequenceToCast], playerCenter.transform.position, playerCenter.transform.rotation, gameObject.transform);
 
                 // Disabling these on the local copy of the spell so no errors are thrown when shield is being destoyed
                 // otherwise the functionality does not work
@@ -709,12 +710,12 @@ public class K_SpellLauncher : NetworkBehaviour
                 localSpellInstance.GetComponent<SphereCollider>().enabled = false;
                 localSpellInstance.GetComponent<NetworkObject>().enabled = false;
 
-                SpellSpawnRpc(spellSequence, playerCenter.transform.rotation, playerCenter.transform.position);
+                SpellSpawnRpc(sequenceToCast, playerCenter.transform.rotation, playerCenter.transform.position);
                 break;
             case "Beam":
                 // A modification to the rotation is added to the wandTip because the beam was first momentarily spawning with an incorrect rotation
                 // Now the rotation of the beam spawns in the correct direction and correct rotation
-                SpellSpawn2Rpc(spellSequence, wandTip.transform.rotation * Quaternion.Euler(0, -90, 0), wandTip.transform.position);
+                SpellSpawn2Rpc(sequenceToCast, wandTip.transform.rotation * Quaternion.Euler(0, -90, 0), wandTip.transform.position);
 
                 break;
             case "Aoe":
@@ -725,10 +726,10 @@ public class K_SpellLauncher : NetworkBehaviour
                 (Quaternion rotation, Vector3 position) = wandTipScript.GetAoeRotationAndPosition();
 
                 //HandleAoeFiring(rotation, position);
-                AoeSpawnRpc(spellSequence, rotation, position);
+                AoeSpawnRpc(sequenceToCast, rotation, position);
                 break;
             case "Barrier":
-                BarrierSpawnRpc(spellSequence, barrierPoint.transform.rotation, barrierPoint.transform.position);
+                BarrierSpawnRpc(sequenceToCast, barrierPoint.transform.rotation, barrierPoint.transform.position);
                 break;
             case "Invocation":
                 // Spawn 
@@ -740,7 +741,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 break;
             case "Charm":
                 // dispellGO.SetActive(true);
-                ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position, true);
+                ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position, true);
                 break;
             case "Conjured":
                 break;
@@ -862,17 +863,28 @@ public class K_SpellLauncher : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void ProjectileSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, bool isWithOwnership = false)
     {
-        Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
+        Debug.Log($"SERVER executing ProjectileSpawnRpc for spell: '{spellSequenceParam}', NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
-        if (this.spellBuilder.GetIsSpellParriable(spellSequence))
+        // Check if instantiation worked and where it is
+        if (spellInstance == null)
         {
-            SpellsClass projectile = spellInstance.GetComponent<SpellsClass>();
-            projectile.parryLetters.Value = this.parryLetters.Value;
+            Debug.LogError("Instantiation failed! The prefab in the dictionary might be null.");
+            return;
         }
+        Debug.Log($"SERVER: Instantiated '{spellInstance.name}' at position {position}.");
+
+
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+
+        if (netObj == null)
+        {
+            Debug.LogError($"CRITICAL: The prefab '{spellInstance.name}' is MISSING a NetworkObject component!");
+            Destroy(spellInstance); // Clean up the failed instance
+            return;
+        }
 
         if (isWithOwnership)
         {
@@ -885,6 +897,23 @@ public class K_SpellLauncher : NetworkBehaviour
         else
         {
             netObj.Spawn();
+        }
+
+        // Check if the spawn was successful
+        if (netObj.IsSpawned)
+        {
+            Debug.Log($"SUCCESS: '{spellInstance.name}' was spawned successfully!");
+
+
+            if (this.spellBuilder.GetIsSpellParriable(spellSequenceParam))
+            {
+                SpellsClass projectile = spellInstance.GetComponent<SpellsClass>();
+                projectile.parryLetters.Value = this.parryLetters.Value;
+            }
+        }
+        else
+        {
+            Debug.LogError($"FAILURE: Spawn() was called for '{spellInstance.name}' but IsSpawned is FALSE. Is the prefab in the Network Prefabs list?");
         }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());

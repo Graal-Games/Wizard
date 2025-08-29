@@ -38,7 +38,18 @@ public class ProjectileClass : SpellsClass
 
     private void Awake()
     {
-        projectileTrigger.OnEnteredTrigger += ProjectileTrigger_OnEnteredTrigger;
+        // First, get the component from this GameObject
+        projectileTrigger = GetComponentInChildren<TriggerListener>();
+
+        // Now, check if it was found before subscribing to the event
+        if (projectileTrigger != null)
+        {
+            projectileTrigger.OnEnteredTrigger += ProjectileTrigger_OnEnteredTrigger;
+        }
+        else
+        {
+            Debug.LogError("TriggerListener component not found on this GameObject!", this);
+        }
     }
 
     private void ProjectileTrigger_OnEnteredTrigger(Collider collider)
@@ -46,16 +57,6 @@ public class ProjectileClass : SpellsClass
 
         Debug.Log("ProjectileTrigger_OnEnteredTrigger (" + collider.gameObject.name + ")");
 
-    }
-
-    private void Start()
-    {
-        lastPosition = transform.position;
-
-        rb = GetComponent<Rigidbody>();
-
-        rb.isKinematic = false;
-        rb.useGravity = false;
     }
 
     public override void OnNetworkSpawn()
@@ -92,22 +93,40 @@ public class ProjectileClass : SpellsClass
         }
     }
 
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+
+        // ...unsubscribe from the event here!
+        if (IsParriable() && projectileParryHandler != null)
+        {
+            projectileParryHandler.OnAnyPlayerPerformedParry -= ProjectileParryHandler_OnAnyPlayerPerformedParry;
+        }
+    }
+
     // This method is triggered when a player successfully performs a parry
     private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
     {
-        // Request the server to destroy the object
-        //RequestDestroyProjectileServerRpc();
+        if (!IsServer) return;
         StartCoroutine(DelayedDestruction());
     }
 
     // Update is called once per frame
     public override void FixedUpdate()
     {
+        if (!IsSpawned) return;
+
         base.FixedUpdate();
 
-        MoveAndHitRegRpc();
 
-        HandlePushback();
+        // Only the server should calculate movement and check for hits.
+        if (IsServer)
+        {
+            // This method might cause this object to be despawned.
+            HandleMovementAndCollision();
+            if (!IsSpawned) return;
+            HandlePushback();
+        }
 
         if (CanDestroy) // I figured that if I added a delay to the destruction of the spell then then the apply pushback would have enough time to apply its effect
         {
@@ -121,15 +140,15 @@ public class ProjectileClass : SpellsClass
         DestroySpell(gameObject);
     }
 
-
-    [Rpc(SendTo.Server)]
-    public virtual void MoveAndHitRegRpc()
+    public virtual void HandleMovementAndCollision()
     {
+        Debug.Log($"SERVER is running physics for projectile owned by ClientId: {OwnerClientId}");
+
         Vector3 currentPosition = transform.position;
 
         //Debug.LogFormat($"<color=blue>Current Position: {currentPosition}</color>");
 
-        Vector3 forceDirection = transform.forward; // RESET SPEED 
+        Vector3 forceDirection = transform.forward; // RESET SPEED
 
         forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
         // rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
@@ -157,6 +176,19 @@ public class ProjectileClass : SpellsClass
         // The hit was being registered on exiting a collider instead of upon entering it
         if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
         {
+
+            // Get the NetworkObject of the thing we hit
+            NetworkObject hitNetObj = hit.collider.GetComponentInParent<NetworkObject>();
+
+            // Check if we hit a valid networked object AND if its owner is the same as our owner
+            if (hitNetObj != null && hitNetObj.OwnerClientId == this.OwnerClientId)
+            {
+                Debug.Log("SERVER HIT: Collision was with self, ignoring.");
+                // We hit ourselves or a part of our own player, so ignore this collision and continue.
+                lastPosition = currentPosition;
+                return;
+            }
+
             Vector3 hitPosition = hit.point;
 
             Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
@@ -164,8 +196,8 @@ public class ProjectileClass : SpellsClass
             //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
             HandleCollision(hit.collider, hitPosition);
-            
-            //// If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
+
+            //// If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
             //if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
             //{
             //     Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
@@ -176,7 +208,7 @@ public class ProjectileClass : SpellsClass
 
             //// Method: Spawns something at the end
             //// gO to spawn source: Where should the gO be gotten from?
-            //// Solution 1: Assigned in inspector 
+            //// Solution 1: Assigned in inspector
 
             //HandleAllInteractions(hit.collider);
 
@@ -200,18 +232,18 @@ public class ProjectileClass : SpellsClass
 
     void HandleCollision(Collider colliderHit, Vector3 hitPosition = default)
     {
-        // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
+        // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
         if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.CompareTag("Spell"))
         {
             Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
             Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
-            SpawnEffectAtTargetLocationRpc(hitPosition);
+            SpawnEffectAtTargetLocation(hitPosition);
             hasCollided.Value = true;
         }
 
         // Method: Spawns something at the end
         // gO to spawn source: Where should the gO be gotten from?
-        // Solution 1: Assigned in inspector 
+        // Solution 1: Assigned in inspector
         //if (hasCollided.Value == false)
         //{
         HandleAllInteractions(colliderHit);
@@ -233,29 +265,11 @@ public class ProjectileClass : SpellsClass
     }
 
 
-    [Rpc(SendTo.Server)]
-    void SpawnEffectAtTargetLocationRpc(Vector3 position)
+    private void SpawnEffectAtTargetLocation(Vector3 position)
     {
-            Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-
-            GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab, position, Quaternion.identity);
-
-            NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-
-            //if (isWithOwnership)
-            //{
-            //    netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
-            //    if (netObj.GetComponent<HealSelf>())
-            //    {
-            //        netObj.GetComponent<HealSelf>().HealTarget(OwnerClientId);
-            //    }
-            //}
-            //else
-            //{
-                netObj.Spawn();
-            //}
-
-        
+        GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab, position, Quaternion.identity);
+        NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+        netObj.Spawn();
     }
 
     void HandleSpecificSpellToSpellInteractions()
@@ -265,149 +279,38 @@ public class ProjectileClass : SpellsClass
 
     void HandlePushback()
     {
-        if (pullSpellsList.Count > 0) // Need to add this to the player behaviour script because this will be destroyed too fast and cannot take into account defensive spells
-        {
-            // Apply force to all the rigidbodies
-            foreach (Rigidbody rb in pullSpellsList)
-            {
-                rb.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
-                canDestroy = true; // If there is a need to destroy the gameObject after it applies force, use this variable.
-            }
-        }
+        // This method is now only called by the server from FixedUpdate.
 
-        HandlePushbackRpc();
+        // Remove any null objects from the list
+        pushSpellsList.RemoveAll(item => item == null);
 
-        if (IsHost) return;
-        // {
-        //     HandlePushbackRpc();
-        if (pushSpellsList.Count > 0)
-        {
-            foreach (Rigidbody rb2 in pushSpellsList)
-            {
-                Debug.LogFormat($"<color=blue>4 Push spell - RB: {rb2}</color>");
-                Debug.LogFormat($"Force applied - PUSH DIRECTION: {pushDirection.normalized} PUSH FORCE: {SpellDataScriptableObject.pushForce}");
-                rb2.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
-                canDestroy = true;
-            }
-        }
-
-    }
-
-    
-    [Rpc(SendTo.Server)]
-    void HandlePushbackRpc()
-    {
-        // Remove any null or destroyed rigidbodies
-        pushSpellsList.RemoveAll(rb => rb == null || rb.gameObject == null);
-
-        if (pushSpellsList.Count > 0)
-        {
-            foreach (Rigidbody rb2 in pushSpellsList)
-            {
-                // Try to get the NetworkObject and its owner
-                NetworkObject netObj = rb2.GetComponent<NetworkObject>();
-                if (netObj != null && !netObj.IsOwnedByServer)
-                {
-                    ApplyPushbackClientRpc(netObj.OwnerClientId, SpellDataScriptableObject.pushForce, pushDirection);                }
-                else
-                {
-                    // Server-owned, apply force directly
-                    Debug.LogFormat($"<color=blue>[RPC] 4 Push spell - RB: {rb2}</color>");
-                    Debug.LogFormat($"[RPC] Force applied - PUSH DIRECTION: {pushDirection.normalized} PUSH FORCE: {SpellDataScriptableObject.pushForce}");
-                    rb2.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
-                    canDestroy = true;
-                }
-            }
-        }
-    }
-
-    [Rpc(SendTo.Everyone)]
-    void ApplyPushbackClientRpc(ulong targetClientId, float pushForce, Vector3 direction, RpcParams rpcParams = default)
-    {
-        Debug.LogFormat($"<color=blue>targetClientId: {targetClientId}</color>");
-
-        // Only run on the intended client
-        //if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
-
-        // Find the local player object (assumes this script is not on the player, so you must find the correct Rigidbody)
-        // This example assumes the player object is the owner of the Rigidbody in pushSpellsList
+        // Apply force to all valid rigidbodies
         foreach (Rigidbody rb in pushSpellsList)
         {
-            if (rb.GetComponent<NetworkObject>() != null && rb.GetComponent<NetworkObject>().OwnerClientId == targetClientId)
-            {
-                Debug.LogFormat($"<color=blue>[ClientRpc] Push spell - RB: {rb}</color>");
-                rb.AddForce(pushForce * direction.normalized, ForceMode.Impulse);
-                canDestroy = true;
-            }
+            rb.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
+        }
+
+        // Clear the list after applying the force so it doesn't happen again next frame.
+        if (pushSpellsList.Count > 0)
+        {
+            canDestroy = true; // Set the spell to be destroyed after pushing.
+            pushSpellsList.Clear();
         }
     }
 
     public void ApplyPushbackToTarget(GameObject other)
     {
-        // if (other.gameObject.CompareTag("Player"))
-        // {
-        //     //    if (SpellDataScriptableObject.pushForce > 0)
-        //     //    {
-        //     //        Debug.LogFormat("<color=green>2 Push spell</color>");
-        //     //        // Cache the player's Rigidbody locally
-        //     //        Rigidbody rb = other.GetComponent<Rigidbody>();
-
-        //     //        // Add the rigidbody to the list of rigidbodies to be pushed
-        //     //        if (rb != null)
-        //     //        {
-        //     //            //pullSpellsList.Add(rb);
-        //     //        }
-        //     //    }
-        //     //    else
-        //     //    {
-        //     if (SpellDataScriptableObject.pushForce > 0)
-        //     {
-        //         Debug.LogFormat("<color=blue>2 Push spell</color>");
-
-        //         // Cache the player's Rigidbody locally
-        //         Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-        //         Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
-
-        //         // Add the rigidbody to the list of rigidbodies to be pushed
-        //         if (rb2 != null)
-        //         {
-        //             pushSpellsList.Add(rb2);
-        //         }
-        //     }
-        //     //}
-        // }
+        // ONLY the server should detect and add objects to the push list.
+        if (!IsServer) return;
 
         if (other.gameObject.CompareTag("Player"))
         {
             if (SpellDataScriptableObject.pushForce > 0)
             {
-                Debug.LogFormat("<color=green>2 Push spell</color>");
-                // Cache the player's Rigidbody locally
                 Rigidbody rb = other.GetComponent<Rigidbody>();
-
-                // Add the rigidbody to the list of rigidbodies to be pushed
-                if (rb != null)
+                if (rb != null && !pushSpellsList.Contains(rb)) // Avoid duplicates
                 {
                     pushSpellsList.Add(rb);
-                }
-            }
-            else
-            {
-                if (SpellDataScriptableObject.pushForce > 0)
-                {
-                    Debug.LogFormat("<color=blue>2 Push spell</color>");
-
-                    // Cache the player's Rigidbody locally
-                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-                    Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
-
-                    // Add the rigidbody to the list of rigidbodies to be pushed
-                    if (rb2 != null)
-                    {
-                        pushSpellsList.Add(rb2);
-                    }
                 }
             }
         }
