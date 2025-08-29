@@ -23,11 +23,8 @@ public class K_SphereSpell : K_Spell
         Debug.LogFormat($"<color=orange>SPHERE PARENT: {this.gameObject.transform.parent} ID: {OwnerClientId} </color>");
         Debug.LogFormat($"<color=orange>SPHERE HEALTH: {SpellDataScriptableObject.health} </color>");
 
-        //RigidbodyCP.constraints = RigidbodyConstraints.FreezeAll;
-        //RigidbodyCP.useGravity = false;
-        //RigidbodyCP.isKinematic = false;
+
         armorPoints.Value = SpellDataScriptableObject.health;
-        //Debug.LogFormat($"<color=orange>armorPoints: {armorPoints}</color>");
 
         ShieldStatus(isAlive);
 
@@ -39,9 +36,6 @@ public class K_SphereSpell : K_Spell
             gameObject.GetComponent<NetworkObject>().transform.position = gameObject.transform.parent.transform.position;
         else
             Debug.LogWarning("K_SphereSpell.OnNetworkSpawn: Parent is null, position not set.");
-
-        //Debug.LogFormat($"<color=orange>Sphere parent OwnerClientId: {OwnerClientId}</color>");
-        //gameObject.GetComponent<NetworkObject>().enabled = false;
     }
 
     public override void OnNetworkDespawn()
@@ -65,42 +59,11 @@ public class K_SphereSpell : K_Spell
         if (shieldExists != null) shieldExists(OwnerClientId, this.NetworkObject, this.GetNetworkBehaviour(this.NetworkBehaviourId), status);
     }
 
-
-    //private void Update()
-    //{
-    //    this.transform.position = this.gameObject.transform.GetComponentInParent<Transform>().transform.position;
-    //}
-
-
     public void AssignParent(Transform gO)
     {
         gameObject.GetComponent<NetworkObject>().TrySetParent(gO);
     }
 
-
-    //public void DestroyShield()
-    //{
-    //    DestroyShieldRpc();
-    //}
-
-
-    //[Rpc(SendTo.Server)]
-    //void DestroyShieldRpc()
-    //{
-    //    Destroy(gameObject);
-    //    gameObject.GetComponent<NetworkObject>().Despawn();
-    //}
-
-    //public override void Update()
-    //{
-    //    base.Update();
-
-    //    //transform.localPosition = gameObject.transform.parent.transform.localPosition + new Vector3(0f, 1f, 0f);
-    //    //transform.rotation = gameObject.transform.parent.transform.rotation;        
-
-    //    //transform.localPosition = gameObject.transform.parent.transform.position + new Vector3(0f, 1f, 0f);
-    //    //transform.rotation = gameObject.transform.parent.transform.rotation;
-    //}
 
     public void TakeDamage(float damage)
     {
@@ -132,36 +95,4 @@ public class K_SphereSpell : K_Spell
     {
         //StartCoroutine(LerpScale(new Vector3(1.8f, 1.8f, 1.8f), 1f / spellData.moveSpeed));
     }
-
-    /// <summary>
-    /// Modifies the sphere scale over time.
-    /// </summary>
-    /// <param name="targetScale">The desired final scale.</param>
-    /// <param name="duration">The time in seconds that it takes to reach the target scale.</param>
-    //private IEnumerator LerpScale(Vector3 targetScale, float duration)
-    //{
-    //    float time = 0f;
-    //    Vector3 startScale = transform.localScale;
-
-    //    while (time < duration)
-    //    {
-    //        transform.localScale = Vector3.Lerp(startScale, targetScale, time / duration);
-    //        time += Time.deltaTime;
-
-    //        yield return null;
-    //    }
-
-    //    transform.localScale = targetScale;
-    //}
-
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    if (!other.CompareTag("Spell")) return;
-    //    //if (!IsOwner) return;
-        
-    //    //{
-
-    //    //    Debug.LogFormat($"<color=orange>{other.gameObject}</color>");
-    //    //}
-    //}
 }

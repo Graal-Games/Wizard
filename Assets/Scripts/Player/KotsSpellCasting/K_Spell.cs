@@ -365,40 +365,40 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         if (gameObject.name.Contains("Player")) return;
 
         //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
-        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air")
-            || gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Projectile_Air"))
-        {
-            if (spellDataScriptableObject.pushForce > 0)
-            {
-                Debug.LogFormat("<color=green>2 Push spell</color>");
-                // Cache the player's Rigidbody locally
-                Rigidbody rb = other.GetComponent<Rigidbody>();
+        //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air")
+        //    || gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Projectile_Air"))
+        //{
+        //    if (spellDataScriptableObject.pushForce > 0)
+        //    {
+        //        Debug.LogFormat("<color=green>2 Push spell</color>");
+        //        // Cache the player's Rigidbody locally
+        //        Rigidbody rb = other.GetComponent<Rigidbody>();
 
-                // Add the rigidbody to the list of rigidbodies to be pushed
-                if (rb != null)
-                {
-                    pushSpellsList.Add(rb);
-                }
-            }
-            else
-            {
-                if (spellDataScriptableObject.pushForce > 0)
-                {
-                    Debug.LogFormat("<color=blue>2 Push spell</color>");
+        //        // Add the rigidbody to the list of rigidbodies to be pushed
+        //        if (rb != null)
+        //        {
+        //            pushSpellsList.Add(rb);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (spellDataScriptableObject.pushForce > 0)
+        //        {
+        //            Debug.LogFormat("<color=blue>2 Push spell</color>");
 
-                    // Cache the player's Rigidbody locally
-                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
+        //            // Cache the player's Rigidbody locally
+        //            Rigidbody rb2 = other.GetComponent<Rigidbody>();
 
-                    Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+        //            Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
 
-                    // Add the rigidbody to the list of rigidbodies to be pushed
-                    if (rb2 != null)
-                    {
-                        pushSpellsList.Add(rb2);
-                    }
-                }
-            }
-        }
+        //            // Add the rigidbody to the list of rigidbodies to be pushed
+        //            if (rb2 != null)
+        //            {
+        //                pushSpellsList.Add(rb2);
+        //            }
+        //        }
+        //    }
+        //}
 
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
@@ -458,6 +458,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                     barrierScript.ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
                     //DestroySpellRpc();
                 }
+                if (gameObject.CompareTag("ActiveShield")) return; 
 
                 DestroySpellRpc(other.gameObject);
             }

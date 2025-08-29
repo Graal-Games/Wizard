@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.HID;
 using static ProjectileSpell;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Net.Security;
 
 public class SpellsClass : NetworkBehaviour, ISpell
 {
@@ -340,54 +341,60 @@ public class SpellsClass : NetworkBehaviour, ISpell
     //player health = 80
     //clientRPC get health >> is local health == server health
 
+    SpellsClass SpellsClassScript(GameObject other)
+    {
+        if (other.GetComponent<SpellsClass>() != null)
+        {
+            return other.GetComponent<SpellsClass>();
+        }
+        else if (other.GetComponentInParent<SpellsClass>() != null)
+        {
+            return other.GetComponentInParent<SpellsClass>();
+
+        }
+        else if (other.GetComponentInChildren<SpellsClass>() != null)
+        {
+            return other.GetComponentInParent<SpellsClass>();
+        } else
+        {
+            return null;
+        }
+    }
+
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
         //if (other.gameObject.CompareTag("Player"))
         //{
-            if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+        if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+        {
+            // If the spell has hit an active shield, change the following value
+            //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+            hasHitShield.Value = true;
+
+            if (SpellsClassScript(other) != null)
             {
-                //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+                SpellsClass spellsClass = SpellsClassScript(other);
 
-                // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-                other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-
-                hasHitShield.Value = true;
-
-                // What?
-                if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-                    DestroySpellRpc();
-
-
-                return true;
+                if (spellsClass.SpellDataScriptableObject.directDamageAmount > 0 || spellsClass.SpellDataScriptableObject.damageOverTimeAmount > 0)
+                {
+                    // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+                    other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+                }
             }
-            else
-            {
-                return false;
-            }
-        //}
-
-        //// If shield is detected redirect damage to it
-        //// And DO NOT proceed to apply damage to the related player
-        //if (other.CompareTag("ActiveShield"))
-        //{
-        //    Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
-
-        //    // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-        //    other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-
-        //    hasHitShield.Value = true;
-
-        //    // What?
-        //    if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-        //        DestroySpellRpc();
 
 
-        //    return true;
-        //} else
-        //{
-        //    return false;
-        //}
 
+            // What?
+            if (spellDataScriptableObject.spellType.ToString() == "Projectile")
+                DestroySpellRpc();
+
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
 
