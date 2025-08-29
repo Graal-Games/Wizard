@@ -40,6 +40,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public string SpellName => SpellDataScriptableObject.name;
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
+    public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
+
 
     // Spell caster
     [HideInInspector] public Transform caster;
