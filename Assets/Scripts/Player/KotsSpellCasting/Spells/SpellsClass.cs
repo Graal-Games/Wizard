@@ -344,6 +344,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         //if (other.gameObject.CompareTag("Player"))
         //{
+        if (!other.CompareTag("Player")) return false;
+
             if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
             {
                 //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
