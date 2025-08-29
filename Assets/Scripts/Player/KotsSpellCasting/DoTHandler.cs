@@ -56,4 +56,3 @@ public class DoTHandler : NetworkBehaviour
             }
         }
     }
-}
