@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Scepter_Heal_Target
+  m_Name: Conjure
   m_EditorClassIdentifier: 
-  spellType: 5
+  spellType: 6
   element: 0
   spellAttribute: 9
-  castProcedure: 1
+  castProcedure: 0
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 60
+  spellDuration: 1
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
@@ -34,8 +34,8 @@ MonoBehaviour:
   damageOverTimeDuration: 0
   pushForce: 0
   pullForce: 0
-  health: 50
-  healAmount: 25
+  health: 0
+  healAmount: 0
   healOverTimeAmount: 0
   dispel: 0
   damageLayers:
@@ -48,6 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: Heal
-  prefab: {fileID: 705924895072455061, guid: d943716ed9b0df74899c7e1796575c62, type: 3}
+  contextTag: Conjure
+  prefab: {fileID: 4716045805267283745, guid: bf6e395315c89c24c8cf5c95fe0aef49, type: 3}
   childPrefab: {fileID: 0}

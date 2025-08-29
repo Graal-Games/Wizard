@@ -144,7 +144,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialDictionary:
-    keys: 0000000001000000020000000300000004000000
+    keys: 0100000002000000030000000400000005000000
     values:
     - {fileID: 2100000, guid: 2f6c0bb1d6fd6c741a297cb254d52086, type: 2}
     - {fileID: 2100000, guid: ea667b93798efbf488f83b72bc1fe084, type: 2}

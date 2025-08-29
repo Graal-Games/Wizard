@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: SilenceTarget
+  m_Name: Shadow
   m_EditorClassIdentifier: 
-  spellType: 0
+  spellType: 6
   element: 0
-  spellAttribute: 5
-  castProcedure: 1
+  spellAttribute: 9
+  castProcedure: 0
   periCastLockProcedure: 0
-  incapacitationName: 5
+  incapacitationName: 0
   visionImpairmentType: 0
   isDispelResistant: 0
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
-  moveSpeed: 130
-  spellDuration: 20
+  moveSpeed: 0
+  spellDuration: 1
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
-  incapacitationDuration: 5
+  incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 0
   damageOverTimeAmount: 0
@@ -48,6 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: SilenceTarget
-  prefab: {fileID: 4716045805267283745, guid: 306dcafffc2e6a341b82d0c153f1db6b, type: 3}
+  contextTag: Shadow
+  prefab: {fileID: 4716045805267283745, guid: bf6e395315c89c24c8cf5c95fe0aef49, type: 3}
   childPrefab: {fileID: 0}

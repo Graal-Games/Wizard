@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: DispelNova
+  m_Name: Barrier
   m_EditorClassIdentifier: 
-  spellType: 1
+  spellType: 7
   element: 0
-  spellAttribute: 5
-  castProcedure: 1
-  periCastLockProcedure: 1
+  spellAttribute: 9
+  castProcedure: 0
+  periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
   isDispelResistant: 0
@@ -24,7 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 0.5
+  spellDuration: 1
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
@@ -48,6 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: Dispel
-  prefab: {fileID: 7158813726689037303, guid: b547f7a3f6b37f643878c5db2bc2455a, type: 3}
+  contextTag: Barrier
+  prefab: {fileID: 4716045805267283745, guid: bf6e395315c89c24c8cf5c95fe0aef49, type: 3}
   childPrefab: {fileID: 0}
