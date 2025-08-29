@@ -9683,6 +9683,7 @@ GameObject:
   - component: {fileID: 6514538205735283431}
   - component: {fileID: 1966231691299311224}
   - component: {fileID: 363308353575362683}
+  - component: {fileID: -2036671697793956579}
   m_Layer: 0
   m_Name: Projectile_Earth
   m_TagString: Spell
@@ -9906,7 +9907,7 @@ MonoBehaviour:
         byte0028: 0
         byte0029: 0
   projectileParryHandler: {fileID: 0}
-  projectileTrigger: {fileID: 0}
+  projectileTrigger: {fileID: -2036671697793956579}
 --- !u!114 &363308353575362683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9917,6 +9918,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &-2036671697793956579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4716045805267283745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3204bb19ab6a94048b881c0d39210935, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7426314580318178996
