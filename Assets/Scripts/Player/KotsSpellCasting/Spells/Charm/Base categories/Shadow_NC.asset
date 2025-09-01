@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Conjure
+  m_Name: Shadow_NC
   m_EditorClassIdentifier: 
   spellType: 6
   element: 0
@@ -48,6 +48,6 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: Conjure
+  contextTag: Shadow
   prefab: {fileID: 4716045805267283745, guid: bf6e395315c89c24c8cf5c95fe0aef49, type: 3}
   childPrefab: {fileID: 0}
