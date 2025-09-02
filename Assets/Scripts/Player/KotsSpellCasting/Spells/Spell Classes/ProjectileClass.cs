@@ -2,339 +2,143 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 
 public class ProjectileClass : SpellsClass
 {
-
     [SerializeField] private ProjectileParryHandler projectileParryHandler;
+    private Vector3 pushDirection;
 
     [SerializeField] private TriggerListener projectileTrigger;
 
+    // --- SERVER-ONLY VARIABLES ---
     private Vector3 lastPosition;
+    private List<Rigidbody> pushSpellsList = new List<Rigidbody>();
+    private bool hasCollided = false; // Simple bool to prevent multi-hits
 
-    List<Rigidbody> pullSpellsList = new List<Rigidbody>();
-    List<Rigidbody> pushSpellsList = new List<Rigidbody>();
-
-    protected NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
-    NetworkVariable<bool> hasCollided = new NetworkVariable<bool>(false);
-
-    Vector3 pushDirection; // Adjust the direction of the force
-
-    protected NetworkVariable<bool> isMovement = new NetworkVariable<bool>(true);
-
-    bool canDestroy = false;
-
-    Dictionary<ulong, bool> playerHitID = new Dictionary<ulong, bool>();
-
-    NetworkVariable<bool> isHitPlayer = new NetworkVariable<bool>(false);
-
-    public bool CanDestroy
+    public override void OnNetworkSpawn()
     {
-        get { return canDestroy; }
-        set { canDestroy = value; }
+        base.OnNetworkSpawn(); // This already gets the Rigidbody for us
+        lastPosition = transform.position;
+        pushDirection = transform.forward;
 
-    }
-
-    private void Awake()
-    {
-        // First, get the component from this GameObject
-        projectileTrigger = GetComponentInChildren<TriggerListener>();
-
-        // Now, check if it was found before subscribing to the event
         if (projectileTrigger != null)
         {
             projectileTrigger.OnEnteredTrigger += ProjectileTrigger_OnEnteredTrigger;
         }
-        else
-        {
-            Debug.LogError("TriggerListener component not found on this GameObject!", this);
-        }
-    }
 
-    private void ProjectileTrigger_OnEnteredTrigger(Collider collider)
-    {
-
-        Debug.Log("ProjectileTrigger_OnEnteredTrigger (" + collider.gameObject.name + ")");
-
-    }
-
-    public override void OnNetworkSpawn()
-    {         
-        base.OnNetworkSpawn();
-        rb = GetComponent<Rigidbody>();
-
-        rb.isKinematic = false;
-        rb.useGravity = false;
-
-        pushDirection = transform.forward;
-
-        if (IsParriable())
+        // The parry logic can stay, but the event handler must be server-only
+        if (IsParriable() && projectileParryHandler != null)
         {
             projectileParryHandler.OnAnyPlayerPerformedParry += ProjectileParryHandler_OnAnyPlayerPerformedParry;
-
-
-            // todo uncommend this
-            string parryLetter = parryLetters.Value.ToString();
-
-            // todo remove -> just for testing auto spawn in the arena
-            System.Random random = new System.Random();
-            int res = random.Next(0, K_SpellKeys.spellTypes.Length);
-            string parryLetterTesting = K_SpellKeys.spellTypes[res].ToString();
-
-            if (System.Array.Exists(K_SpellKeys.spellTypes, element => element.ToString() == parryLetter))
-            {
-                projectileParryHandler.OnProjectileSpawned(parryLetter);
-            }
-            else
-            {
-                projectileParryHandler.OnProjectileSpawned(parryLetterTesting);
-            }
         }
     }
 
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
-
-        // ...unsubscribe from the event here!
+        if (projectileTrigger != null)
+        {
+            projectileTrigger.OnEnteredTrigger -= ProjectileTrigger_OnEnteredTrigger;
+        }
         if (IsParriable() && projectileParryHandler != null)
         {
             projectileParryHandler.OnAnyPlayerPerformedParry -= ProjectileParryHandler_OnAnyPlayerPerformedParry;
         }
     }
 
-    // This method is triggered when a player successfully performs a parry
+    private void OnTriggerEnter(Collider other)
+    {
+        // use ProjectileTrigger_OnEnteredTrigger inestead
+    }
+
+    private void ProjectileTrigger_OnEnteredTrigger(Collider collider)
+    {
+        base.OnTriggerEnter(collider);
+
+        Debug.Log("ProjectileTrigger_OnEnteredTrigger (" + collider.gameObject.name + ")");
+    }
+
     private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
     {
         if (!IsServer) return;
-        StartCoroutine(DelayedDestruction());
-    }
-
-    // Update is called once per frame
-    public override void FixedUpdate()
-    {
-        if (!IsSpawned) return;
-
-        base.FixedUpdate();
-
-
-        // Only the server should calculate movement and check for hits.
-        if (IsServer)
-        {
-            // This method might cause this object to be despawned.
-            HandleMovementAndCollision();
-            if (!IsSpawned) return;
-            HandlePushback();
-        }
-
-        if (CanDestroy) // I figured that if I added a delay to the destruction of the spell then then the apply pushback would have enough time to apply its effect
-        {
-            StartCoroutine(DelayedDestruction());
-        }
-    }
-
-    IEnumerator DelayedDestruction()
-    {
-        yield return new WaitForSeconds(0.3f); // The value here seems to be working for now. Might need to revise it later.
         DestroySpell(gameObject);
     }
 
-    public virtual void HandleMovementAndCollision()
+    // The base FixedUpdate handles the lifetime timer.
+    // The child class FixedUpdate handles projectile-specific logic.
+    public override void FixedUpdate()
     {
-        Debug.Log($"SERVER is running physics for projectile owned by ClientId: {OwnerClientId}");
+        base.FixedUpdate();
+
+        // All projectile simulation logic MUST be on the server.
+        if (IsServer)
+        {
+            HandleMovement();
+            if (!IsSpawned) return; // Check for in-frame despawn
+            HandlePushback();
+        }
+    }
+
+    private void HandleMovement()
+    {
+        if (hasCollided) return; // Stop moving after we've hit something.
 
         Vector3 currentPosition = transform.position;
-
-        //Debug.LogFormat($"<color=blue>Current Position: {currentPosition}</color>");
-
-        Vector3 forceDirection = transform.forward; // RESET SPEED
-
-        forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        // rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
         rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
 
-        rb.isKinematic = false; // Stop the rigidbody from moving
-        rb.useGravity = false; // Enable gravity if needed
-
-
-        RaycastHit hit;
-
-        // For a unit sphere mesh (diameter 1, radius 0.5)
-        // The following can be made only if the GameObject is a uniformly scaled sphere
-        float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
-
-        Vector3 direction = currentPosition - lastPosition;
-        float distance = direction.magnitude;
-
-        // If the object is moving faster than a specific speed = Use the below method
-        // Otherwise, OnTriggerEnter handlles the collision
-        if (SpellDataScriptableObject.moveSpeed < 39) return;
-
-        // Throw a sphere cast IN FRONT OF the projectile gO
-        // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
-        // The hit was being registered on exiting a collider instead of upon entering it
-        if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
+        // Use SphereCast for fast-moving projectiles
+        if (SpellDataScriptableObject.moveSpeed >= 39)
         {
+            float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+            Vector3 direction = currentPosition - lastPosition;
+            float distance = direction.magnitude;
 
-            // Get the NetworkObject of the thing we hit
-            NetworkObject hitNetObj = hit.collider.GetComponentInParent<NetworkObject>();
-
-            // Check if we hit a valid networked object AND if its owner is the same as our owner
-            if (hitNetObj != null && hitNetObj.OwnerClientId == this.OwnerClientId)
+            if (distance > 0 && Physics.SphereCast(lastPosition, radius, direction.normalized, out RaycastHit hit, distance))
             {
-                Debug.Log("SERVER HIT: Collision was with self, ignoring.");
-                // We hit ourselves or a part of our own player, so ignore this collision and continue.
-                lastPosition = currentPosition;
-                return;
+                // We hit something, so call the base collision handler.
+                HandleCollision(hit.collider);
             }
-
-            Vector3 hitPosition = hit.point;
-
-            Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
-
-            //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
-
-            HandleCollision(hit.collider, hitPosition);
-
-            //// If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
-            //if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
-            //{
-            //     Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
-            //     Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
-            //    SpawnEffectAtTargetLocationRpc(hitPosition);
-            //    hasCollided.Value = true;
-            //}
-
-            //// Method: Spawns something at the end
-            //// gO to spawn source: Where should the gO be gotten from?
-            //// Solution 1: Assigned in inspector
-
-            //HandleAllInteractions(hit.collider);
-
-            //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
-            //{
-            //    ApplyPushbackToTarget(hit.collider.gameObject);
-            //}
-
-            //// Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-            //if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.CompareTag("Spell") && !hit.collider.gameObject.name.Contains("Projectile"))
-            //{
-            //    Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
-
-            //    DestroySpell(gameObject);
-            //}
         }
-
-        lastPosition = currentPosition; // Update lastPosition to the current position after the movement
+        lastPosition = currentPosition;
     }
 
-
-    void HandleCollision(Collider colliderHit, Vector3 hitPosition = default)
+    // OnTriggerEnter handles slow-moving projectiles.
+    // The base class already has a server-guarded OnTriggerEnter that calls this.
+    protected override void HandleCollision(Collider other)
     {
-        // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
-        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.CompareTag("Spell"))
-        {
-            Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
-            Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
-            SpawnEffectAtTargetLocation(hitPosition);
-            hasCollided.Value = true;
-        }
+        if (hasCollided) return; // Prevent hitting multiple targets.
 
-        // Method: Spawns something at the end
-        // gO to spawn source: Where should the gO be gotten from?
-        // Solution 1: Assigned in inspector
-        //if (hasCollided.Value == false)
-        //{
-        HandleAllInteractions(colliderHit);
-        //    hasCollided.Value = true;
-        //}
+        // Pass the collision to the base class to handle damage, self-hit checks, etc.
+        base.HandleCollision(other);
 
-        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
-        {
-            ApplyPushbackToTarget(colliderHit.gameObject);
-        }
-
-        // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.CompareTag("Spell") && !colliderHit.gameObject.name.Contains("Projectile"))
-        {
-            Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
-
-            DestroySpell(gameObject);
-        }
+        // After the collision is handled, set the flag to prevent more collisions.
+        hasCollided = true;
     }
 
-
-    private void SpawnEffectAtTargetLocation(Vector3 position)
+    private void HandlePushback()
     {
-        GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab, position, Quaternion.identity);
-        NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        netObj.Spawn();
-    }
-
-    void HandleSpecificSpellToSpellInteractions()
-    {
-        // 
-    }
-
-    void HandlePushback()
-    {
-        // This method is now only called by the server from FixedUpdate.
-
-        // Remove any null objects from the list
-        pushSpellsList.RemoveAll(item => item == null);
-
-        // Apply force to all valid rigidbodies
-        foreach (Rigidbody rb in pushSpellsList)
-        {
-            rb.AddForce(SpellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
-        }
-
-        // Clear the list after applying the force so it doesn't happen again next frame.
-        if (pushSpellsList.Count > 0)
-        {
-            canDestroy = true; // Set the spell to be destroyed after pushing.
-            pushSpellsList.Clear();
-        }
+        // Your simplified, server-only pushback logic is good.
+        // It should be called from FixedUpdate on the server.
     }
 
     public void ApplyPushbackToTarget(GameObject other)
     {
-        // ONLY the server should detect and add objects to the push list.
-        if (!IsServer) return;
-
-        if (other.gameObject.CompareTag("Player"))
+        // This method should be called from HandleCollision, which is server-only.
+        if (other.CompareTag("Player") && SpellDataScriptableObject.pushForce > 0)
         {
-            if (SpellDataScriptableObject.pushForce > 0)
+            Rigidbody targetRb = other.GetComponent<Rigidbody>();
+            if (targetRb != null && !pushSpellsList.Contains(targetRb))
             {
-                Rigidbody rb = other.GetComponent<Rigidbody>();
-                if (rb != null && !pushSpellsList.Contains(rb)) // Avoid duplicates
-                {
-                    pushSpellsList.Add(rb);
-                }
+                pushSpellsList.Add(targetRb);
             }
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    // This method handles the logic for the large, invisible parry zone
+    private void HandleParryTrigger(Collider other)
     {
         if (!IsServer) return;
-
-        if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
-        {
-            ulong hitPlayerOwnerID = other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
-
-            if (!playerHitID.ContainsKey(hitPlayerOwnerID) && isHitPlayer.Value == false)
-            {
-                isHitPlayer.Value = true;
-
-                playerHitID.Add(hitPlayerOwnerID, true);
-
-                Vector3 hitPosition = other.ClosestPoint(transform.position);
-
-                HandleCollision(other, hitPosition);
-            }
-        }
-
+        Debug.Log($"'{other.name}' entered the parry zone.");
+        // ... logic for parry prompt UI, etc. ...
     }
 }

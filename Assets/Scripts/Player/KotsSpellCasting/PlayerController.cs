@@ -1,409 +1,121 @@
 using Cinemachine;
-using DebuffEffect;
-using IncapacitationEffect;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerController : NetworkBehaviour
 {
-
-    [Tooltip("The Cinemachine FreeLook camera for this player.")]
-    public CinemachineFreeLook freeLookCamera;
-
-    [SerializeField] private GameInput gameInput; 
-    // [SerializeField] private Incapacitation incapacitationScript; 
-
-    [SerializeField] private Transform cameraTransform;
-
+    [Header("Component References")]
+    [SerializeField] private GameInput gameInput;
     [SerializeField] private Transform followTarget;
+    [SerializeField] private Transform lookAtTarget;
+    [SerializeField] private CinemachineFreeLook freeLookCamera;
 
-    private Rigidbody rb;
-
-    [Header("Movement")]
+    [Header("Movement Settings")]
     [SerializeField] private float moveSpeed;
     [SerializeField] private float groundDrag;
     [SerializeField] private int jumpForce;
 
-    private float _baseMoveSpeedCache;
-
-    private bool isSlowedByIncapacitation = false;
-
-    private bool playerIsInCastMode = false;
-
-    private bool isWalking;
-    private bool isJumping;
-    private bool preparingJumpImpulse;
-    private bool preparingJumpToGround;
-
+    // Private variables
+    private Rigidbody rb;
+    private Transform cameraTransform;
+    private float baseMoveSpeedCache;
     private float verticalAxis = 0f;
     private float horizontalAxis = 0f;
 
-    [Header("Ground Check")]
-    [SerializeField] private float playerHeight = 2f;
-    [SerializeField] private LayerMask whatIsGround;
-    private bool grounded;
-
-    private bool movementStopped;
-    private bool movementSlowed;
-
-
-    //#############################################################################################
-    //##################################### Below queued for deletion #####################################
-    //#############################################################################################
-    //public override void OnNetworkSpawn()
-    //{
-    //    if (!IsServer && IsOwner) //Only send an RPC to the server on the client that owns the NetworkObject that owns this NetworkBehaviour instance
-    //    {
-    //        TestServerRpc(0, NetworkObjectId);
-    //    }
-    //}
-
-    //[Rpc(SendTo.Server)]
-    //void TestServerRpc(int value, ulong sourceNetworkObjectId)
-    //{
-    //    Debug.Log($"Server Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
-    //    //TestClientRpc(value, sourceNetworkObjectId);
-    //}
-
-    //private void Awake()
-    //{
-    //    //if (!IsLocalPlayer) return;
-    //    Debug.LogFormat("1 - IsClient: " + IsClient);
-    //    Debug.LogFormat("1 - IsLocalPlayer: " + IsLocalPlayer);
-
-    //    if (Instance != null)
-    //    {
-    //        Debug.LogError("There is more than one Player instance");
-    //    }
-    //    Instance = this;
-
-    //    this.rb = GetComponent<Rigidbody>();
-
-    //    if (gameInput == null)
-    //        gameInput = FindObjectOfType<GameInput>();
-
-    //    if (cameraTransform == null)
-    //    {
-    //        cameraTransform = FindObjectOfType<Camera>()?.transform;
-
-    //        CinemachineFreeLook freeLook = FindObjectOfType<CinemachineFreeLook>();
-    //        freeLook.Follow = followTarget;
-    //        freeLook.LookAt = followTarget;
-    //    }
-    //}
-    //#############################################################################################
-    //##################################### Above queued for deletion #####################################
-    //#############################################################################################
-
-
     public override void OnNetworkSpawn()
     {
+        // If this player object is not me, disable its camera and stop.
         if (!IsOwner)
         {
             if (freeLookCamera != null)
             {
                 freeLookCamera.gameObject.SetActive(false);
             }
-            return; // Stop execution for non-owners.
-        }
-
-        // --- All local player setup code goes below this line ---
-        cameraTransform = Camera.main.transform;
-        // Safety check to make sure the camera was found
-        if (cameraTransform == null)
-        {
-            Debug.LogError("Main Camera could not be found in the scene! Ensure it has the 'MainCamera' tag.", this.gameObject);
             return;
         }
 
-        _baseMoveSpeedCache = moveSpeed;
+        if (!IsOwner) return;
 
-        this.rb = GetComponent<Rigidbody>();
-        if (this.rb != null)
-        {
-            this.rb.freezeRotation = true;
-        }
+        baseMoveSpeedCache = moveSpeed;
+        rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;
 
-        // It's still better to assign GameInput and Camera via the inspector if possible
+        // If gameInput wasn't assigned in the Inspector, find it in the scene.
         if (gameInput == null)
+        {
             gameInput = FindObjectOfType<GameInput>();
+            if (gameInput == null)
+            {
+                Debug.LogError("CRITICAL: GameInput object not found in the scene! The player cannot be controlled.", this);
+                return; // Stop execution if we can't find the input handler
+            }
+        }
 
-        // This is the new, reliable way to set up the camera
-        if (freeLookCamera != null)
+        cameraTransform = Camera.main.transform;
+
+        if (cameraTransform == null)
         {
-            if (followTarget != null)
-            {
-                freeLookCamera.Follow = followTarget;
-                freeLookCamera.LookAt = followTarget;
-            }
-            else
-            {
-                Debug.LogError("Follow Target is not assigned in the PlayerController inspector!", this.gameObject);
-            }
+            Debug.LogError("CRITICAL: Main Camera not found! Make sure your camera is tagged 'MainCamera'.", this);
+            return; // Stop execution to prevent further errors
+        }
+
+        // Setup Cinemachine
+        if (freeLookCamera != null && followTarget != null && lookAtTarget != null)
+        {
+            freeLookCamera.Follow = followTarget;
+            freeLookCamera.LookAt = lookAtTarget;
         }
         else
         {
-            Debug.LogError("FreeLook Camera is not assigned in the PlayerController inspector!", this.gameObject);
+            Debug.LogError("PlayerController is missing a reference to the FreeLookCamera, FollowTarget, or LookAtTarget!", this);
         }
-    }
-
-    private void Start()
-    {
-        if (!IsLocalPlayer) return;
-
-        // gameInput.OnJumpAction += GameInput_OnJumpAction;
-        Incapacitation.playerIncapacitation += HandleStun; // This would go in the player script
-        gameObject.GetComponentInParent<NewPlayerBehavior>().isSlowed.OnValueChanged += OnCharacterSlowChange;
-        K_SpellLauncher.CastModeSpeedChange += HandleOnCastModeStartBehavior;
-        BeamSpell.beamStatus += PlayerMoveSpeedOnIsCastingBeam;
-
-    }
-
-    // This method gets called when the application gains or loses focus, meaning when it becomes the active or inactive window.
-    private void OnApplicationFocus(bool focus)
-    {
-        if (focus)
-        {
-            // Change below to locked to hide cursor
-            Cursor.lockState = CursorLockMode.None;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
-    }
-
-
-    // Processes events that are emitted when casting beam and slows the movement down 
-    //relatively to the existence of the beam
-    private void PlayerMoveSpeedOnIsCastingBeam(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehaviorScript, bool isCastingBeam)
-    {
-        if (isCastingBeam)
-        {
-            CastModeSpeedSlow();
-            // CastingLookSlow();
-        } else
-        {
-            CastModeSpeedReset();
-        }
-    }
-
-    
-    // Processes emitted events when players begins casting to slow down movement
-    // This method checks whether or not the player character is slowed by an incapacitation
-    //and if he is, cast slow is not applied until the incapacitation has expired
-    private void HandleOnCastModeStartBehavior(bool isInCastMode)
-    {
-        playerIsInCastMode = isInCastMode;
-
-        if (!isSlowedByIncapacitation && isInCastMode)
-        {
-            CastModeSpeedSlow();
-        } else if (!isSlowedByIncapacitation && !isInCastMode)
-        {
-            CastModeSpeedReset();
-        }
-    }
-
-    private void CastModeSpeedSlow()
-    {
-        moveSpeed = (_baseMoveSpeedCache / 2);
-    }
-
-    // Resets the player speed back to normal
-    private void CastModeSpeedReset()
-    {
-        moveSpeed = _baseMoveSpeedCache;
-    }
-
-    // Reverts the player speed back to normal after having been slowed
-    private void OnCharacterSlowChange(bool previous, bool current)
-    {
-        if (previous == false && current == true)
-        {
-            moveSpeed /= 2;
-            isSlowedByIncapacitation = true; // This bool is used in the HandleOnCastModeStartBehavior method above to prevent slow stacking
-        }
-        
-        if (previous == true && current == false)
-        {
-            Debug.LogFormat($"<color=brown> NORMALIZE SPEED {moveSpeed}</color>");
-            
-            moveSpeed *= 2; // Of course the value is being halved atm and changes could be made here for more elaborate slow.
-
-            isSlowedByIncapacitation = false;
-
-            if (playerIsInCastMode)
-            {
-                CastModeSpeedSlow();
-            }
-
-            Debug.LogFormat($"<color=brown> NORMALIZE SPEED {moveSpeed}</color>");
-        }
-    }
-
-
-
-    void HandleStun(ulong clientId, IncapacitationInfo info)
-    {
-        if (clientId != OwnerClientId) return;
-
-        movementStopped = info.AffectsMovement; // The reason the movement incapacitation is made into a variable as such is for scalability, adding more spells with different effects is easier.
-    }
-
-
-    private void GameInput_OnJumpAction(object sender, EventArgs e)
-    {
-        if (grounded && !isJumping)
-        {
-            isJumping = true;
-            preparingJumpImpulse = true;
-            float jumpImpulseDelay = isWalking ? 0.5f : 0.8f;
-
-            FuntionTimer.Create(ApplyJumpImpulse, jumpImpulseDelay, "jump_timer");
-        }
-
-    }
-
-    private void ApplyJumpImpulse()
-    {
-        this.rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        preparingJumpImpulse = false;
-    }
-
-
-    private void Update()
-    {
-        if (!IsLocalPlayer) return;
-
-
-        grounded = isGrounded();
-
-        SpeedControl();
-
-        // handle drag and jump
-        if (grounded)
-        {
-            rb.drag = groundDrag;
-
-            
-            // todo check if used properly
-            if (isJumping && !preparingJumpImpulse)
-            {
-
-                if (!preparingJumpToGround)
-                {
-                    preparingJumpToGround = true;
-                    float jumpToGroundDelay = 1f;
-                    FuntionTimer.Create(() =>
-                    {
-                        this.isJumping = false;
-                        preparingJumpToGround = false;
-                    }, jumpToGroundDelay);
-                }
-
-            }
-        }
-        else
-        {
-            rb.drag = 0;
-        }
-
-       
     }
 
     private void FixedUpdate()
     {
-        // All physics and movement logic should be in FixedUpdate
         if (!IsOwner) return;
 
-        if (movementStopped == true) return;
+        // In the future, you would check a NetworkVariable from PlayerStatusEffects here.
+        // For example: if (playerStatusEffects.IsStunned.Value) return;
 
         HandleMovement();
     }
 
-    private bool isGrounded()
+    // This is the NEW public method that PlayerStatusEffects will call.
+    public void SetSlowed(bool isSlowed)
     {
-        //return Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
-        return Physics.CheckSphere(this.transform.position, 0.2f, whatIsGround);
+        // This contains the logic from your old OnCharacterSlowChange method.
+        moveSpeed = isSlowed ? (baseMoveSpeedCache / 2) : baseMoveSpeedCache;
+        Debug.Log($"PlayerController: Slow status changed. New move speed is {moveSpeed}");
     }
 
-    public float getVerticalAxis()
+    private void HandleMovement()
     {
-        return verticalAxis;
-    }
-
-    public float getHorizontalAxis()
-    {
-        return horizontalAxis;
-    }
-
-    public bool IsWalking()
-    {
-        return isWalking;
-    }
-
-    public bool IsJumping()
-    {
-        return isJumping;
-    }
-
-    // Record input from the player
-    // Move the player character locally
-    // Broadcast movement to the server
-    // CP SR
-
-    public void HandleMovement()
-    {
-        // --- 1. Calculate Direction (This part is still the same) ---
+        // This movement logic is already correct from our previous fixes.
         Vector2 inputVector = gameInput.GetMovementVector();
         Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
+
         moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
         moveDir.Normalize();
 
-        isWalking = moveDir != Vector3.zero;
+        rb.MovePosition(rb.position + moveDir * moveSpeed * Time.fixedDeltaTime);
 
-        // --- 2. Move the Player with Physics ---
-        Vector3 newPosition = rb.position + moveDir * moveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(newPosition);
-
-        // --- 3. Rotate the Player with Physics ---
-        if (isWalking)
+        Vector3 cameraForward = cameraTransform.forward;
+        cameraForward.y = 0f;
+        if (cameraForward != Vector3.zero)
         {
-            float rotateSpeed = 10f;
-            // Create the target rotation based on the movement direction.
-            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
-
-            // Instead of using transform.forward, use rb.MoveRotation with a Slerp for smoothing.
+            float rotateSpeed = 20f;
+            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
             Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
             rb.MoveRotation(newRotation);
         }
 
-
-        // --- 4. Calculate Local Velocity for Animations ---
-        // Convert the world-space moveDir to the player's local space
         Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
-
-        // Now, verticalAxis is how much we're moving in our forward/backward direction
-        // and horizontalAxis is how much we're moving in our left/right direction
         verticalAxis = localMoveDir.z;
         horizontalAxis = localMoveDir.x;
     }
 
-    private void SpeedControl()
-    {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-        // limit velocity if needed
-        if(flatVel.magnitude > moveSpeed)
-        {
-            Vector3 limitedVel = flatVel.normalized * moveSpeed;
-            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
-        }
-    }
+    // Public getters for the Animator script
+    public float getVerticalAxis() => verticalAxis;
+    public float getHorizontalAxis() => horizontalAxis;
 }

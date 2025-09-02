@@ -10,6 +10,7 @@ namespace DamageOverTimeEffect {
         string element;
         float damagePerSecond;
         float spellDuration;
+        public ulong AttackerId { get; private set; }
 
         float elapsedTime = 0f;
         bool timeExpired = false;
@@ -57,12 +58,13 @@ namespace DamageOverTimeEffect {
 
 
         // CONSTRUCTOR
-        public DamageOverTime(int networkId, string spellElement, float dps, float duration)
+        public DamageOverTime(int networkId, string spellElement, float dps, float duration, ulong attackerId)
         {
             NetworkId = networkId;  
             this.Element = spellElement;
             DamagePerSecond = dps;
             SpellDuration = duration;
+            this.AttackerId = attackerId;
         }
 
         public bool Timer() // should be activated using parameters that determine its lifetime and the item in the list which it should delete

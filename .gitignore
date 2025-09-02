@@ -75,3 +75,6 @@ crashlytics-build.properties
 
 /.plastic/
 /Asier/
+
+# IDE settings
+.idea/

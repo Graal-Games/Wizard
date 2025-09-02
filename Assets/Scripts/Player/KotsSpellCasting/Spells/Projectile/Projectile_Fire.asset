@@ -24,6 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 110.5
+  maxScale: 0
   spellDuration: 15
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -51,4 +52,4 @@ MonoBehaviour:
   contextTag: Fire
   prefab: {fileID: 8574651727622105880, guid: 1377af28590d363449204ae812cca92d, type: 3}
   childPrefab: {fileID: 0}
-  isParriable: 1
+  isParriable: 0

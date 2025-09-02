@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using IngameDebugConsole;
+using System;
+using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport.Relay;
@@ -12,82 +11,122 @@ using UnityEngine;
 
 public class Relay : MonoBehaviour
 {
-    // private async void Start()
-    // {
-    //     // Sends a request to the unity services to initialize the Api
-        
-    //     // ---------I'm already singing in game lobby script ----------
-    //     // await UnityServices.InitializeAsync();
+    public static Relay Instance { get; private set; }
 
-    //     // AuthenticationService.Instance.SignedIn += () => {
-    //     //     Debug.Log("Signed in " + AuthenticationService.Instance.PlayerId);
-    //     // };
+    // Events for the UI to subscribe to
+    public event Action<string> OnRelayCreated;
+    public event Action OnJoinSuccess;
+    public event Action<string> OnJoinFailed;
 
-    //     // await AuthenticationService.Instance.SignInAnonymouslyAsync();
-    // }
-
-    [ConsoleMethod( "CreateRelay", "Creates a cube at specified position" )]
-    public static async void CreateRelay()
+    private void Awake()
     {
-        try {
-
-            // Param for max number of connection minus the host
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1);
-
-            // Generate a joinCode and save to variable
-            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-
-            Debug.Log(joinCode);
-
-            // Get the relayserver data to funnel into the network manager info
-            RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
-
-            // Inject the relay server data
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
-
-            /* 
-            To delay player prefab spawn use: 
-            NetworkManager.Singleton.ConnectionApprovalCallback = ApprovalCheck;
-            Source: https://docs-multiplayer.unity3d.com/netcode/current/basics/connection-approval/index.html
-            */
-            NetworkManager.Singleton.StartHost();
-            // private void ApprovalCheck()
-
-        } catch (RelayServiceException e) {
-
-            Debug.Log(e);
-
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
         }
-        
+        else
+        {
+            Instance = this;
+        }
     }
 
-    [ConsoleMethod( "JoinRelay", "Joins the relay" )]
-    // Create relay and join in the same function
-    public static async void JoinRelay(string joinCode)
+    private async void Start()
     {
-        try {
+        // Initialize and sign in if not already done
+        if (UnityServices.State == ServicesInitializationState.Uninitialized)
+        {
+            await UnityServices.InitializeAsync();
+        }
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            Debug.Log("Signed in: " + AuthenticationService.Instance.PlayerId);
+        }
+
+        // Tell the NetworkManager that our ApprovalCheck method is the bouncer's "guest list".
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
+        }
+    }
+
+    public async Task CreateRelay()
+    {
+        // Don't allow creating a relay if we are already connected
+        if (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer) return;
+
+        try
+        {
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(1); // Max 1 other player
+            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+            Debug.Log("Relay Join Code: " + joinCode);
+            OnRelayCreated?.Invoke(joinCode); // Fire event for UI
+
+            RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+
+            NetworkManager.Singleton.StartHost();
+        }
+        catch (RelayServiceException e)
+        {
+            Debug.LogError(e);
+        }
+    }
+
+    public async Task JoinRelay(string joinCode)
+    {
+        // Don't allow joining if we are already connected
+        if (NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsServer) return;
+
+        try
+        {
             Debug.Log("Joining Relay with " + joinCode);
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             RelayServerData relayServerData = new RelayServerData(joinAllocation, "dtls");
-
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            /* 
-            To delay player prefab spawn use: 
-            NetworkManager.Singleton.ConnectionApprovalCallback = ApprovalCheck;
-            Source: https://docs-multiplayer.unity3d.com/netcode/current/basics/connection-approval/index.html
-            */
             NetworkManager.Singleton.StartClient();
-            // private void ApprovalCheck()
-
-        } catch (RelayServiceException e) {
-            Debug.Log(e);
+            OnJoinSuccess?.Invoke(); // Fire event for UI
+        }
+        catch (RelayServiceException e)
+        {
+            Debug.LogError(e);
+            OnJoinFailed?.Invoke(e.Message); // Fire event for UI
         }
     }
 
-    // private void OnDestroy()
-    // {
+    // This is the "guest list" method that runs on the SERVER for every connecting client.
+    private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+    {
+        // This is where you could add logic to check a password, player limit, etc.
+        // For now, we will simply approve everyone.
 
-    // }
+        response.Approved = true;       // Let the player in
+        response.CreatePlayerObject = true; // Create a player object for them
+
+        // You can leave PlayerPrefabHash null to use the default prefab assigned in the NetworkManager's Inspector
+        response.PlayerPrefabHash = null;
+
+        Debug.Log($"Approving connection for client: {request.ClientNetworkId}");
+
+        // Get the spawn position and rotation from your SpawnManager
+        // We use request.ClientNetworkId to get the ID of the player who is trying to connect.
+        Vector3 spawnPosition = GameEvents.RequestSpawnPoint(request.ClientNetworkId);
+        Quaternion spawnRotation = GameEvents.RequestSpawnRotation(request.ClientNetworkId);
+
+        // Tell the NetworkManager to spawn the player at this specific location
+        response.Position = spawnPosition;
+        response.Rotation = spawnRotation;
+    }
+
+    // It's good practice to unsubscribe from events when the object is destroyed.
+    private void OnDestroy()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCheck;
+        }
+    }
 }

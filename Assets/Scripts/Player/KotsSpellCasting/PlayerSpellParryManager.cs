@@ -159,6 +159,13 @@ internal class PlayerSpellParryManager : NetworkBehaviour
 
     public void TryToParry(string inputParryLetters)
     {
+        if (string.IsNullOrEmpty(inputParryLetters))
+        {
+            Debug.LogWarning("parry letter is null or empty, we can't look it up.");
+            // If the parry letter is null or empty, we can't look it up.
+            // We'll just ignore it and stop the method here.
+            return;
+        }
 
         HashSet<ulong> parriedSpells = new HashSet<ulong>();
 
@@ -195,6 +202,14 @@ internal class PlayerSpellParryManager : NetworkBehaviour
 
     private void AnticipationSpellParryKey(string parryLetter)
     {
+        if (string.IsNullOrEmpty(parryLetter))
+        {
+            Debug.LogWarning("parry letter is null or empty, we can't look it up.");
+            // If the parry letter is null or empty, we can't look it up.
+            // We'll just ignore it and stop the method here.
+            return;
+        }
+
         if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
         {
             scKey.invisible = false;
@@ -206,6 +221,14 @@ internal class PlayerSpellParryManager : NetworkBehaviour
 
     private void ActivateSpellParryKey(string parryLetter)
     {
+        if (string.IsNullOrEmpty(parryLetter))
+        {
+            Debug.LogWarning("parry letter is null or empty, we can't look it up.");
+            // If the parry letter is null or empty, we can't look it up.
+            // We'll just ignore it and stop the method here.
+            return;
+        }
+
         if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
         {
             scKey.invisible = false;

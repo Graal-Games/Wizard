@@ -1,684 +1,243 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
-using static ProjectileSpell;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using Unity.Collections;
 
-public class SpellsClass : NetworkBehaviour, ISpell
+public abstract class SpellsClass : NetworkBehaviour, ISpell
 {
     [SerializeField]
     private K_SpellData spellDataScriptableObject;
-
-    GameObject gameObjectToDestroy;
-
-    [SerializeField]
-    protected GameObject secondaryGameObjectToSpawn;
-
-    //private static GameObject spellsExplosionGO;
-
-    //private static AssetReferenceGameObject spellsExplosionAR;
-
-
-    public K_SpellData SpellDataScriptableObject
-    {
-        get { return spellDataScriptableObject; }
-    }
-
-    public delegate void PlayerHitEvent(PlayerHitPayload damageInfo);
-    public static event PlayerHitEvent playerHitEvent;
+    public K_SpellData SpellDataScriptableObject => spellDataScriptableObject;
 
     protected Rigidbody rb;
 
+    public string SpellName => spellDataScriptableObject.name;
+    public bool IsDispelResistant => spellDataScriptableObject.isDispelResistant;
 
-    // These are being defined in the scriptable object associated to each prefab
-    public string SpellName => SpellDataScriptableObject.name;
-    public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
+    // --- NETWORKED STATE ---
+    // All game state is now server-authoritative.
+    private NetworkVariable<float> healthPoints = new NetworkVariable<float>(0,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-
-
-    NetworkVariable<bool> hasHitShield = new NetworkVariable<bool>(false,
-    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
-
-    NetworkVariable<float> healthPoints = new NetworkVariable<float>(0,
-    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
-
-    protected NetworkVariable<bool> isSpellActive = new NetworkVariable<bool>(false,
-    NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
-
-
-    private float spellLifetimeTimer = 0f;
-    private float spellLifetimeDuration = 0f;
-    private bool spellLifetimeActive = false;
+    private NetworkVariable<bool> isSpellActive = new NetworkVariable<bool>(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public NetworkVariable<FixedString32Bytes> parryLetters = new NetworkVariable<FixedString32Bytes>(default,
-  NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    public NetworkVariable<FixedString32Bytes> ParryLetters
-    {
-        get { return parryLetters; }
-        set { parryLetters = value; }
-    }
-
-
-    protected float checkRadius = 2f;    // Match your trigger size
-    protected LayerMask triggerLayer;    // Layer for the kill trigger
-
-
-    /// <summary>
-    ///  1- Lifetime ----------------------------- Time until the spell is destroyed
-    ///  2- Activation Delay - Optional ---------- Time before the spell effect is activated after casting 
-    ///  3- Deactivation Delay - Optional -------- Time before the spell effect is deactivated after casting
-    ///  4- Player Hit --------------------------- Handles emitting the payload
-    ///  5- Spell To Player Interaction handler -- Handles the player hit check if shield is active and handle damage application
-    ///  6- Spell To Spell Interaction handler --- Handles the spell to spell interaction check and handles damage application
-    ///  >> Currently utilizes the individual script for each spell, to use an IInterface instead <<<<<<<<<<<<<<<<<< TO DO 
-    ///  7- Handle if hit player active shield --- Handles the interaction with the active shield and redirects damage to it
-    ///  8- Handle destroy spell ----------------- Handles the spell destruction logic
-    /// </summary>
-
-    /// >>>> IMPORTANT <<<<
-    /// TO DO: This class should only define methods that are used by spells but are thereafter used and implemented by class and spell scripts
-    /// >>>> IMPORTANT <<<< 
-
-
-    private void Start()
-    {
-        if (rb != null)
-        {
-            rb = GetComponent<Rigidbody>();
-            rb.isKinematic = false;
-            rb.useGravity = false;
-        }
-
-    }
-
-
-
+    // --- SERVER-ONLY VARIABLES ---
+    private float spellLifetimeTimer = 0f;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
 
-        //StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
-        if (SpellDataScriptableObject)
+        // It's good practice to get the Rigidbody reference here in the base class.
+        rb = GetComponent<Rigidbody>();
+
+        if (IsServer)
         {
-            StartLifeTime(SpellDataScriptableObject.spellDuration, this.gameObject);
-
-        } else
-        {
-            Debug.LogError("SpellDataScriptableObject is not assigned in " + gameObject.name);
-        }
-
-        // If the spell has a health value greater than 0, set the healthPoints variable
-        // This is used to apply damage to the spell itself and handle it's (delayed) destruction
-        if (SpellDataScriptableObject.health > 0)
-        {
-            healthPoints.Value = SpellDataScriptableObject.health;
-        }
-
-        if (SpellDataScriptableObject.spellActivationDelay > 0)
-        { 
-            SpellActivationDelay(); 
-        }
-
-
-        //if (spellsExplosionAR == null)
-        //{
-        //    // Replace the line causing the error with the following code:
-        //    spellsExplosionAR.LoadAssetAsync("Assets/Scripts/Player/KotsSpellCasting/Spells/Charm/Explosive/Explosion.prefab").Completed += ;
-
-        //    Debug.LogFormat($"<color=orange>Spells Explosion GameObject loaded: {spellsExplosionGO}</color>");
-        //}
-
-
-        // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
-        // {
-        //     StartCoroutine(SpellDeactivation());
-        // }
-    }
-
-
-    public override void OnNetworkDespawn()
-    {
-        base.OnNetworkDespawn();
-
-        // Unsubscribe from the player hit event // To remember to do this where applicable 
-        //playerHitEvent -= EmitPayload;
-        Debug.LogFormat("<color=orange>Spell despawned</color>", gameObject.name);
-    }
-
-
-    protected void SpellActivationDelay()
-    {
-        if (SpellDataScriptableObject.spellActivationDelay > 0)
-        {
-            gameObject.GetComponent<Collider>().enabled = false;
-            StartCoroutine(ActivationDelay());
-        }
-        else
-        {
-            ActivateSpell();
-        }
-    }
-
-
-
-    IEnumerator ActivationDelay()
-    {
-        // Wait for the specified activation delay
-        yield return new WaitForSeconds(SpellDataScriptableObject.spellActivationDelay);
-
-        // Activate the spell
-        ActivateSpell();
-    }
-
-
-    protected void DeactivateSpell()
-    {
-        // Logic to deactivate the spell
-        if (gameObject.GetComponent<Collider>() != null)
-        {
-            gameObject.GetComponent<Collider>().enabled = false;
-            isSpellActive.Value = false;
-        }
-    }
-
-
-    protected void ActivateSpell()
-    {
-        // Logic to activate the spell
-        if (gameObject.GetComponent<Collider>() != null)
-        {
-            gameObject.GetComponent<Collider>().enabled = true;
-            isSpellActive.Value = true;
-        }
-
-    }
-
-
-
-    public void SpellDeactivationDelay(Collider colliderToDeactivate = null)
-    {
-        //Debug.LogFormat("<color=orange>111SpellDeactivationDelay called with null collider</color>");
-
-        if (colliderToDeactivate == null)
-        {
-            //Debug.LogFormat("<color=orange>SpellDeactivationDelay called with null collider</color>");
-            colliderToDeactivate = gameObject.GetComponent<Collider>();
-        }
-        else
-        {
-            //Debug.LogFormat("<color=orange>SpellDeactivationDelay called with collider: {0}</color>", colliderToDeactivate.name);
-            StartCoroutine(DeactivationDelay(colliderToDeactivate));
-        }
-
-        StartCoroutine(DeactivationDelay(colliderToDeactivate));
-    }
-
-    
-    IEnumerator DeactivationDelay(Collider colliderToDeactivate)
-    {
-        // Wait for the specified deactivation delay
-        yield return new WaitForSeconds(SpellDataScriptableObject.spellTimeBeforeDeactivation);
-
-        // Deactivate the spell
-        DeactivateSpell(colliderToDeactivate);
-    }
-
-
-
-    void DeactivateSpell(Collider colliderToDeactivate)
-    {
-        colliderToDeactivate.enabled = false;
-        isSpellActive.Value = false;
-    }
-
-    //void ApplyDamageToSpell()
-    //{
-    //    healthPoints.Value -= damage;
-    //    Debug.LogFormat($"<color=orange>armorPoints: {healthPoints}</color>");
-
-    //    if (healthPoints.Value <= 0)
-    //    {
-    //        // DestroyBarrierRpc();
-    //        DestroySpellRpc();
-    //    }
-    //}
-
-
-
-
-
-
-
-    public virtual void PlayerIsHit(GameObject other)
-    {
-        // Get the NetworkObject ID of the player that was hit
-        ulong targetNetworkObjectId = other.GetComponent<NetworkObject>().NetworkObjectId;
-
-        // Handle spell interaction with player
-        ApplyDamageToPlayerClientRpc(targetNetworkObjectId);
-    }
-
-
-
-    // Emits a client rpc payload to all players that is then locally digested to invoke associated methods
-    [Rpc(SendTo.Everyone)]
-    void ApplyDamageToPlayerClientRpc(ulong targetNetworkObjectId)
-    {
-        // OPTIMIZE BELOW
-        // Assign the values to the payload to be sent with the event emission upon hitting the player
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out NetworkObject netObj))
-        {
-            GameObject other = netObj.gameObject;
-
-            // The ID of the player who cast THIS spell
-            ulong theAttackerId = this.OwnerClientId;
-
-            // The ID of the player that was HIT
-            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-            // Prevent self-damage
-            if (theAttackerId == theVictimId) return;
-
-            PlayerHitPayload spellPayload = new PlayerHitPayload
-            (
-                this.gameObject.GetInstanceID(),
-                 theVictimId,
-                theAttackerId,
-                spellDataScriptableObject.element.ToString(),
-                spellDataScriptableObject.incapacitationName,
-                spellDataScriptableObject.incapacitationDuration,
-                spellDataScriptableObject.visionImpairmentType,
-                spellDataScriptableObject.visionImpairmentDuration,
-                spellDataScriptableObject.directDamageAmount,
-                spellDataScriptableObject.damageOverTimeAmount,
-                spellDataScriptableObject.damageOverTimeDuration,
-                spellDataScriptableObject.healAmount,
-                spellDataScriptableObject.healOverTimeAmount,
-                spellDataScriptableObject.spellAttribute,
-                spellDataScriptableObject.pushback
-            );
-
-            EmitPayload(spellPayload);
-        }
-    }
-
-
-
-
-    void EmitPayload(PlayerHitPayload spellPayloadParam)
-    {
-        playerHitEvent?.Invoke(spellPayloadParam);
-    }
-
-
-    // Dispel destorys the other gameObject no matter its health points
-    protected void Dispel(Collider other)
-    {
-        if (!other.gameObject.name.Contains("Projectile)"))
-        {
-            //Debug.LogFormat($"<color=blue>!!!!!!!!!!!!!! DISPEL {other.gameObject.name}</color>");
-            DestroyOtherSpell(other);
-        }
-    }
-
-
-    void DestroyOtherSpell(Collider colliderHit)
-    {
-        if (colliderHit.GetComponent<K_Spell>())
-        {
-            //Debug.LogFormat($"<color=blue>11111111!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
-
-            colliderHit.GetComponent<K_Spell>().DestroySpell(colliderHit.gameObject);
-        }
-        else if (colliderHit.GetComponent<SpellsClass>())
-        {
-            //Debug.LogFormat($"<color=blue>22222222!!!!!!!!!!!!!! DISPEL {colliderHit.gameObject.name}</color>");
-
-            DestroySpell(colliderHit.gameObject);
-        }
-    }
-
-
-
-    public void HandleAllInteractions(Collider colliderHit)
-    {
-        HandleSpellToSpellInteractions(colliderHit);
-        HandleSpellToPlayerInteractions(colliderHit);
-
-        // DestroyOnLayerImpact(colliderHit); 
-    }
-
-    //serverRPC
-    //get the local health of the player involved
-    //validate that the player health is similar to what is saved on the server
-    //player health = 80
-    //clientRPC get health >> is local health == server health
-
-    public bool HandleIfPlayerHasActiveShield(GameObject other)
-    {
-        //if (other.gameObject.CompareTag("Player"))
-        //{
-        if (!other.CompareTag("Player")) return false;
-
-            if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+            if (SpellDataScriptableObject != null)
             {
-                //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+                // The server is in charge of the spell's lifetime.
+                spellLifetimeTimer = SpellDataScriptableObject.spellDuration;
 
-                // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-                other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+                if (SpellDataScriptableObject.health > 0)
+                {
+                    healthPoints.Value = SpellDataScriptableObject.health;
+                }
 
-                hasHitShield.Value = true;
-
-            // What?
-            if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-                DestroySpell(gameObject);
-
-
-                return true;
+                // The server controls when the spell becomes active.
+                if (SpellDataScriptableObject.spellActivationDelay > 0)
+                {
+                    StartCoroutine(ActivationDelayRoutine());
+                }
+                else
+                {
+                    ActivateSpell();
+                }
             }
             else
             {
-                return false;
+                Debug.LogError("SpellDataScriptableObject is not assigned in " + gameObject.name, this);
             }
-        //}
-
-        //// If shield is detected redirect damage to it
-        //// And DO NOT proceed to apply damage to the related player
-        //if (other.CompareTag("ActiveShield"))
-        //{
-        //    Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
-
-        //    // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-        //    other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-
-        //    hasHitShield.Value = true;
-
-        //    // What?
-        //    if (spellDataScriptableObject.spellType.ToString() == "Projectile")
-        //        DestroySpellRpc();
-
-
-        //    return true;
-        //} else
-        //{
-        //    return false;
-        //}
-
+        }
     }
 
+    public virtual void FixedUpdate()
+    {
+        // The server handles the lifetime timer AND the max-scale destruction
+        if (IsServer)
+        {
+            if (!IsSpawned) return;
+
+            // The server ticks down the lifetime and destroys the spell when it expires.
+            if (spellLifetimeTimer > 0)
+            {
+                spellLifetimeTimer -= Time.fixedDeltaTime;
+                if (spellLifetimeTimer <= 0)
+                {
+                    DestroySpell(gameObject);
+                }
+            }
+
+            // Server checks if the spell has reached max scale
+            if (spellDataScriptableObject.maxScale > 0 && transform.localScale.x >= spellDataScriptableObject.maxScale)
+            {
+                DestroySpell(gameObject);
+            }
+        }
+    }
 
     public bool IsParriable()
     {
         return spellDataScriptableObject != null && spellDataScriptableObject.isParriable;
     }
 
-
-    void DestroyOnLayerImpact(Collider colliderHit)
+    // Server is the only one to process collisions.
+    public virtual void OnTriggerEnter(Collider other)
     {
-        if (colliderHit.gameObject.layer == 7)
-        {
-            if (IsSpawned)
-            {
-                Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
-                DestroySpell(gameObject);
-            }
-        }
+        if (!IsServer) return;
+        HandleCollision(other);
     }
 
-
-
-    void HandleSpellToPlayerInteractions(Collider colliderHit)
+    // This is now the single, authoritative entry point for all collision logic.
+    protected virtual void HandleCollision(Collider colliderHit)
     {
-        //.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
+        if (!IsServer) return;
 
-        if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
+        Debug.Log($"[Server] Spell owned by [{OwnerClientId}] collided with '{colliderHit.name}'.");
 
-        // Check for player hit
+        // 1. Check for self-hit and ignore
+        if (colliderHit.TryGetComponent<NetworkObject>(out var hitNetObj))
+        {
+            // It's a networked object. Let's check the owners.
+            Debug.Log($"[Server] Hit object '{hitNetObj.name}' is owned by ClientId [{hitNetObj.OwnerClientId}]. This spell is owned by ClientId [{this.OwnerClientId}].");
+
+            // If the object we hit is owned by the same person who owns this spell...
+            if (hitNetObj != null && hitNetObj.OwnerClientId == this.OwnerClientId)
+            {
+                Debug.LogWarning($"[Server] SELF-HIT DETECTED. Ignoring collision.");
+                return;
+            }
+        }
+        else {
+            Debug.Log($"[Server] Hit object '{colliderHit.name}' is not a networked object (it has no NetworkObject component).");
+        }
+
+        // 2. Check if we hit a player
         if (colliderHit.CompareTag("Player"))
         {
-            //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
-
-            // If player does not have active shield, handle the player hit
-            PlayerIsHit(colliderHit.gameObject);
-
-            //Debug.LogFormat($"<color=purple>1 SPELLS CLASS: ApplyForce</color>");
-            if (SpellDataScriptableObject.pushForce > 0)
+            // 3. Get their PlayerHealth component
+            if (colliderHit.TryGetComponent<PlayerHealth>(out PlayerHealth playerHealth))
             {
-                //Debug.LogFormat($"<color=purple>2 SPELLS CLASS: ApplyForce</color>");
-                colliderHit.gameObject.GetComponent<Pushback>().ApplyForce(transform.forward, SpellDataScriptableObject.pushForce);
+                // Get the status effect component
+                if (colliderHit.TryGetComponent<PlayerStatusEffects>(out var status) && status.HasEffect(EffectType.Shield))
+                {
+                    // Logic to damage the shield instead of the player would go here.
+                    Debug.Log("Spell hit a shielded player.");
+                    // For now, we'll just stop the projectile.
+                    // You could add logic here to damage the shield object itself.
+                }
+                else
+                {
+                    // If there's no shield, deal damage directly to the player.
+                    float damage = SpellDataScriptableObject.directDamageAmount;
+                    playerHealth.TakeDamage(damage, this.OwnerClientId);
+                }
             }
         }
 
-
-
-        // Check if the target is a spell instead 
-        if (colliderHit.CompareTag("Spell"))
+        if (SpellDataScriptableObject.isExplosive)
         {
-            //Handle the spell to spell interaction
-            HandleSpellToSpellInteractions(colliderHit);
+            // If it is, spawn the secondary effect (the explosion).
+            // The 'childPrefab' from your K_SpellData should be the explosion effect.
+            SpawnEffectAtTargetLocation(transform.position);
         }
 
-
-
-        // DO NOT DELETE
-        // If the collider of the other gameObjecy belongs to layer 7 (layer of gameObjects that destroy a projectile)
-        //>>destroy the projectile
-        //if (colliderHit.gameObject.layer == 7)
-        //{
-        //    if (IsSpawned)
-        //    {
-        //        Debug.LogFormat("<color=orange> >>> PROJECTILE DESTROY BY >>> (" + colliderHit.name + ")</color>");
-        //        DestroySpellRpc();
-        //    }
-        //}
-    }
-
-    // DO NOT DELETE
-    // This is to be implemented as the mandatory method that handles spells interactions
-    //implemented on each different spell type and further subdivided by element
-    //public abstract void HandleSpellToSpellInteraction(Collider colliderHit);
-
-    public void HandleSpellToSpellInteractions(Collider colliderHit)
-    {
-        var ISpellComponent = colliderHit.GetComponent<ISpell>();
-        var ISpellComponentInParent = colliderHit.GetComponentInParent<ISpell>();
-        //bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
-        //bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
-
-        //Debug.LogFormat("<color=brown> Handle Spell To Spell Interactions (" + colliderHit.name + ")</color>");
-
-        // Collider objectHit = colliderHit;
-        // If the other object that this gameObject has interacted with is a spell
-        //>>handle the behavior of the spell interaction
-        if (colliderHit.CompareTag("Spell"))
+        // 5. Destroy the spell if it's supposed to
+        if (SpellDataScriptableObject.destroyOnCollision)
         {
-            //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
-
-            // && colliderHit.GetComponent<ProjectileSpell>().Spell
-
-            //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
-
-
-            // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
-            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
-            {
-                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
-
-                DestroyOtherSpell(colliderHit);
-            }
-
-
-
-            if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
-            {
-                //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
-
-                // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
-
-                // IF colliderHit.GetComponent<IDamageable>() != null
-                if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
-                {
-                    //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
-
-                    colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
-
-                }
-                if (!gameObject.name.Contains("Explosion"))
-                {
-                    DestroySpell(gameObject);
-                }
-            }
-            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
-            {
-                //Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
-
-                InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
-
-                if (invocationSpell.SpellDataScriptableObject.health > 1)
-                {
-                    invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
-
-                if (!gameObject.name.Contains("Explosion"))
-                {
-                    DestroySpell(gameObject);
-                }
-
-
-            }
-            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
-            {
-                //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
-
-                AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
-
-                if (aoeSpell.SpellDataScriptableObject.health > 1)
-                {
-                    aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
-
-                //if (!gameObject.name.Contains("Explosion"))
-                //{
-                //    DestroySpellRpc();
-                //}
-
-                if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
-                {
-                    DestroySpell(gameObject);
-                }
-            }
+            Debug.Log($"[Server] DESTROYING SPELL due to `destroyOnCollision` being true after hitting '{colliderHit.name}'.");
+            DestroySpell(gameObject);
         }
     }
 
-
-    //public void ApplyDamage(float one)
-    //{
-
-    //}
-
-
-    public virtual void FixedUpdate()
+    // Server-side logic for activating the spell's collider after a delay
+    private IEnumerator ActivationDelayRoutine()
     {
-        if (!IsSpawned) return;
-
-        if (spellLifetimeActive)
-        {
-            spellLifetimeTimer += Time.fixedDeltaTime;
-
-            if (spellLifetimeTimer >= spellLifetimeDuration)
-            {
-                spellLifetimeActive = false;
-                DestroySpell(gameObject);
-            }
-        }
-
-
+        GetComponentInChildren<Collider>().enabled = false;
+        yield return new WaitForSeconds(SpellDataScriptableObject.spellActivationDelay);
+        ActivateSpell();
     }
 
-
-    #region Spell Duration handling and destruction
-    public IEnumerator LifeTime(float duration, GameObject spellObj)
+    private void ActivateSpell()
     {
-        gameObjectToDestroy = spellObj;
-
-        //Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} seconds</color>", spellObj.name, duration);
-
-        yield return new WaitForSeconds(duration);
-        DestroySpell(gameObject);
+        GetComponentInChildren<Collider>().enabled = true;
+        isSpellActive.Value = true;
     }
 
-
-    public void StartLifeTime(float duration, GameObject spellObj)
-    {
-        gameObjectToDestroy = spellObj;
-        spellLifetimeDuration = duration;
-        spellLifetimeTimer = 0f;
-        spellLifetimeActive = true;
-
-        //Debug.LogFormat($"<color=orange>Spell {gameObjectToDestroy} will be destroyed in {duration} physics seconds</color>", spellObj.name, duration);
-    }
-
-
-
+    // This is the robust, safe method for destroying any spell.
     public void DestroySpell(GameObject spellObj)
     {
+        if (spellObj == null) return;
+
         NetworkObject netObj = spellObj.GetComponent<NetworkObject>();
         if (netObj != null && netObj.IsSpawned)
         {
-            DestroySpellRpc(netObj);
+            // Only the server can request a despawn
+            if (IsServer)
+            {
+                DestroySpellServerRpc(netObj);
+            }
         }
     }
 
-
-
-
-    [Rpc(SendTo.Server)]
-    public void DestroySpellRpc(NetworkObjectReference netObjRef)
+    [ServerRpc(RequireOwnership = false)] // Allow clients to request destruction, but server executes it
+    private void DestroySpellServerRpc(NetworkObjectReference netObjRef)
     {
-        // Try to get the NetworkObject from the reference passed as a parameter.
         if (netObjRef.TryGet(out NetworkObject netObjToDestroy))
         {
-            // Check if the object still exists and is spawned before trying to despawn it.
             if (netObjToDestroy != null && netObjToDestroy.IsSpawned)
             {
-                Debug.LogFormat($"<color=orange>Server is despawning {netObjToDestroy.name}</color>");
                 netObjToDestroy.Despawn();
             }
-            else
-            {
-                Debug.LogWarning($"Server received DestroySpellRpc, but the object was already destroyed or despawned.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Server could not find the NetworkObject from the reference in DestroySpellRpc.");
         }
     }
-    #endregion
 
-    #region Only REFERENCABLE Charm Methods 
     protected void GradualScale(float scaleSpeed, float maxScale)
     {
-        //float scaleSpeed = 5f;
         float deltaScale = scaleSpeed * Time.fixedDeltaTime;
-        //float maxScale = 1.4f;
-
-        // Only increase if current scale is less than maxScale
         if (transform.localScale.x < maxScale)
         {
             float newScale = Mathf.Min(transform.localScale.x + deltaScale, maxScale);
             transform.localScale = new Vector3(newScale, newScale, newScale);
-        } else
-        {
-            // After the gameObject/ sphere has reached max size, destroy the gameObject
-            DestroySpell(gameObject);
         }
     }
-    #endregion
+
+    private void SpawnEffectAtTargetLocation(Vector3 position)
+    {
+        // This logic should only run on the server.
+        if (!IsServer) return;
+
+        // Make sure there is a child prefab assigned in the SpellData.
+        if (SpellDataScriptableObject.childPrefab == null)
+        {
+            Debug.LogWarning($"Trying to spawn a child effect for '{SpellDataScriptableObject.name}', but no child prefab is assigned.", this);
+            return;
+        }
+
+        // Instantiate the effect locally on the server.
+        GameObject effectInstance = Instantiate(SpellDataScriptableObject.childPrefab, position, Quaternion.identity);
+
+        // Get its NetworkObject to spawn it on the network for all clients to see.
+        if (effectInstance.TryGetComponent<NetworkObject>(out var netObj))
+        {
+            netObj.Spawn();
+        }
+        else
+        {
+            Debug.LogError($"The child prefab '{SpellDataScriptableObject.childPrefab.name}' is missing a NetworkObject component!", this);
+        }
+    }
 }

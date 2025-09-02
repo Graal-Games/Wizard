@@ -51,19 +51,6 @@ public class CustomPassActivationWithGameObject : MonoBehaviour
 
     float duration;
 
-
-    //public void GetPlayer(Transform playerReference)
-    //{
-    //    player = playerReference;
-
-    //    if (player != null)
-    //    {
-    //        transform.SetParent(player, true);
-    //    }
-
-    //    StartShader();
-    //}
-
     void Start()
     {
         fullScreenShader.SetFloat(DistortionShader, deactivateDistortion);
@@ -79,18 +66,14 @@ public class CustomPassActivationWithGameObject : MonoBehaviour
         shadersMap.Add("WaterAndDistortion", ActivateWaterAndDistortionShader);
 
         parentCollider = GetComponentInParent<Collider>();
-        //newPlayerBehavior = gameObject.GetComponentInParent<NewPlayerBehavior>();
-
-        NewPlayerBehavior.shaderActivation += HandleShaderActivation;
 
         Debug.Log("Custom pass Collider: " + parentCollider);
     }
 
     // This takes in the name of the shader to activate
-    public void HandleShaderActivation(ulong clientId, string shaderKey, float seconds)
+    public void HandleShaderActivation(string shaderKey, float seconds)
     {
         Action shaderValue;
-
         duration = seconds;
 
         // Get the method associated with the key passed (name of shader)

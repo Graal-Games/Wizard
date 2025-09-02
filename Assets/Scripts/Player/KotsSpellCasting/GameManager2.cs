@@ -1,126 +1,74 @@
-using DotTimers;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using static Beam;
 
+// This script should be on a GameObject in your scene that also has a NetworkObject component.
 public class GameManager2 : NetworkBehaviour
 {
-    //HealthBar _healthBarUi;
-    NetworkObject _networkObject;
-
+    // This dictionary will exist ONLY ON THE SERVER.
+    // It will store information about each connected player.
     private Dictionary<ulong, PlayerClass> playersInfo = new Dictionary<ulong, PlayerClass>();
 
-    private Dictionary<int, DefaultDotTimer> dotTimers = new Dictionary<int, DefaultDotTimer>();
-
-    PlayerClass playerClass;
-    //public class NetworkDictionary<ulong, PlayerClass> playerInfoNetDict = new NetworkDictionary<ulong, PlayerClass>();
-    //bool firstTime = true;
-
-    private void OnEnable()
+    public override void OnNetworkSpawn()
     {
-        Debug.Log($"****************************************OnEnable!");
-        _networkObject = this.GetComponent<NetworkObject>();
-        // Specifies the method to be used that will handle the player spawn event, which sends a payload upon player connection
-        NewPlayerBehavior.playerHasSpawnedEvent += AccessTest;
-
-        NewPlayerBehavior.playerHasSpawnedEvent2 += AccessTest2;
-
-        K_Spell.playerHitEvent += HandleSpellInflicted;
-            //.beamHitPlayer += BeamHitPlayer;
-    }
-
-    private void Start()
-    {
-        Debug.Log($"****************************************StartGameMAnager!");
-        //_healthBarUi = StatsUi.Instance.GetComponent<StatsUi>().GetComponentInChildren<HealthBar>();
-        //_healthBarUi.SetMaxHealth(100f);
-
-    }
-
-
-    void Update()
-    {
-        foreach (var kvp in dotTimers)
+        // This script should only run on the server.
+        if (!IsServer)
         {
-            DefaultDotTimer dotTimer = kvp.Value;
+            this.enabled = false;
+            return;
+        }
 
-            // These two variables are controlled through on trigger enter and exit
-            //if (dotTimer.IsInteractingWithSpell || dotTimer.IsDotPersistent) // In the original code, the player carried with him both the direct dot damage as well as teh persistent dot damage.
-            if (dotTimer.IsInteractingWithSpell || dotTimer.IsDotPersistent) // Is DoT persistent is important to have to apply damage only when the player is no longer in contact with the 
+        // Subscribe to the reliable NetworkManager callbacks.
+        NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
+        NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnect;
+    }
+
+    // This method is called on the SERVER whenever a new client connects.
+    private void HandleClientConnected(ulong clientId)
+    {
+        Debug.Log($"SERVER: New player connected with ClientId: {clientId}");
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
+        {
+            // Get components from the newly spawned player object
+            var playerHealth = client.PlayerObject.GetComponent<PlayerHealth>();
+            var playerBehavior = client.PlayerObject.GetComponent<NewPlayerBehavior>();
+
+            if (playerHealth != null && playerBehavior != null)
             {
-                // player reference then apply damage: ApplyDotDamage();
+                // Now you can create your data container using the 'new' keyword
+                // and pass in the relevant data.
+                PlayerClass newPlayerInfo = new PlayerClass(clientId, $"Player {clientId}");
+
+                // Add the data object to your server-side dictionary
+                playersInfo.Add(clientId, newPlayerInfo);
+
+                Debug.Log($"SERVER: Registered new player {clientId} in the game manager.");
             }
         }
     }
 
-    // This event is emitted by spells (curently the projectile)
-    void HandleSpellInflicted(PlayerHitPayload emittedPlayerHitPayload)
+    // This method is called on the SERVER whenever a client disconnects.
+    private void HandleClientDisconnect(ulong clientId)
     {
-        Debug.Log("Handling spell inflicted");
-    }
+        Debug.Log($"SERVER: Player disconnected with ClientId: {clientId}");
 
-    // SPLIT THE GAME MANAGER INTO TWO
-
-    // 1 --- LOCAL CONTROLS AND FUNCTIONALITIES
-    /* 
-        Calculations are made locally (then sent to the server where they will be validated)
-        Player infor and stats are saved immediately to a locally saved player class (then sent to the server where they will be validated)     
-            - The Ui is updated immediately: Health bar
-            - The DR is updated immediately
-
-    */
-
-    // 2 --- SERVER UPDATE AND (later) INFORMATION VALIDATION
-    /*
-        The server calls are made with functions that validate the change of information 
-
-    */
-
-
-    void AccessTest2(ulong id, PlayerClass playerClass)
-    {
-        Debug.Log($"****************************************OnAccessTest2!");
-        SaveOnServerRpc(id);
-    }
-
-
-    // This is called whenever a player connects to the game
-    void AccessTest(ulong clientId, NetworkObjectReference playerObjRef, NetworkBehaviour playerBehaviorNetScript, NetworkObject netObj)
-    {
-        Debug.Log($"****************************************OnAccessTest!");
-
-        // Create a player class instance here with the information passed through from the player behavior script event
-
-        /* ERROR WHEN CREATING PLAYER CLASS EHRE
-         * You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  
-         * MonoBehaviours can only be added using AddComponent(). 
-         * Alternatively, your script can inherit from ScriptableObject or no base class at all
-         */
-
-        // playerClass = new PlayerClass(playerObjRef, playerBehaviorNetScript, netObj);
-
-
-        // Save it to a dictionary on the server
-        SaveOnServerRpc(clientId);
-
-    }
-
-    [Rpc(SendTo.Server)]
-    void SaveOnServerRpc(ulong clientId)
-    {
-        playersInfo.Add(clientId, playerClass);
-
-        //ForLoopIt();
-    }
-
-    private void ForLoopIt()
-    {
-        foreach (var player in playersInfo.Keys)
+        if (playersInfo.ContainsKey(clientId))
         {
-            Debug.LogFormat($"<color=orange>{player}</color>");
+            playersInfo.Remove(clientId);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        // It's good practice to unsubscribe from events when this object is destroyed.
+        if (IsServer)
+        {
+            if (NetworkManager.Singleton != null)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnect;
+            }
         }
     }
 }

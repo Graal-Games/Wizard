@@ -117,7 +117,6 @@ public class PlayerBehavior : NetworkBehaviour
         float lastTime = Time.time;
         g_localId = NetworkManager.Singleton.LocalClientId;
 
-        health.OnValueChanged += OnHealthChanged;
         localSphereShieldActive.OnValueChanged += DamageBehavior;
         
         // IMPORTANT
@@ -164,23 +163,7 @@ public class PlayerBehavior : NetworkBehaviour
             isAlive = true;
         }
 
-        // Set player spawn point
-        SpawnPlayerAtLocation();
-
-    }
-
-
-
-    void SpawnPlayerAtLocation()
-    {
-        if (IsClient && IsOwner)
-        {
-            Debug.Log($"****************************************SpawnPlayerAtLocation!");
-            transform.position = SpawnManager.Instance.AssignSpawnPoint(OwnerClientId);
-            transform.rotation = SpawnManager.Instance.AssignSpawnRotation(OwnerClientId);
-
-            PlayerLook.Instance.GetPlayer(playerTransform);
-        }
+  
     }
 
 
@@ -476,32 +459,6 @@ public class PlayerBehavior : NetworkBehaviour
 
         removeKeyReferencesFromReferenceList.Clear();
         isRemovingDotSpellsFromList = false;
-    }
-
-
-
-    // When the health changes send Log
-    void OnHealthChanged(float previous, float current)
-    {
-        if (current <= 0f)
-        {
-            // (**) Dip screen to black and return the player to the main menue scene
-            //Debug.Log($"Player {OwnerClientId} has lost");
-
-            // - do not delete - Set to false when implementing full game loop
-            //isAlive = false;
-
-            health.Value = 100f;
-            SpawnPlayerAtLocation();
-            // Activate respawn button
-            // respawn
-
-            // Despawn the player
-            // Disconnect from relay
-            // SceneManager.LoadSceneAsync("Main Menu");
-            
-        }
-        
     }
 
 

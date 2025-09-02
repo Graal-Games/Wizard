@@ -168,23 +168,6 @@ public class K_SpellLauncher : NetworkBehaviour
     bool castModeMoveSpeedSlow = true;
     bool castModeMoveSpeedReset = false;
 
-
-    // 2 keycode properties that hold the values for spell type and elemental transmutation
-    // Pressing G casts the last saved combination
-    // 
-
-
-
-    // SpellCastController 
-
-
-
-    // SpellCastManager 
-
-
-
-    // SpallUnlockManager
-
     public void Start()
     {
         //// PlayerBehavior itself????
@@ -694,7 +677,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 //localSpellInstances.Add(localSpellId, localSpellInstance);
 
                 //ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position, localSpellId);
-                ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position);
+                ProjectileSpawnServerRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position, true);
                 break;
             case "Sphere":
                 // A local instance of the sphere is created 
@@ -727,10 +710,10 @@ public class K_SpellLauncher : NetworkBehaviour
                 (Quaternion rotation, Vector3 position) = wandTipScript.GetAoeRotationAndPosition();
 
                 //HandleAoeFiring(rotation, position);
-                AoeSpawnRpc(sequenceToCast, rotation, position);
+                AoeSpawnServerRpc(sequenceToCast, rotation, position);
                 break;
             case "Barrier":
-                BarrierSpawnRpc(sequenceToCast, barrierPoint.transform.rotation, barrierPoint.transform.position);
+                BarrierSpawnServerRpc(sequenceToCast, barrierPoint.transform.rotation, barrierPoint.transform.position);
                 break;
             case "Invocation":
                 // Spawn 
@@ -742,7 +725,7 @@ public class K_SpellLauncher : NetworkBehaviour
                 break;
             case "Charm":
                 // dispellGO.SetActive(true);
-                ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position, true);
+                ProjectileSpawnServerRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position, true);
                 break;
             case "Conjured":
                 break;
@@ -862,49 +845,33 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
     [Rpc(SendTo.Server)]
-    void ProjectileSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, bool isWithOwnership = false)
+    void ProjectileSpawnServerRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, bool isWithOwnership = false, RpcParams rpcParams = default)
     {
-        Debug.Log($"SERVER executing ProjectileSpawnRpc for spell: '{spellSequenceParam}', NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
+        // 1. Log who sent the request
+        ulong senderClientId = rpcParams.Receive.SenderClientId;
+        Debug.Log($"<color=orange>[Server]</color> Received ProjectileSpawnServerRpc from ClientId: {senderClientId}");
+
+        // 2. Log what prefab is being spawned
+        Debug.Log($"<color=orange>[Server]</color> Attempting to spawn prefab for sequence: '{spellSequenceParam}'");
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
-
-        // Check if instantiation worked and where it is
-        if (spellInstance == null)
-        {
-            Debug.LogError("Instantiation failed! The prefab in the dictionary might be null.");
-            return;
-        }
-        Debug.Log($"SERVER: Instantiated '{spellInstance.name}' at position {position}.");
-
-
-
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-
-        if (netObj == null)
-        {
-            Debug.LogError($"CRITICAL: The prefab '{spellInstance.name}' is MISSING a NetworkObject component!");
-            Destroy(spellInstance); // Clean up the failed instance
-            return;
-        }
 
         if (isWithOwnership)
         {
-            netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
-            if (netObj.GetComponent<HealSelf>())
-            {
-                netObj.GetComponent<HealSelf>().HealTarget(OwnerClientId);
-            }
+            // 3. Log the ID being used for ownership
+            Debug.Log($"<color=orange>[Server]</color> Spawning with ownership for ClientId: {senderClientId}");
+            netObj.SpawnWithOwnership(senderClientId);
         }
         else
         {
+            Debug.Log($"<color=orange>[Server]</color> Spawning with SERVER ownership.");
             netObj.Spawn();
         }
 
-        // Check if the spawn was successful
         if (netObj.IsSpawned)
         {
-            Debug.Log($"SUCCESS: '{spellInstance.name}' was spawned successfully!");
-
+            Debug.Log($"<color=green>[Server] SUCCESS:</color> '{spellInstance.name}' spawned with OwnerClientId {netObj.OwnerClientId}");
 
             if (this.spellBuilder.GetIsSpellParriable(spellSequenceParam))
             {
@@ -914,7 +881,7 @@ public class K_SpellLauncher : NetworkBehaviour
         }
         else
         {
-            Debug.LogError($"FAILURE: Spawn() was called for '{spellInstance.name}' but IsSpawned is FALSE. Is the prefab in the Network Prefabs list?");
+            Debug.LogError($"<color=red>[Server] FAILURE:</color> Spawn() for '{spellInstance.name}' failed. Is it in the Network Prefabs list?");
         }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
@@ -932,18 +899,18 @@ public class K_SpellLauncher : NetworkBehaviour
     
     
     [Rpc(SendTo.Server)]
-    void BarrierSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position)
+    void BarrierSpawnServerRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, RpcParams rpcParams = default)
     {
-        Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
+        // Get the actual sender's ID
+        ulong ownerClientId = rpcParams.Receive.SenderClientId;
 
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
-
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        netObj.Spawn();
+        // Change Spawn() to SpawnWithOwnership()
+        netObj.SpawnWithOwnership(ownerClientId);
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
-
         ResetSpellSequence();
     }
 
@@ -951,16 +918,18 @@ public class K_SpellLauncher : NetworkBehaviour
 
     // Duplicated it because Sphere requires being parented and the AoE does not
     [Rpc(SendTo.Server)]
-    void AoeSpawnRpc(string spellSequenceParam, Quaternion rotation, Vector3 position)
+    void AoeSpawnServerRpc(string spellSequenceParam, Quaternion rotation, Vector3 position, RpcParams rpcParams = default)
     {
-        GameObject aoeInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
+        // Get the actual sender's ID
+        ulong ownerClientId = rpcParams.Receive.SenderClientId;
 
+        GameObject aoeInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
         NetworkObject netObj = aoeInstance.GetComponent<NetworkObject>();
 
-        netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
+        // Use the sender's ID for ownership
+        netObj.SpawnWithOwnership(ownerClientId);
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
-
         ResetSpellSequence();
     }
 
@@ -1110,31 +1079,13 @@ public class K_SpellLauncher : NetworkBehaviour
 
     private void ShowDynamicStartKeys()
     {
-        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys()</color>");
         HideAllDynamicNextKeys();
-
-
-        
-        foreach (string key in spellCastingUiKeysDictionary.Keys) {
-            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -2  spellCastingUiKeysDictionary.key = {key}</color>");
-        }
-
-        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -1  spellCastingUiKeysDictionary.Count = {spellCastingUiKeysDictionary.Count()}</color>");
-
         foreach (KeyCode key in K_SpellKeys.spellTypes)
         {
             
             string k = key.ToString();
-            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 0  key = {k}</color>");
             if (spellCastingUiKeysDictionary.ContainsKey(k))
             {
-                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 1</color>");
-
-                if ((isInDRLockMode || isInSpellChargingMode)) {
-                    Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 2 pero salta</color>");
-                }
-
-
                 var uiKey = spellCastingUiKeysDictionary[k];
                 // Only skip if DR or SpellCharging is currently active
                 if ((isInDRLockMode || isInSpellChargingMode) &&
@@ -1146,7 +1097,6 @@ public class K_SpellLauncher : NetworkBehaviour
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
-                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 3 sucesss</color>");
             }
         }
     }
@@ -1188,8 +1138,6 @@ public class K_SpellLauncher : NetworkBehaviour
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
 
-                Debug.LogFormat($"<color=orange>************** UpdateDynamicNextKeysUI  iteration valid </color>");
-
                 // Optional: set context-specific icon/label
                 var context = spellBuilder.GetNextKeyContextTag(spellSequence, key);
                 var uiHelper = uiKey.GetComponent<K_SpellKeyUI>();
@@ -1227,11 +1175,6 @@ public class K_SpellLauncher : NetworkBehaviour
     }
 
 
-    public void SetSpawnCenter(NetworkObject netObjParam)
-    {
-        Debug.Log("SETTING SPAWN CENTER 333333");
-        playerCenterNO = netObjParam;
-    }
 
 
     // TO DO: The status for DR for each spell category

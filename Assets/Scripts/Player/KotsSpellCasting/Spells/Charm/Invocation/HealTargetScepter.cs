@@ -1,148 +1,82 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
-using static K_SpellBuilder;
 
-// CURRENTLY HEALS ALL PLAYERS IN ITS TRIGGER. TO MAKE IT SO THAT ONLY THE FIRST PLAYER IN IT IS HEALED
-// NOT CURRENTLY A PRIORITY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 public class HealTargetScepter : SpellsClass
 {
+    // These variables will now only be used on the server.
     private float timer = 0f;
     private float interval = 3f;
+    private Dictionary<ulong, PlayerHealth> playersInTrigger = new Dictionary<ulong, PlayerHealth>();
 
-    GameObject player; // Reference to the player GameObject
-
-    Collider triggerZone;
-
-    // TO CHANGE THIS TO A NETWORK LIST
-    Dictionary<ulong, GameObject> playersInTrigger = new Dictionary<ulong, GameObject>();
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-
-        triggerZone = GetComponent<Collider>();
-
-        CheckIfPlayerInsideTrigger();
-    }
-
-    void OnDrawGizmos()
-    {
-        if (triggerZone != null)
-        {
-            // Use the same center and radius as your OverlapSphere
-            Vector3 center = triggerZone.bounds.center;
-            float radius = triggerZone.bounds.extents.magnitude;
-
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(center, radius);
-        }
-    }
-
-    void CheckIfPlayerInsideTrigger()
-    {
-        Collider[] colliders = Physics.OverlapSphere(triggerZone.bounds.center, triggerZone.bounds.extents.magnitude);
-
-        foreach (Collider collider in colliders) 
-        {
-            Debug.Log("colliders: " + collider);
-
-
-            //if (collider == null)
-            //{
-            //    Debug.Log("REMOVE DICT ENTRIES!");
-
-            //    // remove all entries inside the dictionary
-            //    playersInTrigger.Clear();
-            //}
-
-            //if (!playersInTrigger.ContainsKey(collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId))
-            //{
-            //    playersInTrigger.Remove(collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId);
-            //}
-
-            if (collider.gameObject.name.Contains("Player") && playersInTrigger.Count < 1)
-            {
-                ulong playerOwnerId = collider.GetComponent<NewPlayerBehavior>().OwnerClientId;
-
-                if (!playersInTrigger.TryGetValue(playerOwnerId, out GameObject playerGo))
-                {
-                    Debug.Log("Player is already inside the trigger on spawn!");
-                    playersInTrigger.Add(playerOwnerId, collider.gameObject);
-                    return;
-                }
-                //else
-                //{
-                //    Debug.Log("Player is already inside the trigger on spawn!");
-                //    playersInTrigger.Remove(playerOwnerId);
-                //    return;
-                //}
-            }
-        }
-        Debug.Log("Player is not inside the trigger on spawn.");
-    }
-
+    // --- All physics and game logic MUST run only on the server ---
     public override void FixedUpdate()
     {
+        // This script's logic should only run on the server.
+        if (!IsServer) return;
+
+        // Use the base class FixedUpdate for the IsSpawned check and lifetime timer.
         base.FixedUpdate();
 
         timer += Time.fixedDeltaTime;
 
         if (timer >= interval)
         {
-            // Your action here
-            Debug.Log("3 seconds have passed! Do something.");
+            timer = 0f; // Reset the timer
 
-            if (playersInTrigger.Count > 0)
+            // Heal every player currently in the trigger zone.
+            foreach (var playerHealth in playersInTrigger.Values)
             {
-                //CheckIfPlayerInsideTrigger();
-
-                if (playersInTrigger.Count == 0) return;
-
-                foreach (var entry in playersInTrigger)
+                // Check if the player object still exists before healing.
+                if (playerHealth != null)
                 {
-                    ulong clientId = entry.Key;
-                    GameObject player = entry.Value;
-
-                    Debug.Log($"Player {clientId} in trigger: {player.name}");
-
-                    if (player.TryGetComponent(out NewPlayerBehavior behavior))
-                    {
-                        behavior.Heal(SpellDataScriptableObject.healAmount);
-                    }
+                    // Call the authoritative TakeDamage method with a negative value.
+                    float healAmount = SpellDataScriptableObject.healAmount;
+                    playerHealth.TakeDamage(-healAmount, this.OwnerClientId);
                 }
             }
-
-            // Reset the timer
-            timer = 0f;
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    // OnTriggerEnter is a Unity message, so we guard it to only run on the server.
+    private void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"ENTERED trigger: {other.name}");
+        if (!IsServer) return;
 
-        ulong playerOwnerId = other.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId;
-
-        if (!playersInTrigger.ContainsKey(playerOwnerId))
+        if (other.CompareTag("Player"))
         {
-            playersInTrigger.Add(playerOwnerId, other.gameObject);
+            if (other.TryGetComponent<PlayerHealth>(out var playerHealth))
+            {
+                ulong playerOwnerId = playerHealth.OwnerClientId;
+
+                // Add the PlayerHealth component to our server-side list if it's not already there.
+                if (!playersInTrigger.ContainsKey(playerOwnerId))
+                {
+                    playersInTrigger.Add(playerOwnerId, playerHealth);
+                    Debug.Log($"SERVER: Player {playerOwnerId} entered heal zone.");
+                }
+            }
         }
     }
 
-    void OnTriggerExit(Collider other)
+    // OnTriggerExit is also a Unity message, so we guard it.
+    private void OnTriggerExit(Collider other)
     {
-        Debug.Log($"222222exited trigger: {other.name}");
+        if (!IsServer) return;
 
-        ulong playerOwnerId = other.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId;
-        //Debug.Log($"111111Player {playerOwnerId} exited trigger: {player.name}");
-
-        if (other.gameObject.name.Contains("Player"))
+        if (other.CompareTag("Player"))
         {
-            Debug.Log($"222222Player {playerOwnerId} exited trigger: {other.name}");
+            if (other.TryGetComponent<PlayerHealth>(out var playerHealth))
+            {
+                ulong playerOwnerId = playerHealth.OwnerClientId;
 
-            playersInTrigger.Remove(playerOwnerId);
+                // Remove the player from our list when they leave.
+                if (playersInTrigger.ContainsKey(playerOwnerId))
+                {
+                    playersInTrigger.Remove(playerOwnerId);
+                    Debug.Log($"SERVER: Player {playerOwnerId} exited heal zone.");
+                }
+            }
         }
     }
 }

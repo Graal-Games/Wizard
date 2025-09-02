@@ -24,6 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 104
+  maxScale: 0
   spellDuration: 15
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -51,4 +52,4 @@ MonoBehaviour:
   contextTag: Earth
   prefab: {fileID: 2626502478987842554, guid: fbc49fc8dbd267d488ea0a6c9f1946a0, type: 3}
   childPrefab: {fileID: 0}
-  isParriable: 1
+  isParriable: 0

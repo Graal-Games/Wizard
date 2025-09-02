@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3236635545437652085}
   - component: {fileID: 2213284870300469829}
   - component: {fileID: 2597276980462960132}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Projectile_Arcane
   m_TagString: Spell
   m_Icon: {fileID: 0}

@@ -8,6 +8,33 @@ public class SpawnManager : Singleton<SpawnManager>
     [SerializeField] GameObject P1Spawn;
     [SerializeField] GameObject P2Spawn;
 
+    private void Awake()
+    {
+        if (P1Spawn == null)
+        {
+            Debug.LogError("SpawnManager Error: P1Spawn has NOT been assigned in the Inspector!", this.gameObject);
+        }
+
+        if (P2Spawn == null)
+        {
+            Debug.LogError("SpawnManager Error: P2Spawn has NOT been assigned in the Inspector!", this.gameObject);
+        }
+    }
+
+    // We subscribe when the object is enabled
+    private void OnEnable()
+    {
+        GameEvents.OnRequestSpawnPoint += AssignSpawnPoint;
+        GameEvents.OnRequestSpawnRotation += AssignSpawnRotation;
+    }
+
+    // It's crucial to unsubscribe when the object is disabled or destroyed
+    private void OnDisable()
+    {
+        GameEvents.OnRequestSpawnPoint -= AssignSpawnPoint;
+        GameEvents.OnRequestSpawnRotation -= AssignSpawnRotation;
+    }
+
     public Vector3 AssignSpawnPoint(ulong clientId)
     {
         if (clientId == 0)

@@ -43,6 +43,8 @@ public class K_SpellData : ScriptableObject
 
     [Tooltip("The speed at wich the spell changes position or size")]
     [Min(0f)] public float moveSpeed;
+    [Tooltip("Allows you to create spells of different sizes without changing any code")]
+    [Min(0f)] public float maxScale;
 
     [Tooltip("The duration in seconds of the spell. Set to 0 for infinite duration")]
     [Min(0f)] public float spellDuration;

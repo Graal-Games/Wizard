@@ -5,33 +5,8 @@ using UnityEngine;
 
 public class ProjectileExplosive : ProjectileClass
 {
-    NetworkVariable<bool> isHit = new NetworkVariable<bool>(false);
-
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        _isExplodeOnHit.Value = true;
-        // DeactivateSpell(); // Deactivate the spell initially
-    }
-
-    //public override void FixedUpdate()
-    //{
-    //    base.FixedUpdate();
-
-    //    // Expand the projectile's collider over time // Explosive effect
-    //    if (isHit.Value == true)
-    //    {
-    //        // The variables used below to be passed from the Scriptable Object itself
-    //        // Which are properties to be defined under or within an 'Explosive' or 'Nova' field
-    //        GradualScale(5, 1.2f);
-    //    }
-    //}
-
-
-
-    //public void OnTriggerEnter(Collider other)
-    //{
-        
-    //}
+    // This class is now just a "marker" component.
+    // All of its unique explosive behavior is defined in its K_SpellData asset
+    // and handled by the base ProjectileClass.
+    // No extra code is needed here.
 }

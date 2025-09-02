@@ -24,6 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 117
+  maxScale: 0
   spellDuration: 15
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -51,4 +52,4 @@ MonoBehaviour:
   contextTag: Water
   prefab: {fileID: 5519018947295672184, guid: 8f592e3e0ec88864eb72a390b1d26cae, type: 3}
   childPrefab: {fileID: 0}
-  isParriable: 1
+  isParriable: 0

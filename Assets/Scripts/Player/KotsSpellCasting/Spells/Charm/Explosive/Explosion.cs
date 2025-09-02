@@ -1,43 +1,64 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic; // Needed for the List
 using UnityEngine;
+using Unity.Netcode;
 
 public class Explosion : SpellsClass
 {
-
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        Debug.LogFormat($"<color=yellow>Explosion spell has spawned on the network.</color>");    
-    }
+    // This list will exist ONLY on the server to track who has already been damaged.
+    private List<Collider> alreadyHitColliders = new List<Collider>();
 
     public override void FixedUpdate()
     {
-        if (!IsSpawned) return;
-
+        // The base FixedUpdate handles the lifetime timer on the server.
         base.FixedUpdate();
+
+        // The visual scaling can run on all clients.
+        // TODO: Replace these hard-coded numbers with values from your SpellDataScriptableObject.
         GradualScale(20, 2.5f);
 
-        // Handle all overlapping colliders at once
-        Collider[] overlappingColliders = Physics.OverlapSphere(transform.position, GetComponent<SphereCollider>().radius * transform.localScale.x);
+        // --- All hit detection and game logic MUST run only on the server ---
+        if (!IsServer) return;
+
+        // Perform the hit detection sweep.
+        float currentRadius = GetComponent<SphereCollider>().radius * transform.localScale.x;
+        Collider[] overlappingColliders = Physics.OverlapSphere(transform.position, currentRadius);
+
         foreach (var collider in overlappingColliders)
         {
-            Debug.LogFormat("o9o9o99o9o collider gameObject hit IS:" + collider.gameObject);
-            // Optionally filter out self or already handled colliders
-            if (collider != null && collider != GetComponent<Collider>())
+            // Check if we have already hit this object to prevent multi-hitting.
+            if (alreadyHitColliders.Contains(collider))
             {
-                Debug.LogFormat("1q1q1q1q1q1q collider gameObject hit IS:" + collider.gameObject);
-
-                HandleAllInteractions(collider);
+                continue; // Skip if we've already hit it.
             }
+
+            // Add the collider to the list so we don't hit it again next frame.
+            alreadyHitColliders.Add(collider);
+
+            // Call the authoritative collision handler from the base class.
+            HandleCollision(collider);
         }
     }
 
-    ////Optionally, you can remove OnTriggerEnter if you only want to handle all at once in FixedUpdate
-    ////Or keep it if you want both behaviors
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    // Dispel is handled by a bool variable Scriptable object
-    //    HandleAllInteractions(other);
-    //}
+    // This is the explosion's specific logic for what to do when it hits something.
+    protected override void HandleCollision(Collider other)
+    {
+        // Ignore self-hits (the caster shouldn't be hurt by their own explosion).
+        if (other.TryGetComponent<NetworkObject>(out var hitNetObj) && hitNetObj.OwnerClientId == this.OwnerClientId)
+        {
+            return;
+        }
+
+        // If we hit a player, deal damage.
+        if (other.CompareTag("Player"))
+        {
+            if (other.TryGetComponent<PlayerHealth>(out PlayerHealth playerHealth))
+            {
+                float damage = SpellDataScriptableObject.directDamageAmount;
+                playerHealth.TakeDamage(damage, this.OwnerClientId);
+            }
+        }
+
+        // Explosions usually don't destroy themselves on collision, they just complete their duration.
+        // The lifetime timer in the base SpellsClass will handle this automatically.
+    }
 }

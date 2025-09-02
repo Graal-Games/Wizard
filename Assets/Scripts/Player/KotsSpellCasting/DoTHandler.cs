@@ -1,5 +1,5 @@
+// DoTHandler.cs (Refactored)
 using DamageOverTimeEffect;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -8,8 +8,19 @@ public class DoTHandler : NetworkBehaviour
 {
     public List<DamageOverTime> currentDamageOverTimeList = new List<DamageOverTime>();
 
+    private PlayerHealth playerHealth;
+
+    public override void OnNetworkSpawn()
+    {
+        // Get the authoritative health component for this player
+        playerHealth = GetComponent<PlayerHealth>();
+    }
+
     private void FixedUpdate()
     {
+        // Damage Over Time logic should ONLY run on the server.
+        if (!IsServer) return;
+
         if (currentDamageOverTimeList.Count > 0)
         {
             ApplyDoTOnPlayer();
@@ -18,41 +29,26 @@ public class DoTHandler : NetworkBehaviour
 
     void ApplyDoTOnPlayer()
     {
-        // Have the timer method here with the dictionary being iterated over handled by the class
-        // Check if the player is inflicted with a DoT effect - Check if a DoT effect has been added to the DoT effects list
-        //if a list entry exists then the player would take DoT damage
+        for (int i = currentDamageOverTimeList.Count - 1; i >= 0; i--)
+        {
+            var dot = currentDamageOverTimeList[i];
 
-            // Iterate through the DoT spells the player character is currently affected by
-            for (int i = currentDamageOverTimeList.Count - 1; i >= 0; i--)
+            if (dot.TimeExpired)
             {
-                // Get the instance of each of the DoT effect
-                var dot = currentDamageOverTimeList[i];
-
-                // Check if the spell duration has expired
-                if (dot.TimeExpired)
+                currentDamageOverTimeList.RemoveAt(i);
+            }
+            else
+            {
+                if (dot.Timer())
                 {
-                    UnityEngine.Debug.LogFormat($"<color=purple>DOT EXPIRED</color>");
-
-                    // If spell duration has expired, remove the DoT effect instance
-                    currentDamageOverTimeList.RemoveAt(i);
-                    return;
-                }
-                else
-                {
-                    // If the spell duration has not yet expired (above)
-                    // The method returns 'true' at a specified (per second) time interval and applies damage
-                    if (dot.Timer())
+                    // --- THIS IS THE FIX ---
+                    // Instead of talking to the UI, we tell the authoritative PlayerHealth script to take damage.
+                    if (playerHealth != null)
                     {
-                        UnityEngine.Debug.LogFormat($"<color=purple>DOT APPLY DAMAGE</color>");
-
-                        // Apply damage to the player
-                        gameObject.GetComponent<NewPlayerBehavior>().HealthBar.ApplyDamage(dot.DamagePerSecond);
-
-                        // Activating the blood shader for AoE doesn't work the same way when it is to be fired in succession
-                        //if (shaderActivation != null) shaderActivation(OwnerClientId, "Blood", 1);
-                        // DebuffController.DebuffController cont = new DebuffController.DebuffController(_healthBar.ApplyDamage(dot.DamagePerSecond));
+                        playerHealth.TakeDamage(dot.DamagePerSecond, dot.AttackerId);
                     }
                 }
             }
         }
     }
+}
