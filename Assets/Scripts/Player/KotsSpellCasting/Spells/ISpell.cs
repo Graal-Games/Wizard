@@ -8,6 +8,8 @@ public interface ISpell
     // This is used to identify the spell and then use it to handle spell overlaps/ interactions in SpellsClass.cs
     string SpellName { get; }
     bool IsDispelResistant { get; }
+
+    float DirectDamage { get; }
 }
 
 public interface IDeactivatable

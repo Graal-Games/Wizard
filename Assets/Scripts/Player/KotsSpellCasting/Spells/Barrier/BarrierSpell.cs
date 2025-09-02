@@ -10,23 +10,7 @@ public class BarrierSpell : BarrierClass // WARNING: TO RENAME TO BARRIERCLASS
 
     void Start()
     {
-        //gameObject.transform.position = new Vector3(transform.position.x, 0, transform.position.z);
         localHealth.Value = SpellDataScriptableObject.health;
-
-        //if (SpellDataScriptableObject.spellDuration > 0)
-        //{
-        //    StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration));
-        //}
-
-        // if (gameObject.GetComponent<NetworkObject>() == null)
-        // {
-        //     StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject.transform.parent.gameObject));
-        // } else
-        // {
-        //     StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, this.gameObject));
-        // }
-
-        
     }
 
     // This code can (can it?) be placed in the K_Spell script

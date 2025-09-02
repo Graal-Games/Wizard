@@ -40,6 +40,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public string SpellName => SpellDataScriptableObject.name;
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
+    public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
+
 
     // Spell caster
     [HideInInspector] public Transform caster;
@@ -383,41 +385,41 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         // This makes sure that the player does not run this script
         if (gameObject.name.Contains("Player")) return;
 
-        //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
-        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air")
-            || gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Projectile_Air"))
-        {
-            if (spellDataScriptableObject.pushForce > 0)
-            {
-                Debug.LogFormat("<color=green>2 Push spell</color>");
-                // Cache the player's Rigidbody locally
-                Rigidbody rb = other.GetComponent<Rigidbody>();
-
-                // Add the rigidbody to the list of rigidbodies to be pushed
-                if (rb != null)
-                {
-                    pushSpellsList.Add(rb);
-                }
-            }
-            else
+        if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air"))
+            if (gameObject.GetComponent<ISpell>().SpellName.Contains("Barrier_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Barrier_Air")
+                || gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air") || gameObject.GetComponentInParent<ISpell>().SpellName.Contains("Projectile_Air"))
             {
                 if (spellDataScriptableObject.pushForce > 0)
                 {
-                    Debug.LogFormat("<color=blue>2 Push spell</color>");
-
+                    Debug.LogFormat("<color=green>2 Push spell</color>");
                     // Cache the player's Rigidbody locally
-                    Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-                    Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+                    Rigidbody rb = other.GetComponent<Rigidbody>();
 
                     // Add the rigidbody to the list of rigidbodies to be pushed
-                    if (rb2 != null)
+                    if (rb != null)
                     {
-                        pushSpellsList.Add(rb2);
+                        pushSpellsList.Add(rb);
+                    }
+                }
+                else
+                {
+                    if (spellDataScriptableObject.pushForce > 0)
+                    {
+                        Debug.LogFormat("<color=blue>2 Push spell</color>");
+
+                        // Cache the player's Rigidbody locally
+                        Rigidbody rb2 = other.GetComponent<Rigidbody>();
+
+                        Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
+
+                        // Add the rigidbody to the list of rigidbodies to be pushed
+                        if (rb2 != null)
+                        {
+                            pushSpellsList.Add(rb2);
+                        }
                     }
                 }
             }
-        }
 
         // If shield is detected redirect damage to it
         // And DO NOT proceed to apply damage to the related player
@@ -487,6 +489,14 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                     //DestroySpellRpc();
                 }
 
+                if (gameObject.CompareTag("ActiveShield"))
+                {
+                    Debug.LogFormat($"<color=red> {gameObject.name} ACTIVESHIELD (" + other.name + ")</color>");
+
+                    gameObject.GetComponent<K_SphereSpell>().TakeDamage(other.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.directDamageAmount);
+                    return;
+                }
+                
                 DestroySpellRpc(other.gameObject);
             }
 
