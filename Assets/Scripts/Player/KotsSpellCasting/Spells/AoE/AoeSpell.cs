@@ -179,45 +179,4 @@ public class AoeSpell : K_Spell
         base.OnTriggerEnter(other);
     }
 
-
-    //void OnTriggerEnter(Collider other)
-    //{
-    //    // This can be placed in the spell class
-    //    if (other.CompareTag("ActiveShield") && hasHitShield == false)
-    //    {
-    //        other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-    //        hasHitShield = true;
-    //        Debug.LogFormat($"<color=orange>{other.gameObject}</color>");
-    //        return;
-    //    }
-
-    //    if (other.gameObject.name.Contains("Player"))
-    //    {
-    //        Debug.Log("Player");
-
-    //        // Can this be on the spell class instead?
-    //        //SpellPayloadConstructor
-    //        //    (
-    //        //        this.gameObject.GetInstanceID(), 
-    //        //        other.GetComponent<NetworkObject>().OwnerClientId,
-    //        //        spellDataScriptableObject.element.ToString(),
-    //        //        spellDataScriptableObject.directDamageAmount, 
-    //        //        spellDataScriptableObject.damageOverTimeAmount, 
-    //        //        spellDataScriptableObject.damageOverTimeDuration, 
-    //        //        spellDataScriptableObject.spellAttribute
-    //        //    );
-
-    //        PlayerIsHit(); // This emits an event that applies damage to the target on the behavior and the GM script  >> NEED TO PASS ALL RELEVANT DATA HERE
-    //    }
-    //}
-
-    //private void OnTriggerExit(Collider other)
-    //{
-    //    if (other.CompareTag("ActiveShield") && hasHitShield == true)
-    //    {
-    //        hasHitShield = false;
-    //        Debug.LogFormat($"<color=orange>{other.gameObject}</color>");
-    //        return;
-    //    }
-    //}
 }

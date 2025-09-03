@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Netcode;
 using UnityEngine;
@@ -67,6 +68,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     Scoreboard scoreboardScript;
     PlayerController _playerController;
     K_SpellLauncher _spellLauncherScript;
+    DoTHandler _doTHanndler;
 
     [SerializeField]
     GameObject healthBarGO;
@@ -460,9 +462,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         // Make sure the the event is being processed by the respective script of the player that was hit
         // xx Lets say the projectile is owned by player 2 and emits that it hit player 1, if this script is indeed owned by player 1 then run the code otherwise skip it
-        //if (emittedPlayerHitPayload.PlayerId != OwnerClientId) return;
-         
-        //Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 3 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+
         // Received from an event emitted by the spawed sphere
         // If the player has a shield on, don-t apply damage to the player
         // Damage applied to the shield is handled elsewhere
@@ -503,25 +503,50 @@ public class NewPlayerBehavior : NetworkBehaviour
 
             // DoT while player is in contact with the spell
             case "DamageOverTime":
+                // SingleApplicationDoT
                 DamageOverTimeHandler(emittedPlayerHitPayload.NetworkId, emittedPlayerHitPayload.SpellElement, emittedPlayerHitPayload.DamageOverTimeAmount, emittedPlayerHitPayload.DamageOverTimeDuration);
                 return;
 
             // DoT while the player is no longer (has exited) contact with the spell
             case "PersistentDamageOverTime":
+                UnityEngine.Debug.LogFormat($"<color=orange> PP ************* PERSISTENT </color>");
+
                 // Deal an initial damage amount to player upon spell entry only
                 // Note: This is accessed also on player exit and therefore the below logic handles
                 //the exception of dealing damage only upon player entry 
-                if (!spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
+                //if (!spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
+                //{
+                //    UnityEngine.Debug.LogFormat($"<color=orange> > ************* ADD </color>");
+
+                //    // Deal an initial amount of damage on spell entry
+                //    DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
+
+                //    spellsTriggeredList.Add(emittedPlayerHitPayload.NetworkId);
+
+                //}
+                //else
+                //{
+                //    UnityEngine.Debug.LogFormat($"<color=orange> > ************* REMOVE </color>");
+
+                //    spellsTriggeredList.Remove(emittedPlayerHitPayload.NetworkId);
+                //}
+
+                if (spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
                 {
+                    UnityEngine.Debug.LogFormat($"<color=orange> > ************* REMOVE </color>");
+
+                    spellsTriggeredList.Remove(emittedPlayerHitPayload.NetworkId);
+                } else if (!spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
+                {
+                    UnityEngine.Debug.LogFormat($"<color=orange> > ************* ADD </color>");
+
                     // Deal an initial amount of damage on spell entry
                     DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
 
                     spellsTriggeredList.Add(emittedPlayerHitPayload.NetworkId);
+
                 }
-                else
-                {
-                    spellsTriggeredList.Remove(emittedPlayerHitPayload.NetworkId);
-                }
+
 
                 // Add the gameObject to a persistenSpellList and make sure the damage does not stack
 
@@ -602,9 +627,13 @@ public class NewPlayerBehavior : NetworkBehaviour
         /// NEW - THIS PREVENTS STACKING OF DOT SPELL
         if (currentDamageOverTimeList.Any(dot => dot.NetworkId == networkId)) return;
 
+        // Work in progress
+        //_doTHanndler.ApplyOnCollisionConstantDoTOnPlayer(networkId, element, damageOverTimeAmount);
+
         UnityEngine.Debug.LogFormat($"<color=purple>DOT ADD</color>");
 
         currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
+
         UnityEngine.Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
     }
 

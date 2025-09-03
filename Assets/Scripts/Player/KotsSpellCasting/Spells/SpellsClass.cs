@@ -292,7 +292,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
-
+    // I believe that the EmitPayload is received by all players and processed by all
+    //but only works on the target player through a conditional
     void EmitPayload(PlayerHitPayload spellPayloadParam)
     {
         playerHitEvent?.Invoke(spellPayloadParam);
@@ -364,16 +365,13 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        //if (other.gameObject.CompareTag("Player"))
-        //{
-        //if (!other.CompareTag("Player")) return false;
 
         if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
         {
             // If the spell has hit an active shield, change the following value
             //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
             hasHitShield.Value = true;
-            //other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+
             if (SpellsClassScript(other) != null)
             {
                 SpellsClass spellsClass = SpellsClassScript(other);
@@ -471,99 +469,82 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         var ISpellComponent = colliderHit.GetComponent<ISpell>();
         var ISpellComponentInParent = colliderHit.GetComponentInParent<ISpell>();
-        //bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
-        //bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
 
         //Debug.LogFormat("<color=brown> Handle Spell To Spell Interactions (" + colliderHit.name + ")</color>");
 
-        // Collider objectHit = colliderHit;
+
         // If the other object that this gameObject has interacted with is a spell
         //>>handle the behavior of the spell interaction
-        if (colliderHit.CompareTag("Spell"))
+        if (!colliderHit.CompareTag("Spell")) return;
+ 
+        //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
+
+        //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
+
+
+        // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
+        if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
         {
-            //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
+            //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
 
-            // && colliderHit.GetComponent<ProjectileSpell>().Spell
-
-            //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
-
-
-            // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
-            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
-            {
-                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
-
-                DestroyOtherSpell(colliderHit);
-            }
+            DestroyOtherSpell(colliderHit);
+        }
 
 
 
-            if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
+        if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
+        {
+            //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+
+            // IF colliderHit.GetComponent<IDamageable>() != null
+            if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
             {
                 //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
-                // BarrierSpell barrierScript = colliderHit.GetComponentInParent<BarrierSpell>();
-
-                // IF colliderHit.GetComponent<IDamageable>() != null
-                if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
-                {
-                    //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
-
-                    colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
-
-                }
-                if (!gameObject.name.Contains("Explosion"))
-                {
-                    DestroySpellRpc();
-                }
-            }
-            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
-            {
-                //Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
-
-                InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
-
-                if (invocationSpell.SpellDataScriptableObject.health > 1)
-                {
-                    invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
-
-                if (!gameObject.name.Contains("Explosion"))
-                {
-                    DestroySpellRpc();
-                }
-
+                colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
             }
-            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
+            if (!gameObject.name.Contains("Explosion"))
             {
-                //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
-
-                AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
-
-                if (aoeSpell.SpellDataScriptableObject.health > 1)
-                {
-                    aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
-
-                //if (!gameObject.name.Contains("Explosion"))
-                //{
-                //    DestroySpellRpc();
-                //}
-
-                if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
-                {
-                    DestroySpellRpc();
-                }
+                DestroySpellRpc();
             }
         }
+        else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
+        {
+            //Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
+
+            InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
+
+            if (invocationSpell.SpellDataScriptableObject.health > 1)
+            {
+                invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+            }
+
+            if (!gameObject.name.Contains("Explosion"))
+            {
+                DestroySpellRpc();
+            }
+
+
+        }
+        else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
+        {
+            //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
+
+            AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
+
+            if (aoeSpell.SpellDataScriptableObject.health > 1)
+            {
+                aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+            }
+
+            if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
+            {
+                DestroySpellRpc();
+            }
+        }
+        
     }
-
-
-    //public void ApplyDamage(float one)
-    //{
-
-    //}
 
 
     public virtual void FixedUpdate()
