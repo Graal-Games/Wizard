@@ -116,11 +116,11 @@ GameObject:
   - component: {fileID: 3019099447557012801}
   m_Layer: 12
   m_Name: ParryTrigger
-  m_TagString: Untagged
+  m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &8127422371468281773
 Transform:
   m_ObjectHideFlags: 0
@@ -751,11 +751,11 @@ GameObject:
   - component: {fileID: 5423619793627176363}
   m_Layer: 12
   m_Name: AnticipationTrigger
-  m_TagString: Untagged
+  m_TagString: Spell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5371118771528065915
 Transform:
   m_ObjectHideFlags: 0

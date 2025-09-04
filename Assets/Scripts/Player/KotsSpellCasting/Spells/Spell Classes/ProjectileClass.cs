@@ -230,7 +230,9 @@ public class ProjectileClass : SpellsClass
     {
 
         // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
-        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.CompareTag("Spell"))
+        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && 
+            hasCollided.Value == false && !colliderHit.gameObject.name.Contains("Projectile") && 
+            !colliderHit.gameObject.CompareTag("Spell"))
         {
             Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
             Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
