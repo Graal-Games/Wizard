@@ -141,10 +141,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public virtual void FixedUpdate()
     {
-        if (!IsServer) return;
-
-        if (!IsSpawned) return;
-
         if (pullSpellsList.Count > 0) // Need to add this to the player behaviour script because this will be destroyed too fast and cannot take into account defensive spells
         {
             // Apply force to all the rigidbodies
@@ -183,20 +179,10 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public PlayerHitPayload Payload(Collider other)
     {
-        // The ID of the player who cast THIS spell
-        ulong theAttackerId = this.OwnerClientId;
-
-        // The ID of the player that was HIT
-        ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-        // Prevent self-damage
-        // if (theAttackerId == theVictimId) return;
-
         SpellPayloadConstructor
         (
             this.gameObject.GetInstanceID(),
-            theVictimId,
-            theAttackerId,
+            other.GetComponent<NetworkObject>().OwnerClientId,
             spellDataScriptableObject.element.ToString(),
             spellDataScriptableObject.incapacitationName,
             spellDataScriptableObject.incapacitationDuration,
@@ -220,7 +206,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     // Thereafter, once the spell has come into contact with a player the information required to handle player damage, along with the inflicted target player's clientId
     // Once the infomation is set, it is sent via an event that is emitted, thereafter received in the PlayerBehaviour script and handled there accordingly
     // Note parameters order
-    public void SpellPayloadConstructor(int netId, ulong victimId, ulong attackerId, string element, IncapacitationName incapName, float incapDur, VisionImpairment visionImp, float visionImpDur, float ddAmount, float dotAmount, float dotDur, SpellAttribute type, bool pushback)
+    public void SpellPayloadConstructor(int netId, ulong pId, string element, IncapacitationName incapName, float incapDur, VisionImpairment visionImp, float visionImpDur, float ddAmount, float dotAmount, float dotDur, SpellAttribute type, bool pushback)
     {
         // This is a struct that is defined in its own script
         // It is used to send information about the spell that hit a player for damage and effects handling
@@ -228,8 +214,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         {
             // The left side values are defined in the PlayerHitPayload struct
             NetworkId = netId,
-            PlayerId = victimId,
-            AttackerId = attackerId,
+            PlayerId = pId,
             SpellElement = element,
             IncapacitationName = incapName,
             IncapacitationDuration = incapDur,
@@ -342,11 +327,9 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     [Rpc(SendTo.SpecifiedInParams)]
     void ApplyDamageToPlayerClientRpc(ulong ownerId, RpcParams rpcParams = default)
     {
-
         SpellPayloadConstructor
         (
             this.gameObject.GetInstanceID(),
-            ownerId,
             ownerId,
             spellDataScriptableObject.element.ToString(),
             spellDataScriptableObject.incapacitationName,
@@ -376,8 +359,6 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
     public virtual void OnTriggerEnter(Collider other)
     {
-        if (!IsServer) return;
-
         Debug.LogFormat("OnTriggerEnter: this={0} (tag={1}), other={2} (tag={3})",
         gameObject.name, gameObject.tag, other.gameObject.name, other.gameObject.tag);
 
@@ -439,22 +420,13 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
         if (other.gameObject.CompareTag("Player"))
         {
-            // The ID of the player who cast THIS spell
-            ulong theAttackerId = this.OwnerClientId;
-
-            // The ID of the player that was HIT
-            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-            // Prevent self-damage
-            if (theAttackerId == theVictimId) return;
 
             // OPTIMIZE BELOW
             // Assign the values to the payload to be sent with the event emission upon hitting the player
             SpellPayloadConstructor
             (
                 this.gameObject.GetInstanceID(),
-                theVictimId,
-                theAttackerId,
+                other.GetComponent<NetworkObject>().OwnerClientId,
                 spellDataScriptableObject.element.ToString(),
                 spellDataScriptableObject.incapacitationName,
                 spellDataScriptableObject.incapacitationDuration,
@@ -524,24 +496,13 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 if (hasHitShield.Value == true) return;
             }
 
-            // The ID of the player who cast THIS spell
-            ulong theAttackerId = this.OwnerClientId;
-
-            // The ID of the player that was HIT
-            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-            // Prevent self-damage
-            if (theAttackerId == theVictimId) return;
-
-
 
             // OPTIMIZE BELOW
             // Assign the values to the payload to be sent with the event emission upon hitting the player
             SpellPayloadConstructor
             (
                 this.gameObject.GetInstanceID(),
-                theVictimId,
-                theAttackerId,
+                other.GetComponent<NetworkObject>().OwnerClientId,
                 spellDataScriptableObject.element.ToString(),
                 spellDataScriptableObject.incapacitationName,
                 spellDataScriptableObject.incapacitationDuration,
@@ -588,20 +549,10 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         // This is needed to turn off DoT damage
         if (spellDataScriptableObject.spellAttribute.ToString() == "PersistentDamageOverTime" && other.gameObject.CompareTag("Player"))
         {
-            // The ID of the player who cast THIS spell
-            ulong theAttackerId = this.OwnerClientId;
-
-            // The ID of the player that was HIT
-            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-            // Prevent self-damage
-            if (theAttackerId == theVictimId) return;
-
             SpellPayloadConstructor
             (
                 this.gameObject.GetInstanceID(),
-                theVictimId,
-                theAttackerId,
+                other.GetComponent<NetworkObject>().OwnerClientId,
                 spellDataScriptableObject.element.ToString(),
                 spellDataScriptableObject.incapacitationName,
                 spellDataScriptableObject.incapacitationDuration,

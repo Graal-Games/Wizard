@@ -278,20 +278,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
         {
             GameObject other = netObj.gameObject;
 
-            // The ID of the player who cast THIS spell
-            ulong theAttackerId = this.OwnerClientId;
-
-            // The ID of the player that was HIT
-            ulong theVictimId = other.GetComponent<NetworkObject>().OwnerClientId;
-
-            // Prevent self-damage
-            if (theAttackerId == theVictimId) return;
-
             PlayerHitPayload spellPayload = new PlayerHitPayload
             (
                 this.gameObject.GetInstanceID(),
-                 theVictimId,
-                theAttackerId,
+                other.GetComponent<NetworkObject>().OwnerClientId,
                 spellDataScriptableObject.element.ToString(),
                 spellDataScriptableObject.incapacitationName,
                 spellDataScriptableObject.incapacitationDuration,
@@ -384,11 +374,9 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        //if (other.gameObject.CompareTag("Player"))
-        //{
-        //if (!other.CompareTag("Player")) return false;
+        NewPlayerBehavior playerBehavior = other.GetComponent<NewPlayerBehavior>();
 
-        if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+        if (playerBehavior != null && other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
         {
             // If the spell has hit an active shield, change the following value
             //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
@@ -414,10 +402,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
             return true;
         }
-        else
-        {
-            return false;
-        }
+  
+        return false;
     }
 
 

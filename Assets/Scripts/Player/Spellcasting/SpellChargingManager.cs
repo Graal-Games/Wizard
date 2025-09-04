@@ -93,7 +93,7 @@ public class SpellChargingManager
         spellLauncher.RefreshDynamicSpellCastingHints();
 
         // handle parry letters generation here
-        spellLauncher.ParryLetters.Value = "R";
+        // spellLauncher.ParryLetters.Value = "R";
 
         // Add the button pressed to the spell sequence (the spell's existance is checked thereafter)
         spellLauncher.SpellSequence += spellLauncher.CurrentSpellType.ToString();
@@ -241,7 +241,7 @@ public class SpellChargingManager
             {
 
                 // handle parry letters generation here
-                spellLauncher.ParryLetters.Value = "R";
+                //spellLauncher.ParryLetters.Value = "R";
 
                 // This is for elements??
                 // Add the button pressed to the spell sequence (the spell's existance is checked thereafter)

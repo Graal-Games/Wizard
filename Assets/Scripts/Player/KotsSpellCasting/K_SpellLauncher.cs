@@ -168,23 +168,6 @@ public class K_SpellLauncher : NetworkBehaviour
     bool castModeMoveSpeedSlow = true;
     bool castModeMoveSpeedReset = false;
 
-
-    // 2 keycode properties that hold the values for spell type and elemental transmutation
-    // Pressing G casts the last saved combination
-    // 
-
-
-
-    // SpellCastController 
-
-
-
-    // SpellCastManager 
-
-
-
-    // SpallUnlockManager
-
     public void Start()
     {
         //// PlayerBehavior itself????
@@ -903,8 +886,7 @@ public class K_SpellLauncher : NetworkBehaviour
         // Check if the spawn was successful
         if (netObj.IsSpawned)
         {
-            Debug.Log($"SUCCESS: '{spellInstance.name}' was spawned successfully!");
-
+            Debug.Log($"<color=green>[Server] SUCCESS:</color> '{spellInstance.name}' spawned with OwnerClientId {netObj.OwnerClientId}");
 
             if (this.spellBuilder.GetIsSpellParriable(spellSequenceParam))
             {
@@ -914,7 +896,7 @@ public class K_SpellLauncher : NetworkBehaviour
         }
         else
         {
-            Debug.LogError($"FAILURE: Spawn() was called for '{spellInstance.name}' but IsSpawned is FALSE. Is the prefab in the Network Prefabs list?");
+            Debug.LogError($"<color=red>[Server] FAILURE:</color> Spawn() for '{spellInstance.name}' failed. Is it in the Network Prefabs list?");
         }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
@@ -960,7 +942,6 @@ public class K_SpellLauncher : NetworkBehaviour
         netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
-
         ResetSpellSequence();
     }
 
@@ -1110,43 +1091,22 @@ public class K_SpellLauncher : NetworkBehaviour
 
     private void ShowDynamicStartKeys()
     {
-        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys()</color>");
         HideAllDynamicNextKeys();
-
-
-        
-        foreach (string key in spellCastingUiKeysDictionary.Keys) {
-            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -2  spellCastingUiKeysDictionary.key = {key}</color>");
-        }
-
-        Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() -1  spellCastingUiKeysDictionary.Count = {spellCastingUiKeysDictionary.Count()}</color>");
-
         foreach (KeyCode key in K_SpellKeys.spellTypes)
         {
-            
             string k = key.ToString();
-            Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 0  key = {k}</color>");
             if (spellCastingUiKeysDictionary.ContainsKey(k))
             {
-                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 1</color>");
-
-                if ((isInDRLockMode || isInSpellChargingMode)) {
-                    Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 2 pero salta</color>");
-                }
-
-
                 var uiKey = spellCastingUiKeysDictionary[k];
                 // Only skip if DR or SpellCharging is currently active
                 if ((isInDRLockMode || isInSpellChargingMode) &&
                     ((drUiKeysDictionary != null && drUiKeysDictionary.Values.Contains(uiKey)) ||
                      (spellChargingUiKeysDictionary != null && spellChargingUiKeysDictionary.Values.Contains(uiKey))))
                     continue;
-
                 uiKey.invisible = false;
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
-                Debug.LogFormat($"<color=orange>************** ShowDynamicStartKeys() 3 sucesss</color>");
             }
         }
     }
@@ -1187,8 +1147,6 @@ public class K_SpellLauncher : NetworkBehaviour
                 uiKey.buffered = false;
                 uiKey.gameObject.SetActive(true);
                 uiKey.SetActive(true);
-
-                Debug.LogFormat($"<color=orange>************** UpdateDynamicNextKeysUI  iteration valid </color>");
 
                 // Optional: set context-specific icon/label
                 var context = spellBuilder.GetNextKeyContextTag(spellSequence, key);

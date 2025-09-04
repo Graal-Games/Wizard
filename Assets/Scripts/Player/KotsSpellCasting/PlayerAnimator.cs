@@ -1,49 +1,37 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 using UnityEngine;
 
-public class PlayerAnimator : NetworkBehaviour
+public class PlayerAnimator : MonoBehaviour
 {
-
     private Animator animator;
+    private NetworkObject networkObject;
 
     [SerializeField] private PlayerController player;
 
-    private const string JUMP = "jump";
-    private const string JUMP_RUNNING = "jumpRunning";
-    private const string VERTICAL_AXIS = "vertical";
-    private const string HORIZONTAL_AXIS = "horizontal";
+    // Animator parameter hashes for efficiency
+    private readonly int verticalAxisHash = Animator.StringToHash("vertical");
+    private readonly int horizontalAxisHash = Animator.StringToHash("horizontal");
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        networkObject = GetComponentInParent<NetworkObject>(); // Get the NetworkObject
     }
 
-    private void FixedUpdate()
+    private void Update() // Update is better for animations for smoother visuals
     {
-        if (!IsOwner)
+        // This script should only run on the client that owns this player object
+        if (!networkObject.IsOwner)
         {
             return;
         }
 
-        CheckIfJumpingServerRpc(player.IsJumping(), player.IsWalking());
-        UpdateMovementBlendTreeServerRpc(player.getVerticalAxis(), player.getHorizontalAxis());
-    }
+        // Update the local animator directly.
+        // The NetworkAnimator will see this change and sync it for us.
+        animator.SetFloat(verticalAxisHash, player.getVerticalAxis());
+        animator.SetFloat(horizontalAxisHash, player.getHorizontalAxis());
 
-    [Rpc(SendTo.Server)]
-    public void CheckIfJumpingServerRpc(bool isJumping, bool isWalking)
-    {
-        //animator.SetBool(JUMP, isJumping && !isWalking);
-        //animator.SetBool(JUMP_RUNNING, isJumping && isWalking);
-    }
-
-    [Rpc(SendTo.Server)]
-    public void UpdateMovementBlendTreeServerRpc(float verticalAxis, float horizontalAxis)
-    {
-        animator.SetFloat(VERTICAL_AXIS, verticalAxis);
-        animator.SetFloat(HORIZONTAL_AXIS, horizontalAxis);
+        // Handle jumping here as well if you add it back
+        // animator.SetBool("isJumping", player.IsJumping());
     }
 }

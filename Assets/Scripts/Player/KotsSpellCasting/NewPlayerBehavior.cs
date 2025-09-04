@@ -64,9 +64,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     [Header("Scripts")]
     PlayerClass playerClass; // To continue implementation? This is to track the player stats on the server. To revise later.
     HealthBarUi _healthBar;
-    private Scoreboard scoreboardScript;
-    private ulong lastAttackerId;
-    private bool isDead = false;
+    Scoreboard scoreboardScript;
     PlayerController _playerController;
     K_SpellLauncher _spellLauncherScript;
 
@@ -103,7 +101,6 @@ public class NewPlayerBehavior : NetworkBehaviour
     // This correctly spawns and respawns the player at the spawn point's location
     void SpawnPlayerAtStartingLocation()
     {
-        UnityEngine.Debug.Log($"****************************************SpawnPlayerAtStartingLocation!");
         Vector3 spawnPosition = SpawnManager.Instance.AssignSpawnPoint(OwnerClientId);
         Quaternion spawnRotation = SpawnManager.Instance.AssignSpawnRotation(OwnerClientId);
 
@@ -130,8 +127,6 @@ public class NewPlayerBehavior : NetworkBehaviour
     // ! Start is run after OnNetworkSpawn
     void Start()
     {
-        UnityEngine.Debug.Log($"****************************************StartPlayerBehaviour!");
-
         if (!IsOwner || !IsLocalPlayer) return;
         // Debug.LogFormat($"<color=brown> Player Access {OwnerClientId} </color>");
 
@@ -160,8 +155,6 @@ public class NewPlayerBehavior : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
-
-        scoreboardScript = FindObjectOfType<Scoreboard>();
 
         parryLetterGO.SetActive(false); // Note: If this were to be placed in the Start(), the object would be deactivated locally but persists over the network
 
@@ -250,24 +243,25 @@ public class NewPlayerBehavior : NetworkBehaviour
         // If the player health has reached 0:
         // Respawn at the starting location
         // Reset health back to max
-        // If the player health has reached 0:
-        if (_healthBar.HealthSlider.value <= 0 && !isDead)
+        if (_healthBar.HealthSlider.value <= 0)
         {
-            // 1. Set isDead to true to prevent this from running multiple times
-            isDead = true;
+            // Send out an event here to update the scoreboard for all players
+            // This event should be ingested by the scoreboard script handling the score for either player
+            if (onDeathScoreUpdate != null) onDeathScoreUpdate(OwnerClientId, deathCount.Value);
 
-            // 2. Tell the scoreboard that the last person to attack us scored a point
-            if (scoreboardScript != null)
-            {
-                scoreboardScript.PlayerScoredServerRpc(lastAttackerId);
-            }
 
-            // 3. Respawn the player
+            // This counts how many times the player has died
+            // The scoreboard uses this value to attribute a score point to the opposing player
+            deathCount.Value += 1;
+
             _healthBar.SetMaxHealth(500);
-            SpawnPlayerAtStartingLocation();
+            SpawnPlayerAtStartingLocation(); // make this local <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            // make this an event to reset the health of all players
+            // ++ This implicates the introduction of a Game Manager that is continuously keeping
+            //track of the player stats, health accuracy and so on.
 
-            // 4. Reset the isDead flag after respawning
-            isDead = false;
+            // RemoveAny pertsisting dot
+            // Remove any debuff effects
         }
 
         // Have the timer method here with the dictionary being iterated over handled by the class
@@ -462,9 +456,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         // if (!IsOwner)
         if (emittedPlayerHitPayload.PlayerId != GetComponent<NetworkObject>().OwnerClientId) return;
 
-        lastAttackerId = emittedPlayerHitPayload.AttackerId;
-
-        UnityEngine.Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
+        //Debug.LogFormat($"<color=brown>XXX DAMAGE HANDLER 2 XXX: {emittedPlayerHitPayload.PlayerId} HAS HIT PLAYER: {OwnerClientId} </color>");
 
         // Make sure the the event is being processed by the respective script of the player that was hit
         // xx Lets say the projectile is owned by player 2 and emits that it hit player 1, if this script is indeed owned by player 1 then run the code otherwise skip it

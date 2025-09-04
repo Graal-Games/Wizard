@@ -120,7 +120,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8127422371468281773
 Transform:
   m_ObjectHideFlags: 0
@@ -602,6 +602,7 @@ MonoBehaviour:
         byte0029: 0
   projectileParryHandler: {fileID: 4634593527686550598}
   projectileTrigger: {fileID: 8707480003571244818}
+  projectileSphere: {fileID: 2469308557562460623}
 --- !u!1 &7082583855152331130
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,7 +755,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5371118771528065915
 Transform:
   m_ObjectHideFlags: 0

@@ -175,7 +175,6 @@ public class PlayerBehavior : NetworkBehaviour
     {
         if (IsClient && IsOwner)
         {
-            Debug.Log($"****************************************SpawnPlayerAtLocation!");
             transform.position = SpawnManager.Instance.AssignSpawnPoint(OwnerClientId);
             transform.rotation = SpawnManager.Instance.AssignSpawnRotation(OwnerClientId);
 

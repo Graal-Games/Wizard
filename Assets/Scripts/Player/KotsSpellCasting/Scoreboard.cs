@@ -1,49 +1,76 @@
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 public class Scoreboard : NetworkBehaviour
 {
-    [SerializeField] private TMP_Text p1ScoreText;
-    [SerializeField] private TMP_Text p2ScoreText;
+    [SerializeField] NewPlayerBehavior newPlayerBehavior;
+    [SerializeField] TMP_Text P1ScoreText;
+    [SerializeField] TMP_Text P2ScoreText;
 
-    private NetworkVariable<int> p1Score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-    private NetworkVariable<int> p2Score = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<int> p1Score = new NetworkVariable<int>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<int> p2Score = new NetworkVariable<int>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    public override void OnNetworkSpawn()
+
+    private void Start()
     {
-        p1Score.OnValueChanged += OnP1ScoreChanged;
-        p2Score.OnValueChanged += OnP2ScoreChanged;
+        // When a player connects check if to subscribe to death count network variables.
+        NetworkManager.Singleton.OnClientConnectedCallback += ProcessPlayerConnection;
 
-        p1ScoreText.text = p1Score.Value.ToString();
-        p2ScoreText.text = p2Score.Value.ToString();
+        // Set default value to 0 on the Ui
+        P1ScoreText.text = 0.ToString();
+        P2ScoreText.text = 0.ToString();
     }
 
-    private void OnP1ScoreChanged(int previousValue, int newValue)
+    // ONLY when both players are connected subscribe to the death count network variables
+    //on each player, which will thereafter be used to update the score for each.
+    void ProcessPlayerConnection(ulong player)
     {
-        p1ScoreText.text = newValue.ToString();
-    }
+        if (!IsServer) return;
 
-    private void OnP2ScoreChanged(int previousValue, int newValue)
-    {
-        p2ScoreText.text = newValue.ToString();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    public void PlayerScoredServerRpc(ulong scoringPlayerId)
-    {
-        // For a 1v1, if one player scores, the other must have died.
-        // We find the player who ISN'T the scoring player and increment their score.
-        // NOTE: This assumes only two players with ClientIds 0 and 1.
-        if (scoringPlayerId == 0)
+        if (player == 1)
         {
-            // If player 0 scored, player 1's score goes up.
-            p1Score.Value++;
+            NetworkManager.Singleton.ConnectedClients[1].PlayerObject.GetComponent<NewPlayerBehavior>().deathCount.OnValueChanged += UpdateP1Score;
+            NetworkManager.Singleton.ConnectedClients[0].PlayerObject.GetComponent<NewPlayerBehavior>().deathCount.OnValueChanged += UpdateP2Score;
         }
-        else if (scoringPlayerId == 1)
-        {
-            // If player 1 scored, player 2's score goes up.
-            p2Score.Value++;
-        }
+
+    }
+
+    // The score is updated on both the server and the client.
+    private void UpdateP2Score(int previous, int current)
+    {
+        UpdateP1OnServerRpc(current);
+        UpdateP1OnClientRpc(current);
+    }
+    private void UpdateP1Score(int previous, int current)
+    {
+        UpdateP2OnServerRpc(current);
+        UpdateP2OnClientRpc(current);
+    }
+
+    [Rpc(SendTo.NotServer)]
+    void UpdateP1OnClientRpc(int score)
+    {
+        P1ScoreText.text = score.ToString();
+    }
+
+    [Rpc(SendTo.NotServer)]
+    void UpdateP2OnClientRpc(int score)
+    {
+        P2ScoreText.text = score.ToString();
+    }
+
+    [Rpc(SendTo.Server)]
+    void UpdateP1OnServerRpc(int score)
+    {
+        P1ScoreText.text = score.ToString();
+    }
+
+    [Rpc(SendTo.Server)]
+    void UpdateP2OnServerRpc(int score)
+    {
+        P2ScoreText.text = score.ToString();
     }
 }

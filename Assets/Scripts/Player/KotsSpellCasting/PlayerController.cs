@@ -358,42 +358,31 @@ public class PlayerController : NetworkBehaviour
     // Broadcast movement to the server
     // CP SR
 
-    public void HandleMovement()
-    {
-        // --- 1. Calculate Direction (This part is still the same) ---
-        Vector2 inputVector = gameInput.GetMovementVector();
-        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
-        moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
-        moveDir.Normalize();
-
-        isWalking = moveDir != Vector3.zero;
-
-        // --- 2. Move the Player with Physics ---
-        Vector3 newPosition = rb.position + moveDir * moveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(newPosition);
-
-        // --- 3. Rotate the Player with Physics ---
-        if (isWalking)
+     private void HandleMovement()
         {
-            float rotateSpeed = 10f;
-            // Create the target rotation based on the movement direction.
-            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
+            // This movement logic is already correct from our previous fixes.
+            Vector2 inputVector = gameInput.GetMovementVector();
+            Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
 
-            // Instead of using transform.forward, use rb.MoveRotation with a Slerp for smoothing.
-            Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
-            rb.MoveRotation(newRotation);
+            moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
+            moveDir.Normalize();
+
+            rb.MovePosition(rb.position + moveDir * moveSpeed * Time.fixedDeltaTime);
+
+            Vector3 cameraForward = cameraTransform.forward;
+            cameraForward.y = 0f;
+            if (cameraForward != Vector3.zero)
+            {
+                float rotateSpeed = 20f;
+                Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+                Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
+                rb.MoveRotation(newRotation);
+            }
+
+            Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
+            verticalAxis = localMoveDir.z;
+            horizontalAxis = localMoveDir.x;
         }
-
-
-        // --- 4. Calculate Local Velocity for Animations ---
-        // Convert the world-space moveDir to the player's local space
-        Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
-
-        // Now, verticalAxis is how much we're moving in our forward/backward direction
-        // and horizontalAxis is how much we're moving in our left/right direction
-        verticalAxis = localMoveDir.z;
-        horizontalAxis = localMoveDir.x;
-    }
 
     private void SpeedControl()
     {

@@ -19599,3 +19599,4 @@ MonoBehaviour:
         byte0029: 0
   projectileParryHandler: {fileID: 8836606548246258672}
   projectileTrigger: {fileID: 2934164363625137689}
+  projectileSphere: {fileID: 7998208986617108348}
