@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc3e64f290a6ed44da46b3f9931e4a34, type: 3}
-  m_Name: Aoe_Fire
+  m_Name: Scepter_Arcane 1
   m_EditorClassIdentifier: 
-  spellType: 3
-  element: 3
-  spellAttribute: 1
+  spellType: 5
+  element: 1
+  spellAttribute: 2
   castProcedure: 1
   periCastLockProcedure: 0
   incapacitationName: 0
@@ -24,17 +24,17 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 0
-  spellDuration: 50
+  spellDuration: 60
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
   directDamageAmount: 15
-  damageOverTimeAmount: 8
-  damageOverTimeDuration: 5
+  damageOverTimeAmount: 0
+  damageOverTimeDuration: 0
   pushForce: 0
   pullForce: 0
-  health: 0
+  health: 10
   healAmount: 0
   healOverTimeAmount: 0
   dispel: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
-  contextTag: Fire
-  prefab: {fileID: 4454155518266441410, guid: 5c2680367a0753b4ba14e85d18e85ebb, type: 3}
-  childPrefab: {fileID: 0}
+  contextTag: Scepter
+  prefab: {fileID: 705924895072455061, guid: ff8d567ee1bdd844984032f2fe396a5c, type: 3}
+  childPrefab: {fileID: 276730528237925260, guid: b1812fff0a3277646bd86b66ab5dbb49, type: 3}
   isParriable: 0

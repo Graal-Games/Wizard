@@ -29,7 +29,7 @@ MonoBehaviour:
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 0
+  directDamageAmount: 6
   damageOverTimeAmount: 6
   damageOverTimeDuration: 10
   pushForce: 0
@@ -51,3 +51,4 @@ MonoBehaviour:
   contextTag: Fire
   prefab: {fileID: 1407102744089258733, guid: ff3d3662fdaa15f4784520384db97588, type: 3}
   childPrefab: {fileID: 0}
+  isParriable: 0
