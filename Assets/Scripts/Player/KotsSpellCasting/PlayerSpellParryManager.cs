@@ -113,20 +113,30 @@ internal class PlayerSpellParryManager : NetworkBehaviour
     {
         if (OwnerClientId != triggeringPlayerId || !IsOwner) return;
 
-        if (!spellsParryHandlerDictionary.ContainsKey(spellNetworkObjectId)) {
+        // Use TryGetValue to safely get the HashSet.
+        if (spellParryStateDictionary.TryGetValue(spellNetworkObjectId, out HashSet<ProjectileParryHandler.ParryState> parryStates))
+        {
+            // If we are here, we know the key exists and 'parryStates' is the corresponding HashSet.
+            parryStates.Remove(parryState);
+
+            // Now, check if the HashSet is empty.
+            if (parryStates.Count == 0)
+            {
+                // If it's empty, remove the spell completely from both dictionaries.
+                RemoveParriableSpell(spellNetworkObjectId);
+            }
+            else
+            {
+                // If it's not empty, just update the UI.
+                UpdateAnticipationSpellParryKeys();
+            }
+        }
+       
+        // This handles potential synchronization issues between your dictionaries.
+        else if (!spellsParryHandlerDictionary.ContainsKey(spellNetworkObjectId))
+        {
             spellParryStateDictionary.Remove(spellNetworkObjectId);
         }
-
-        if (spellParryStateDictionary.ContainsKey(spellNetworkObjectId)) {
-            spellParryStateDictionary[spellNetworkObjectId].Remove(parryState);
-        }
-
-        if (spellParryStateDictionary[spellNetworkObjectId].Count == 0) {
-            RemoveParriableSpell(spellNetworkObjectId);
-            return;
-        }
-
-        UpdateAnticipationSpellParryKeys();
     }
 
     private void RemoveParriableSpell(ulong spellNetworkObjectId)
