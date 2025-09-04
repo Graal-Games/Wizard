@@ -290,7 +290,7 @@ public class NewPlayerBehavior : NetworkBehaviour
                 {
                     // If the spell duration has not yet expired (above)
                     // The method returns 'true' at a specified (per second) time interval and applies damage
-                    if (dot.Timer())
+                    if (dot.Timer() && !localSphereShieldActive.Value)
                     {
                         UnityEngine.Debug.LogFormat($"<color=purple>DOT APPLY DAMAGE</color>");
 
@@ -370,12 +370,12 @@ public class NewPlayerBehavior : NetworkBehaviour
 
                 // If the spell duration has not yet expired (above)
                 // The method returns true at a specified (per second) time interval and applies damage
-                if (kvp.Value.Timer())
+                if (kvp.Value.Timer() && !localSphereShieldActive.Value)
                 {
                     // Apply damage to the player
                     _healthBar.ApplyDamage(kvp.Value.DamagePerSecond);
                     // DebuffController.DebuffController cont = new DebuffController.DebuffController(_healthBar.ApplyDamage(dot.DamagePerSecond));
-                }
+                } 
 
             }
         }
@@ -466,7 +466,8 @@ public class NewPlayerBehavior : NetworkBehaviour
         // Received from an event emitted by the spawed sphere
         // If the player has a shield on, don-t apply damage to the player
         // Damage applied to the shield is handled elsewhere
-        if (localSphereShieldActive.Value) return;
+
+        //if (localSphereShieldActive.Value) return; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         // USE THIS TO ACTIVATE SHADERS ALTERIOR FROM BLOOD
         //if (shaderActivation != null) shaderActivation(OwnerClientId, emittedPlayerHitPayload.VisionImpairment.ToString(), emittedPlayerHitPayload.VisionImpairmentDuration);
@@ -509,7 +510,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
             // DoT while the player is no longer (has exited) contact with the spell
             case "PersistentDamageOverTime":
-                UnityEngine.Debug.LogFormat($"<color=orange> PP ************* PERSISTENT </color>");
+                UnityEngine.Debug.LogFormat($"<color=orange> PP ************* PERSISTENT {emittedPlayerHitPayload.NetworkId} </color>");
 
                 // Deal an initial damage amount to player upon spell entry only
                 // Note: This is accessed also on player exit and therefore the below logic handles
@@ -540,8 +541,11 @@ public class NewPlayerBehavior : NetworkBehaviour
                 {
                     UnityEngine.Debug.LogFormat($"<color=orange> > ************* ADD </color>");
 
-                    // Deal an initial amount of damage on spell entry
-                    DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
+                    if (localSphereShieldActive.Value == false)
+                    {
+                        // Deal an initial amount of damage on spell entry
+                        DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
+                    }
 
                     spellsTriggeredList.Add(emittedPlayerHitPayload.NetworkId);
 

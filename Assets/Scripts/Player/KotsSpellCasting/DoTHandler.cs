@@ -32,7 +32,8 @@ public class DoTHandler : NetworkBehaviour
 
                 if (dot.OnCollisionConstantDoTDamageTick())
                 {
-                    playerScript.HealthBar.ApplyDamage(dot.DamagePerSecond);
+                    // playerScript.HealthBar.ApplyDamage(dot.DamagePerSecond);
+
                 }
 
 
@@ -49,8 +50,13 @@ public class DoTHandler : NetworkBehaviour
         }
     }
 
-    public void ApplyOnCollisionConstantDoTOnPlayer(int networkId, string element, float damageOverTimeAmount) // Element added here to 
+    public void HandleOnCollisionConstantDoTApplication(NetworkObject netObj, int networkId, string element, float damageOverTimeAmount) // Element added here to 
     {
+
+        // 
+
+
+
         currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(networkId, element, damageOverTimeAmount));
     }
 

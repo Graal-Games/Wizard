@@ -1,12 +1,13 @@
+using DamageOverTimeEffect;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Security;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
-using static ProjectileSpell;
 using UnityEngine.AddressableAssets;
+using UnityEngine.InputSystem.HID;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using System.Net.Security;
+using static ProjectileSpell;
 
 public class SpellsClass : NetworkBehaviour, ISpell
 {
@@ -36,8 +37,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     // These are being defined in the scriptable object associated to each prefab
     public string SpellName => SpellDataScriptableObject.name;
+    public Element Element => SpellDataScriptableObject.element;
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
     public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
+    public float DamageOverTimeAmount => SpellDataScriptableObject.damageOverTimeAmount;
 
 
 
@@ -51,6 +54,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
 
+    public List<OnCollisionConstantDamageOverTime> currentOnCollisionDoTList = new List<OnCollisionConstantDamageOverTime>();
+
+
+
     private float spellLifetimeTimer = 0f;
     private float spellLifetimeDuration = 0f;
     private bool spellLifetimeActive = false;
@@ -58,6 +65,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     protected float checkRadius = 2f;    // Match your trigger size
     protected LayerMask triggerLayer;    // Layer for the kill trigger
+    private GameObject otherGO;
+
 
 
     /// <summary>
@@ -365,6 +374,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
+        Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value} </color>");
 
         if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
         {
@@ -372,10 +382,33 @@ public class SpellsClass : NetworkBehaviour, ISpell
             //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
             hasHitShield.Value = true;
 
+            Debug.LogFormat($"<color=orange> 1111 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE other name: {other.name} current barrier spell script: {GetComponent<BarrierSpell>()} current spellsClass script: {SpellsClassScript(other)} current ISpell: {GetComponent<ISpell>()} </color>");
+
+
+            if (DamageOverTimeAmount > 0) 
+            {
+                Debug.LogFormat($"<color=orange> XXX FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                otherGO = other.gameObject;
+
+                currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+            }
+
+
             if (SpellsClassScript(other) != null)
             {
                 SpellsClass spellsClass = SpellsClassScript(other);
 
+                Debug.LogFormat($"<color=orange> 222 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {other.gameObject.GetComponent<ISpell>().Element} </color>");
+
+                if (other.gameObject.GetComponent<ISpell>().Element == Element.Fire) 
+                {
+                    Debug.LogFormat("<color=orange> 333 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE </color>");
+
+                }
+
+                // TO DO: If the spell is a DoT apply DoT on the spell
                 if (spellsClass.SpellDataScriptableObject.directDamageAmount > 0 || spellsClass.SpellDataScriptableObject.damageOverTimeAmount > 0)
                 {
                     // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
@@ -416,7 +449,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        //.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
+        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
         
