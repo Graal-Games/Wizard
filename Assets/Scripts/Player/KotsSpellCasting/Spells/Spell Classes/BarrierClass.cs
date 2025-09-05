@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BarrierClass : SpellsClass
+public class BarrierClass : SpellsClass, IDamageable
 {
     private void OnTriggerEnter(Collider other)
     {
@@ -27,5 +27,10 @@ public class BarrierClass : SpellsClass
         {
             HandleAllInteractions(other);
         }
+    }
+
+    public override void TakeDamage(float dmg)
+    {
+        base.TakeDamage(dmg);
     }
 }

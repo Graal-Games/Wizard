@@ -19,7 +19,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     //private static AssetReferenceGameObject spellsExplosionAR;
 
-
+    NetworkVariable<float> armorPoints = new NetworkVariable<float>(0);
     public K_SpellData SpellDataScriptableObject
     {
         get { return spellDataScriptableObject; }
@@ -123,11 +123,22 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 // The method returns 'true' at a specified (per second) time interval and applies damage
                 if (dot.OnCollisionConstantDoTDamageTick())
                 {
-                    UnityEngine.Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+                    Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE OTHERGOOOOOOO: {otherGO}</color>");
 
                     // If the GO is destroyed remove it from the list
                     if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Sphere"))
                     {
+                        Debug.LogFormat($"<color=purple>222222 SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+
+                        currentOnCollisionDoTList.Remove(dot);
+                        return;
+                    }
+
+                    // If the GO is destroyed remove it from the list
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Barrier"))
+                    {
+                        Debug.LogFormat($"<color=purple>99999 SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+
                         currentOnCollisionDoTList.Remove(dot);
                         return;
                     }
@@ -148,7 +159,31 @@ public class SpellsClass : NetworkBehaviour, ISpell
     }
 
 
+    public virtual void TakeDamage(float damage)
+    {
+        armorPoints.Value -= damage;
+        Debug.LogFormat($"<color=orange>armorPoints: {armorPoints.Value}</color>");
 
+        TakeDamageRpc(damage);
+
+        //CheckStatus();
+    }
+
+    [Rpc(SendTo.Server)]
+    void TakeDamageRpc(float damage)
+    {
+        armorPoints.Value -= damage;
+        CheckStatus();
+    }
+
+    void CheckStatus()
+    {
+        if (armorPoints.Value <= 0)
+        {
+            Debug.LogFormat($"<color=orange>2!!!!armorPoints: {armorPoints.Value}</color>");
+            DestroySpell(gameObject);
+        }
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -589,7 +624,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
             if (DamageOverTimeAmount > 0)
             {
-                // Debug.LogFormat($"<color=orange> XXX FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+                Debug.LogFormat($"<color=orange> ;;;;;; FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} OTHER: {colliderHit.gameObject}</color>");
 
                 otherGO = colliderHit.gameObject;
 
@@ -601,14 +636,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     // TO DO: Could be written differently: if oncollisiondestroy is true
                     if (GetComponent<ISpell>().SpellName.Contains("Projectile_Fire"))
                     {
-                        //Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+                        Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
 
                         colliderHit.GetComponent<BarrierSpell>().currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
 
                     }
                     else
                     {
-                        //Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+                        Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
 
                         currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
 
