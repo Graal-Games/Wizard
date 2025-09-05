@@ -169,6 +169,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
             }
         }
 
+        // Currently the Sphere Shield is the only spell that receives DoT damage
+        // TO DO: Make barriers get affected by damage over time spells.
         if (currentOnCollisionDoTList.Count > 0)
         {
             // Iterate through the DoT spells the player character is currently affected by
@@ -182,16 +184,27 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 // The method returns 'true' at a specified (per second) time interval and applies damage
                 if (dot.OnCollisionConstantDoTDamageTick())
                 {
-                    UnityEngine.Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+                    Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE - Other IDmg.: {otherGO?.GetComponent<IDamageable>()} IDmg.: {GetComponent<IDamageable>()}</color>");
 
                     // If the GO is destroyed remove it from the list
-                    if (otherGO == null)
+                    // An exception for sphere here is made as when the projectile fire hits it the sphere needs to handle the DoT in its fixed update, instead of the other spell applying damage to it.
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Sphere"))
                     {
                         currentOnCollisionDoTList.Remove(dot);
                         return;
                     }
-                    // Apply damage to the player
-                    otherGO.GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+
+                    if (otherGO != null)
+                    {
+                        // Apply damage to the sphere
+                        otherGO.GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+                    }
+                    else
+                    {
+                        GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+
+                    }
+
 
                     // Activating the blood shader for AoE doesn't work the same way when it is to be fired in succession
                     //if (shaderActivation != null) shaderActivation(OwnerClientId, "Blood", 1);

@@ -1,13 +1,9 @@
 using DamageOverTimeEffect;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Security;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.InputSystem.HID;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using static ProjectileSpell;
 
 public class SpellsClass : NetworkBehaviour, ISpell
 {
@@ -130,7 +126,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     UnityEngine.Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
 
                     // If the GO is destroyed remove it from the list
-                    if (otherGO == null)
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Sphere"))
                     {
                         currentOnCollisionDoTList.Remove(dot);
                         return;
@@ -396,23 +392,24 @@ public class SpellsClass : NetworkBehaviour, ISpell
             return other.GetComponentInParent<SpellsClass>();
         } else
         {
+            Debug.LogFormat($"<color=orange> !!! SPELLS CLASS SCRIPT IS NULL !!! </color>");
+
             return null;
         }
     }
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        //Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value} </color>");
         Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {SpellsClassScript(other)} </color>");
 
         //if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true || other.CompareTag("ActiveShield"))
         if (other.CompareTag("ActiveShield"))
         {
             // If the spell has hit an active shield, change the following value
-            //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+            //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");  
             hasHitShield.Value = true;
 
-            Debug.LogFormat($"<color=orange> 1111 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE other name: {other.name} current barrier spell script: {GetComponent<BarrierSpell>()} current spellsClass script: {SpellsClassScript(other)} current ISpell: {GetComponent<ISpell>()} </color>");
+           Debug.LogFormat($"<color=orange> 1111 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE other name: {other.name} current barrier spell script: {GetComponent<BarrierSpell>()} current spellsClass script: {SpellsClassScript(other)} current ISpell: {GetComponent<ISpell>()} </color>");
 
 
             if (DamageOverTimeAmount > 0) 
@@ -421,8 +418,23 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
                 otherGO = other.gameObject;
 
-                currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+                // Only add a new DoT entry if it hasn't been added before
+                if (!currentOnCollisionDoTList.Any(i => i.NetworkId == GetComponent<NetworkBehaviour>().NetworkBehaviourId))
+                {
+                    if (GetComponent<ISpell>().SpellName.Contains("Projectile_Fire"))
+                    {
+                        Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
 
+                        other.GetComponent<K_SphereSpell>().currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    } else
+                    {
+                        Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    }
+                }
             }
 
             // TO DO: If the spell is a DoT apply DoT on the spell
@@ -485,7 +497,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
+        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
         
@@ -573,6 +585,37 @@ public class SpellsClass : NetworkBehaviour, ISpell
                 colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
             }
+
+
+            if (DamageOverTimeAmount > 0)
+            {
+                // Debug.LogFormat($"<color=orange> XXX FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                otherGO = colliderHit.gameObject;
+
+                // Only add a new DoT entry if it hasn't been added before
+                if (!currentOnCollisionDoTList.Any(i => i.NetworkId == GetComponent<NetworkBehaviour>().NetworkBehaviourId))
+                {
+                    // If the spell with DoT effect is destroyed on contact make the spell self handle the DoT 
+                    // else have the other spell handle it.
+                    // TO DO: Could be written differently: if oncollisiondestroy is true
+                    if (GetComponent<ISpell>().SpellName.Contains("Projectile_Fire"))
+                    {
+                        //Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        colliderHit.GetComponent<BarrierSpell>().currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    }
+                    else
+                    {
+                        //Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    }
+                }
+            }
+
             if (!gameObject.name.Contains("Explosion"))
             {
                 DestroySpellRpc();

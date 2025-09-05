@@ -113,39 +113,11 @@ public class ProjectileClass : SpellsClass
         {
             Vector3 hitPosition = hit.point;
 
-            Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+            //Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
 
             //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
             HandleCollision(hit.collider, hitPosition);
-            
-            //// If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again 
-            //if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision == true && hasCollided.Value == false && !hit.collider.gameObject.name.Contains("Projectile") && !hit.collider.gameObject.CompareTag("Spell"))
-            //{
-            //     Debug.LogFormat($"<color=green> COLLIDER HIT: {hit.collider.gameObject.name}</color>");
-            //     Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
-            //    SpawnEffectAtTargetLocationRpc(hitPosition);
-            //    hasCollided.Value = true;
-            //}
-
-            //// Method: Spawns something at the end
-            //// gO to spawn source: Where should the gO be gotten from?
-            //// Solution 1: Assigned in inspector 
-
-            //HandleAllInteractions(hit.collider);
-
-            //if (gameObject.GetComponent<ISpell>().SpellName.Contains("Projectile_Air"))
-            //{
-            //    ApplyPushbackToTarget(hit.collider.gameObject);
-            //}
-
-            //// Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-            //if (SpellDataScriptableObject.destroyOnCollision && !hit.collider.gameObject.CompareTag("Spell") && !hit.collider.gameObject.name.Contains("Projectile"))
-            //{
-            //    Debug.LogFormat($"<color=green> COLLISION DESTROY: {hit.collider.gameObject.name}</color>");
-
-            //    DestroySpell(gameObject);
-            //}
         }
 
         lastPosition = currentPosition; // Update lastPosition to the current position after the movement
@@ -162,6 +134,8 @@ public class ProjectileClass : SpellsClass
             SpawnEffectAtTargetLocationRpc(hitPosition);
             hasCollided.Value = true;
         }
+
+        Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
 
         // Method: Spawns something at the end
         // gO to spawn source: Where should the gO be gotten from?

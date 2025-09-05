@@ -578,8 +578,6 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     public void Heal(float healAmount)
     {
-        LogCaller();
-
         UnityEngine.Debug.LogFormat($"<color=orange> > 1 HEALING method - amount: {healAmount} </color>");
 
         if (!IsOwner) return;
@@ -588,16 +586,6 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         UnityEngine.Debug.LogFormat($"<color=orange> > 2 HEALING method - amount: {healAmount} </color>");
 
-    }
-
-    void LogCaller()
-    {
-        StackTrace stackTrace = new StackTrace(true); // true = include file info if available
-        foreach (StackFrame frame in stackTrace.GetFrames())
-        {
-            var method = frame.GetMethod();
-            UnityEngine.Debug.Log($"Method: {method.DeclaringType}.{method.Name}, Line: {frame.GetFileLineNumber()}");
-        }
     }
 
 
@@ -635,6 +623,10 @@ public class NewPlayerBehavior : NetworkBehaviour
         //_doTHanndler.ApplyOnCollisionConstantDoTOnPlayer(networkId, element, damageOverTimeAmount);
 
         UnityEngine.Debug.LogFormat($"<color=purple>DOT ADD</color>");
+
+        // Add damage on hit
+        if (!localSphereShieldActive.Value)
+            _healthBar.ApplyDamage(damageOverTimeAmount);
 
         currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
 
