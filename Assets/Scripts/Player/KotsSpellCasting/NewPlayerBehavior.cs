@@ -645,18 +645,12 @@ public class NewPlayerBehavior : NetworkBehaviour
     {
         //Debug.LogFormat($"<color=orange> PersistentDamageOverTimeHandler </color>");
 
+        ///<summary>If the player already has a DoT applied on him from the same spell
+        ///reset the timer by removing the DoT entry and adding it again</summary>
         // If the dictionary that deals dot to the player already contains an entry of the nework object
         // i.e: the object is already dealing damage to the player. Remove it, as the second time it is received is from the trigger exit
         if (activePersistentDamageOverTimeSpells.ContainsKey(networkId))
         {
-            //Debug.LogFormat($"<color=orange> Persistent Damage CONTAINS KEY </color>");
-            // If the player has exited the sphere of influence of a persistent dot spell
-            // apply a non-persistent dot spell
-            //if (currentDamageOverTimeList.Contains(networkId))\
-
-            // The blow value is to be adjusted externally later?
-
-
 
             // TD: make it so that the residual dot entries are removed upon entry
             currentDamageOverTimeList.Add(new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
@@ -681,12 +675,14 @@ public class NewPlayerBehavior : NetworkBehaviour
                 {
                     UnityEngine.Debug.LogFormat($"<color=purple>DOT REMOVE</color>");
 
+                    // If the player has exited the DoT spell trigger, stop dealing the DoT caused by direct contact with the DoT Spell >> the else code below follows, adding a timed DoT on the player
                     currentDamageOverTimeList.Remove(netObj);
                     activePersistentDamageOverTimeSpells.Add(networkId, new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
                 }
             }
-        } else
+        } else // This adds a DoT on the player when he exits a DoT spell's trigger
         {
+            if (!localSphereShieldActive.Value)
             activePersistentDamageOverTimeSpells.Add(networkId, new DamageOverTime(networkId, element, damageOverTimeAmount, damageOverTimeDuration));
         }
 

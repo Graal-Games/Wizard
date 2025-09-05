@@ -8,7 +8,12 @@ public class BarrierClass : SpellsClass
     {
         Debug.LogFormat($"<color=purple>BARRIER OTEN</color>");
 
-        if (other.gameObject.CompareTag("Player"))
+
+        if (other.gameObject.CompareTag("ActiveShield")) 
+        {
+            HandleIfPlayerHasActiveShield(other.gameObject);
+        }   
+        else if (other.gameObject.CompareTag("Player"))
         {
             HandleAllInteractions(other);
         }
