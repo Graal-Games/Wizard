@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
@@ -60,7 +61,7 @@ public class ParryProjectileTest : NetworkBehaviour
                     break;
 
                 case SpawnMode.Random:
-                    int randomIndex = Random.Range(0, spawnableGameObjects.Length);
+                    int randomIndex = UnityEngine.Random.Range(0, spawnableGameObjects.Length);
                     prefabToSpawn = spawnableGameObjects[randomIndex];
                     break;
             }
@@ -68,9 +69,37 @@ public class ParryProjectileTest : NetworkBehaviour
             // Spawn the selected prefab if it's not null
             if (prefabToSpawn != null && spawnPosition != null)
             {
+                // 1. Instantiate the spell object on the server
                 GameObject spellInstance = Instantiate(prefabToSpawn, spawnPosition.position, Quaternion.identity);
+
+                // --- NEW PARRY LOGIC ---
+                // 2. Check if the instantiated spell is a parriable type by getting its SpellsClass component
+                SpellsClass spellComponent = spellInstance.GetComponent<SpellsClass>();
+                if (spellComponent != null && spellComponent.IsParriable())
+                {
+                    // 3. It's parriable! Generate a random letter for it.
+                    System.Random random = new System.Random();
+                    int res = random.Next(0, K_SpellKeys.spellTypes.Length);
+                    string parryLetterTesting = K_SpellKeys.spellTypes[res].ToString();
+
+                    // 4. Assign the generated letter to the projectile's synced NetworkVariable
+                    spellComponent.parryLetters.Value = parryLetterTesting;
+
+                    Debug.Log($"<color=lime>[Server Spawner]:</color> Spawned a parriable projectile '{spellInstance.name}' and assigned it the parry letter '{parryLetterTesting}'.");
+                }
+                // --- END OF NEW PARRY LOGIC ---
+
+                // 5. Get the NetworkObject and spawn it across the network for all clients
                 NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-                netObj.Spawn();
+                if (netObj != null)
+                {
+                    netObj.Spawn();
+                }
+                else
+                {
+                    Debug.LogError($"The prefab '{spellInstance.name}' is missing a NetworkObject component and cannot be spawned.");
+                    Destroy(spellInstance); // Clean up the invalid object
+                }
             }
         }
     }

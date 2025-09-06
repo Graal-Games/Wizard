@@ -23,7 +23,6 @@ public class ProjectileClass : SpellsClass
     private Vector3 lastPosition;
 
     List<Rigidbody> pullSpellsList = new List<Rigidbody>();
-    List<Rigidbody> pushSpellsList = new List<Rigidbody>();
 
     protected NetworkVariable<bool> _isExplodeOnHit = new NetworkVariable<bool>(false);
     NetworkVariable<bool> hasCollided = new NetworkVariable<bool>(false);
@@ -58,22 +57,23 @@ public class ProjectileClass : SpellsClass
         {
             projectileParryHandler.OnAnyPlayerPerformedParry += ProjectileParryHandler_OnAnyPlayerPerformedParry;
 
-
-            // todo uncommend this
-            string parryLetter = parryLetters.Value.ToString();
-
-            // todo remove -> just for testing auto spawn in the arena
-            System.Random random = new System.Random();
-            int res = random.Next(0, K_SpellKeys.spellTypes.Length);
-            string parryLetterTesting = K_SpellKeys.spellTypes[res].ToString();
-
-            if (System.Array.Exists(K_SpellKeys.spellTypes, element => element.ToString() == parryLetter))
+            // The NetworkVariable is already set by the caster. We just need to wait
+            // for it to be synchronized and then use it. We can use a callback for this.
+            parryLetters.OnValueChanged += (previousValue, newValue) =>
             {
-                projectileParryHandler.OnProjectileSpawned(parryLetter);
-            }
-            else
+                // This code will run when the parry letter is set or changed.
+                if (!string.IsNullOrEmpty(newValue.ToString()))
+                {
+                    Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter initialized to '{newValue}'.");
+                    projectileParryHandler.OnProjectileSpawned(newValue.ToString());
+                }
+            };
+
+            // Also handle the case where the value might already be set when we spawn
+            if (!string.IsNullOrEmpty(parryLetters.Value.ToString()))
             {
-                projectileParryHandler.OnProjectileSpawned(parryLetterTesting);
+                Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter was already '{parryLetters.Value}'. Initializing immediately.");
+                projectileParryHandler.OnProjectileSpawned(parryLetters.Value.ToString());
             }
         }
     }
@@ -102,6 +102,8 @@ public class ProjectileClass : SpellsClass
     // This method is triggered when a player successfully performs a parry
     private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
     {
+        Debug.Log($"<color=cyan>[SERVER Projectile {NetworkObjectId}]:</color> OnAnyPlayerPerformedParry event received! Proceeding with neutralization logic.");
+
         if (!IsServer || isParried) return; // Also prevent this from running more than once
 
         Debug.Log($"<color=cyan>[Projectile {this.NetworkObjectId}]: Parry event received! Neutralizing projectile.</color>");
@@ -132,8 +134,6 @@ public class ProjectileClass : SpellsClass
         MoveAndHitRegistration();
 
         if (!IsSpawned) return;
-
-        if (IsServer) HandlePushback();
 
         if (CanDestroy) // I figured that if I added a delay to the destruction of the spell then then the apply pushback would have enough time to apply its effect
         {
@@ -169,19 +169,19 @@ public class ProjectileClass : SpellsClass
                 continue;
             }
 
-            // If we get here, the player is in the cone, so we run the existing logic
+            // If the player is in the cone, proceed with state checks
             if (playerCollider.TryGetComponent<NetworkObject>(out var networkObject) &&
-           playerCollider.TryGetComponent<PlayerSpellParryManager>(out var parryManager))
+                playerCollider.TryGetComponent<PlayerSpellParryManager>(out var parryManager))
             {
                 playersInRangeThisFrame.Add(networkObject);
                 float distance = Vector3.Distance(transform.position, playerCollider.transform.position);
-                ProjectileParryHandler.ParryState newState = (distance <= parryDistance)
+
+                // Determine the correct parry state based on distance
+                var newState = (distance <= parryDistance)
                     ? ProjectileParryHandler.ParryState.PARRIABLE
                     : ProjectileParryHandler.ParryState.ANTICIPATION;
 
-                // Log with the dot product for debugging
-                Debug.Log($"[Projectile {this.NetworkObjectId}]: Player {networkObject.OwnerClientId} is in cone. Dot: {dotProduct:F2}. Dist: {distance:F2}. State: {newState}");
-
+                // Update the player's state (this method should handle sending RPCs)
                 projectileParryHandler.UpdatePlayerState(networkObject.OwnerClientId, newState, parryManager);
             }
         }
@@ -230,6 +230,10 @@ public class ProjectileClass : SpellsClass
             {
                 if (hit.collider.gameObject.CompareTag("Player"))
                 {
+
+                    string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
+                    Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
+
                     ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
                     if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                     {
@@ -296,50 +300,32 @@ public class ProjectileClass : SpellsClass
         // 
     }
 
-    void HandlePushback()
-    {
-        if (pushSpellsList.Count > 0)
-        {
-            HandlePushbackRpc();
-        }
-    }
-
-    [Rpc(SendTo.Server)]
-    void HandlePushbackRpc()
-    {
-        pushSpellsList.RemoveAll(rb => rb == null || rb.gameObject == null);
-        foreach (Rigidbody rb in pushSpellsList)
-        {
-            ApplyPushbackClientRpc(rb.GetComponent<NetworkObject>().OwnerClientId, SpellDataScriptableObject.pushForce, pushDirection);
-        }
-        pushSpellsList.Clear(); // Clear the list after processing
-    }
-
     [Rpc(SendTo.ClientsAndHost)]
     void ApplyPushbackClientRpc(ulong targetClientId, float pushForce, Vector3 direction, RpcParams rpcParams = default)
     {
-        // This RPC is sent to all clients, we need to make sure only the target player is affected.
         if (NetworkManager.Singleton.LocalClientId != targetClientId) return;
 
-        // It's safer to find the player's rigidbody here on the client than to rely on the server's list.
         if (NetworkManager.Singleton.LocalClient.PlayerObject.TryGetComponent<Rigidbody>(out Rigidbody playerRb))
         {
             playerRb.AddForce(pushForce * direction.normalized, ForceMode.Impulse);
-            canDestroy = true; // This variable will likely need rethinking in a server-auth model
         }
     }
 
     public void ApplyPushbackToTarget(GameObject other)
     {
+        // This check still runs on the server because it's called from MoveAndHitRegistration
         if (other.gameObject.CompareTag("Player"))
         {
             if (SpellDataScriptableObject.pushForce > 0)
             {
-                Rigidbody rb = other.GetComponent<Rigidbody>();
-                if (rb != null && !pushSpellsList.Contains(rb))
-                {
-                    pushSpellsList.Add(rb);
-                }
+                // Get the client ID of the player who was hit
+                ulong targetClientId = other.GetComponent<NetworkObject>().OwnerClientId;
+
+                // Immediately send the RPC to that specific client
+                ApplyPushbackClientRpc(targetClientId, SpellDataScriptableObject.pushForce, pushDirection);
+
+                // The server decides when to destroy the object
+                StartCoroutine(DelayedDestruction());
             }
         }
     }

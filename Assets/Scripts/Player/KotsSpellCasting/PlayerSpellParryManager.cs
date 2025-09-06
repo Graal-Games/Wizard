@@ -1,114 +1,172 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using static K_SpellLauncher;
 
 public class PlayerSpellParryManager : NetworkBehaviour
 {
+    [Header("UI References")]
     [SerializeField] private ParryLetterAnticipationElement parryLetterAnticipation;
-    
     [UDictionary.Split(20, 80)] public DrUiKeys parryUiKeysDictionary;
 
+    [Header("Parry Settings")]
+    [SerializeField] private float parryCooldownDuration = 2f;
+
+    private bool isParryOnCooldown = false;
+
+    // Static dictionary for easy server-side lookup
+    public static Dictionary<ulong, PlayerSpellParryManager> managers = new Dictionary<ulong, PlayerSpellParryManager>();
+
+    // Dictionaries for local client state
     private Dictionary<ulong, ProjectileParryHandler> spellsParryHandlerDictionary = new Dictionary<ulong, ProjectileParryHandler>();
     private Dictionary<ulong, ProjectileParryHandler.ParryState> spellParryStateDictionary = new Dictionary<ulong, ProjectileParryHandler.ParryState>();
+
+
+    #region Network Lifecycle
     public override void OnNetworkSpawn()
     {
-        if (IsOwner) // Ensure UI is initialized only for the owner
+        // Hide local UI on spawn for the owner
+        if (IsOwner)
         {
             parryLetterAnticipation.hideParryLetter();
         }
-    }
 
-    #region Handle player generated parry letter anticipation
-
-    public string GeneratePlayerParryAnticipation(string spellSequence)
-    {
-        if (IsOwner)
+        // Register this manager on the server so projectiles can find it
+        if (IsServer)
         {
-            // Generate the parry letter locally for the owner
-            System.Random random = new System.Random();
-            int res = random.Next(0, K_SpellKeys.spellTypes.Length);
-            string parryLetter = K_SpellKeys.spellTypes[res].ToString();
-
-            Debug.Log($"Owner {OwnerClientId} generated parry letter: {parryLetter}");
-
-            // Notify the server to update all other players
-            NotifyParryLetterGeneratedServerRpc(parryLetter);
-
-            return parryLetter; // Return the generated letter for the owner's use
-        }
-
-        return string.Empty; // Non-owners should not generate the parry letter
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void NotifyParryLetterGeneratedServerRpc(string parryLetter)
-    {
-        Debug.Log($"Server received parry letter '{parryLetter}' from player {OwnerClientId}.");
-        ShowParryLetterForOtherPlayersClientRpc(parryLetter);
-    }
-
-    [ClientRpc]
-    private void ShowParryLetterForOtherPlayersClientRpc(string parryLetter)
-    {
-        if (IsOwner) return; // Skip showing the parry letter for the owner
-
-        Debug.Log($"Showing parry letter '{parryLetter}' for other players.");
-        parryLetterAnticipation.showParryLetter(parryLetter); // Show the letter for non-owners
-    }
-
-
-    public void HidePlayerParryAnticipation()
-    {
-        if (IsOwner)
-        {
-            Debug.Log($"Owner {OwnerClientId} requesting to hide parry letters for all players.");
-            HideParryLetterServerRpc();
+            managers[OwnerClientId] = this;
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void HideParryLetterServerRpc()
+    public override void OnNetworkDespawn()
     {
-        Debug.Log($"Server received request to hide parry letters from player {OwnerClientId}.");
-        HideParryLetterForAllPlayersClientRpc();
+        // Clean up the static dictionary when the player despawns
+        if (IsServer)
+        {
+            managers.Remove(OwnerClientId);
+        }
+    }
+    #endregion
+
+
+    #region Caster Hint Logic (Server-Authoritative)
+
+    /// <summary>
+    /// SERVER-SIDE ENTRY POINT: Called by K_SpellLauncher to show the casting hint to opponents.
+    /// </summary>
+    public void Server_ShowCastingHint(string parryLetter)
+    {
+        if (!IsServer) return;
+
+        // This RPC will go to all clients. The logic inside filters it to non-owners.
+        Client_ShowCastingHintClientRpc(parryLetter);
+    }
+
+    /// <summary>
+    /// SERVER-SIDE ENTRY POINT: Called by K_SpellLauncher to hide the casting hint from everyone.
+    /// </summary>
+    public void Server_HideCastingHint()
+    {
+        if (!IsServer) return;
+        Client_HideCastingHintClientRpc();
     }
 
     [ClientRpc]
-    private void HideParryLetterForAllPlayersClientRpc()
+    private void Client_ShowCastingHintClientRpc(string parryLetter)
     {
-        Debug.Log($"Hiding parry letter on player {OwnerClientId}'s client.");
+        // Don't show the caster their own hint UI this way.
+        if (IsOwner) return;
+
+        parryLetterAnticipation.showParryLetter(parryLetter);
+    }
+
+    [ClientRpc]
+    private void Client_HideCastingHintClientRpc()
+    {
+        // Everyone's hint UI for this player should be hidden.
         parryLetterAnticipation.hideParryLetter();
     }
 
     #endregion
 
-    #region Handle spell parry and parry keys
 
-    public void AddOrUpdateParriableSpell(ProjectileParryHandler spell, ulong triggeringPlayerId, ProjectileParryHandler.ParryState newState)
+    #region Server-to-Client Communication (The Correct Flow)
+
+    /// <summary>
+    /// SERVER-SIDE ENTRY POINT: Called by projectiles to update a player's parry state.
+    /// </summary>
+    public void Server_UpdateParryStateForPlayer(NetworkObjectReference spellHandlerRef, ulong targetPlayerId, ProjectileParryHandler.ParryState newState)
     {
-        if (OwnerClientId != triggeringPlayerId || !IsOwner) return;
+        if (!IsServer) return;
+
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new[] { targetPlayerId } }
+        };
+        Client_UpdateParryStateClientRpc(spellHandlerRef, newState, clientRpcParams);
+    }
+
+    /// <summary>
+    /// SERVER-SIDE ENTRY POINT: Called by projectiles when a player is no longer in range.
+    /// </summary>
+    public void Server_RemoveParryStateForPlayer(ulong spellId, ulong targetPlayerId)
+    {
+        if (!IsServer) return;
+
+        var clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new[] { targetPlayerId } }
+        };
+        Client_RemoveParryStateClientRpc(spellId, clientRpcParams);
+    }
+
+    [ClientRpc]
+    private void Client_UpdateParryStateClientRpc(NetworkObjectReference spellHandlerRef, ProjectileParryHandler.ParryState newState, ClientRpcParams clientRpcParams = default)
+    {
+        if (spellHandlerRef.TryGet(out NetworkObject spellNetworkObject))
+        {
+            ProjectileParryHandler handler = spellNetworkObject.GetComponent<ProjectileParryHandler>();
+            if (handler != null)
+            {
+                Local_AddOrUpdateParriableSpell(handler, newState);
+            }
+        }
+    }
+
+    [ClientRpc]
+    private void Client_RemoveParryStateClientRpc(ulong spellId, ClientRpcParams clientRpcParams = default)
+    {
+        Local_RemoveParriableSpell(spellId);
+    }
+
+    #endregion
+
+
+    #region Local Client Logic (UI and State)
+
+    /// <summary>
+    /// Runs on the client to update local dictionaries and refresh the UI.
+    /// </summary>
+    private void Local_AddOrUpdateParriableSpell(ProjectileParryHandler spell, ProjectileParryHandler.ParryState newState)
+    {
+        if (!IsOwner) return;
 
         ulong spellId = spell.NetworkObjectId;
-
-        Debug.Log($"[Player {OwnerClientId} Manager]: State Received for Spell {spellId}. New State: {newState}");
-
         spellsParryHandlerDictionary[spellId] = spell;
-        spellParryStateDictionary[spellId] = newState; // Just assign the new state directly
+        spellParryStateDictionary[spellId] = newState;
 
+        // Refresh the UI. This will respect the cooldown state.
         UpdateAnticipationSpellParryKeys();
     }
 
-    public void RemoveSpellState(ulong spellNetworkObjectId, ulong triggeringPlayerId, ProjectileParryHandler.ParryState parryState)
+    /// <summary>
+    /// Runs on the client to remove a spell and refresh the UI.
+    /// </summary>
+    private void Local_RemoveParriableSpell(ulong spellNetworkObjectId)
     {
-        if (OwnerClientId != triggeringPlayerId || !IsOwner) return;
+        if (!IsOwner) return;
 
-        // We only need to remove the spell completely now, as there are no sub-states to manage
-        RemoveParriableSpell(spellNetworkObjectId);
-    }
-
-    private void RemoveParriableSpell(ulong spellNetworkObjectId)
-    {
         spellsParryHandlerDictionary.Remove(spellNetworkObjectId);
         spellParryStateDictionary.Remove(spellNetworkObjectId);
 
@@ -117,82 +175,101 @@ public class PlayerSpellParryManager : NetworkBehaviour
 
     private void UpdateAnticipationSpellParryKeys()
     {
+        // If on cooldown, ensure all keys are hidden and do nothing else.
+        if (isParryOnCooldown)
+        {
+            DeactivateSpellParryKeys();
+            return;
+        }
+
         DeactivateSpellParryKeys();
         foreach (var kvp in spellParryStateDictionary)
         {
-            ulong spellId = kvp.Key;
-            ProjectileParryHandler.ParryState state = kvp.Value;
+            if (!spellsParryHandlerDictionary.ContainsKey(kvp.Key)) continue;
 
-            if (!spellsParryHandlerDictionary.ContainsKey(spellId)) continue;
+            ProjectileParryHandler handler = spellsParryHandlerDictionary[kvp.Key];
 
-            ProjectileParryHandler handler = spellsParryHandlerDictionary[spellId];
+            string parryLetter = handler.ParryLetters.Value.ToString();
+            if (string.IsNullOrEmpty(parryLetter)) continue;
 
-            if (state == ProjectileParryHandler.ParryState.PARRIABLE)
+            if (kvp.Value == ProjectileParryHandler.ParryState.PARRIABLE)
             {
-                ActivateSpellParryKey(handler.ParryLetters);
+                ActivateSpellParryKey(parryLetter);
             }
-            else // It must be ANTICIPATION
+            else // ANTICIPATION
             {
-                AnticipationSpellParryKey(handler.ParryLetters);
+                AnticipationSpellParryKey(parryLetter);
             }
         }
     }
+    #endregion
+
+
+    #region UI and Input Handling
 
     public void TryToParry(string inputParryLetters)
     {
-        if (!IsOwner) return;
+        if (!IsOwner || isParryOnCooldown) return;
 
-        Debug.Log($"[Player {OwnerClientId} Manager]: --- PARRY ATTEMPT with key '{inputParryLetters}' ---");
-
-        List<ulong> spellIdsToParry = new List<ulong>();
+        ProjectileParryHandler spellToParry = null;
 
         foreach (var kvp in spellParryStateDictionary)
         {
             if (kvp.Value == ProjectileParryHandler.ParryState.PARRIABLE)
             {
                 ProjectileParryHandler spell = spellsParryHandlerDictionary[kvp.Key];
-                if (spell.ParryLetters == inputParryLetters)
+                if (spell.ParryLetters.Value.ToString() == inputParryLetters)
                 {
-                    Debug.Log($"Player successfully parried letter => {inputParryLetters}");
-                    spell.Parry();
-                    spellIdsToParry.Add(kvp.Key);
+                    spellToParry = spell;
+                    break;
                 }
             }
         }
 
-        if (spellIdsToParry.Count > 0)
+        if (spellToParry != null)
         {
-            foreach (var spellId in spellIdsToParry)
-            {
-                RemoveParriableSpell(spellId);
-            }
+            Debug.Log($"<color=lime>[CLIENT {OwnerClientId}]:</color> Parry SUCCESSFUL!");
+            spellToParry.Parry();
+            Local_RemoveParriableSpell(spellToParry.NetworkObjectId);
         }
         else
         {
-            Debug.Log("Parry failed, no matching projectiles.");
+            Debug.Log($"[CLIENT {OwnerClientId}]: Parry FAILED. Starting cooldown.");
+            StartCoroutine(ParryCooldownCoroutine());
         }
+    }
+
+    /// <summary>
+    /// A coroutine to handle the 2-second parry cooldown on the client.
+    /// </summary>
+    private IEnumerator ParryCooldownCoroutine()
+    {
+        isParryOnCooldown = true;
+
+        // Immediately hide all parry hints.
+        DeactivateSpellParryKeys();
+
+        // Wait for the specified duration.
+        yield return new WaitForSeconds(parryCooldownDuration);
+
+        isParryOnCooldown = false;
+
+        // After the cooldown, refresh the UI. This will show any parry keys
+        // for projectiles that are still in range.
+        UpdateAnticipationSpellParryKeys();
     }
 
     private void SetupParryKey(string parryLetter, bool isActive)
     {
         if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
         {
-            scKey.invisible = false;
-            scKey.buffered = false;
             scKey.gameObject.SetActive(true);
-            scKey.SetActive(isActive); // This is the only difference
+            scKey.SetActive(isActive);
         }
     }
 
-    private void AnticipationSpellParryKey(string parryLetter)
-    {
-        SetupParryKey(parryLetter, false);
-    }
-
-    private void ActivateSpellParryKey(string parryLetter)
-    {
-        SetupParryKey(parryLetter, true);
-    }
+    private void AnticipationSpellParryKey(string parryLetter) => SetupParryKey(parryLetter, false);
+    private void ActivateSpellParryKey(string parryLetter) => SetupParryKey(parryLetter, true);
 
     private void DeactivateSpellParryKeys()
     {
