@@ -11,32 +11,29 @@ public class AimAtOpposingPlayer : NetworkBehaviour
     Vector3 targetPositionWithOffset;
     Collider gOCollider;
     float radius;
-    bool targetFound;
 
-    public bool TargetFound
-    {
-        get { return targetFound; }
-        set { targetFound = value; }    
-    }
+    // Instead of a variable, it now simply checks if the targetTransform has been successfully assigned.
+    // This is much more reliable.
+    public bool TargetFound => targetTransform != null;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         Debug.LogFormat($"<color=blue>{OwnerClientId}</color>");
 
-        gOCollider = GetComponent<Collider>();
+        if (!IsOwner) return;
 
-        if (OwnerClientId == 0)
-        {
-            clientId = 1;
-        } else
-        {
-            clientId = 0;
-        }
+        // Start a coroutine to ask for the target.
+        // This is better than a direct call in case the other player takes a moment to connect.
+        StartCoroutine(RequestTargetWithDelay());
+    }
 
-        //CheckForRigidbodiesInArea();
-        GetOpposingPlayerObjectRpc();
-        //GetColliderRadius();
+    private IEnumerator RequestTargetWithDelay()
+    {
+        // Wait a very short moment to allow the network to settle.
+        yield return new WaitForSeconds(0.5f);
+        // Ask the server to find our target.
+        AskForTargetServerRpc();
     }
 
 
@@ -58,30 +55,64 @@ public class AimAtOpposingPlayer : NetworkBehaviour
         //Transform targetTransform = NetworkManager.Singleton.ConnectedClients[0].PlayerObject.gameObject.transform.GetChild(1);
         //CheckForRigidbodiesInArea();
 
-        if (targetTransform)
+        if (targetTransform != null)
         {
-            // Add an offset of 5 units on the x-axis
+            // Your aiming logic remains the same.
             targetPositionWithOffset = targetTransform.position + new Vector3(0.20f, 0.5f, 0);
-
+            transform.LookAt(targetPositionWithOffset);
         }
-
-        if (targetPositionWithOffset != null)
-            gameObject.transform.LookAt(targetPositionWithOffset);
 
     }
 
-    [Rpc(SendTo.Server)]
-    void GetOpposingPlayerObjectRpc()
+    [ServerRpc]
+    private void AskForTargetServerRpc(ServerRpcParams rpcParams = default)
     {
-        if (NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.gameObject.transform.GetChild(1))
+        ulong requestingClientId = rpcParams.Receive.SenderClientId;
+        ulong targetClientId = ulong.MaxValue;
+
+        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            targetTransform = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject.gameObject.transform.GetChild(1);
-        }else
-        {
-            return;
+            if (clientId != requestingClientId)
+            {
+                targetClientId = clientId;
+                break;
+            }
         }
-        
-        TargetFound = true;
+
+        if (targetClientId != ulong.MaxValue)
+        {
+            NetworkObject targetNetObject = NetworkManager.Singleton.ConnectedClients[targetClientId].PlayerObject;
+
+            if (targetNetObject != null)
+            {
+                ClientRpcParams clientRpcParams = new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { requestingClientId }
+                    }
+                };
+
+                SetTargetClientRpc(targetNetObject.NetworkObjectId, clientRpcParams);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Server could not find a target for client {requestingClientId}");
+        }
+    }
+
+    [ClientRpc]
+    private void SetTargetClientRpc(ulong targetId, ClientRpcParams rpcParams = default)
+    {
+        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetId, out NetworkObject targetNetObject))
+        {
+            if (targetNetObject.transform.childCount > 1)
+            {
+                targetTransform = targetNetObject.transform.GetChild(1);
+                Debug.Log($"Target set to: {targetTransform.name}");
+            }
+        }
     }
 
     //void CheckForRigidbodiesInArea()
@@ -128,11 +159,8 @@ public class AimAtOpposingPlayer : NetworkBehaviour
             {
                 Debug.Log("OwnerClientIdOwnerClientIdOwnerClientId: " + OwnerClientId);
 
-                TargetFound = true;
                 targetTransform = other.gameObject.transform;
-
             }
-
         }
     }
 
@@ -147,11 +175,8 @@ public class AimAtOpposingPlayer : NetworkBehaviour
 
             if (OwnerClientId != clientId)
             {
-                TargetFound = false;
                 targetTransform = null;
-
             }
-
         }
     }
 }
