@@ -9,131 +9,76 @@ public class ProjectileParryHandler : NetworkBehaviour
     [SerializeField] private GameObject parryAnticipationCanvas;
     [SerializeField] private TextMeshProUGUI parryAnticipationLetterText;
 
-    [SerializeField] private TriggerListener anticipationTrigger;
-    [SerializeField] private TriggerListener parryTrigger;
-
     public event EventHandler OnAnyPlayerPerformedParry;
 
-    private string parryLetters;
+    public string ParryLetters { get; set; }
 
-    public string ParryLetters
+    public enum ParryState
     {
-        get { return parryLetters; }
-        set { parryLetters = value; }
+        NONE, // Added a default state
+        ANTICIPATION,
+        PARRIABLE
     }
 
-    public enum ParryState {
-        ANTICIPATION, PARRIABLE
-    }
+    // Dictionary to track players and their current parry state for this projectile
+    private Dictionary<ulong, ParryState> playerParryStates = new Dictionary<ulong, ParryState>();
 
-    // Dictionary to track players and their states
-    private Dictionary<ulong, string> playerStatesDictionary = new Dictionary<ulong, string>();
-
-    void Awake()
-    {
-        anticipationTrigger.OnEnteredTrigger += OnAnticipationTriggerEntered;
-        anticipationTrigger.OnExitedTrigger += OnAnticipationTriggerExited;
-        parryTrigger.OnEnteredTrigger += OnParryTriggerEntered;
-        parryTrigger.OnExitedTrigger += OnParryTriggerExited;
-    }
+    // No longer need trigger listeners, so Awake and the trigger methods are removed.
 
     internal void OnProjectileSpawned(string parryLetters)
     {
         parryAnticipationLetterText.text = parryLetters;
-        this.parryLetters = parryLetters;
-        parryAnticipationCanvas.SetActive(true);
+        this.ParryLetters = parryLetters;
+        parryAnticipationCanvas.SetActive(true); // Assuming canvas is always visible when projectile is active
     }
 
-    void OnAnticipationTriggerEntered(Collider collider)
+    /// <summary>
+    /// Called by the ProjectileClass to update a player's state based on distance.
+    /// This is the new central method for state management.
+    /// </summary>
+    public void UpdatePlayerState(ulong playerId, ParryState newState, PlayerSpellParryManager playerManager)
     {
-        if (!collider.gameObject.CompareTag("Player")) return;
+        // Get the current state, defaulting to NONE if the player isn't tracked yet
+        playerParryStates.TryGetValue(playerId, out ParryState currentState);
 
-        if (collider.TryGetComponent<NetworkObject>(out var networkObject))
+        // If the state hasn't changed, do nothing. This is an important optimization.
+        if (currentState == newState) return;
+
+        // Update the state in our dictionary
+        playerParryStates[playerId] = newState;
+
+        // Notify the player's manager about the new state
+        if (newState == ParryState.ANTICIPATION || newState == ParryState.PARRIABLE)
         {
-            ulong playerId = networkObject.OwnerClientId;
+            Debug.Log($"Player {playerId} state updated to {newState}");
+            playerManager.AddOrUpdateParriableSpell(this, playerId, newState);
 
-            // Add to player states as "anticipation"
-            playerStatesDictionary[playerId] = "anticipation";
-
-            Debug.Log($"Player {playerId} entered anticipation trigger.");
-
-            //parryAnticipationCanvas.SetActive(true);
-
-            if (collider.transform.TryGetComponent(out PlayerSpellParryManager playerSpellParryManager))
-            {
-                playerSpellParryManager.AddOrUpdateParriableSpell(this, playerId, ParryState.ANTICIPATION);
-            }
+            // Optional: Update UI visual cues based on the new state
+            parryAnticipationLetterText.color = newState == ParryState.PARRIABLE ? Color.yellow : Color.white;
         }
     }
 
-    void OnAnticipationTriggerExited(Collider collider)
+    /// <summary>
+    /// Called by the ProjectileClass when a player is no longer in range.
+    /// </summary>
+    public void RemovePlayerFromRange(ulong playerId, PlayerSpellParryManager playerManager)
     {
-        if (!collider.gameObject.CompareTag("Player")) return;
-
-        if (collider.TryGetComponent<NetworkObject>(out var networkObject))
+        if (playerParryStates.ContainsKey(playerId))
         {
-            ulong playerId = networkObject.OwnerClientId;
+            Debug.Log($"Player {playerId} exited range.");
+            // Get the last known state to correctly remove it from the manager
+            ParryState lastState = playerParryStates[playerId];
+            playerManager.RemoveSpellState(this.NetworkObjectId, playerId, lastState);
+            playerParryStates.Remove(playerId);
 
-            // Remove from player states
-            playerStatesDictionary.Remove(playerId);
-
-            Debug.Log($"Player {playerId} exited anticipation trigger.");
-
-            //parryAnticipationCanvas.SetActive(false);
-
-            if (collider.transform.TryGetComponent(out PlayerSpellParryManager playerSpellParryManager))
-            {
-                playerSpellParryManager.RemoveSpellState(this.NetworkObjectId, playerId, ParryState.ANTICIPATION);
-            }
-        }
-    }
-
-    void OnParryTriggerEntered(Collider collider)
-    {
-        if (!collider.gameObject.CompareTag("Player")) return;
-
-        if (collider.TryGetComponent<NetworkObject>(out var networkObject))
-        {
-            ulong playerId = networkObject.OwnerClientId;
-
-            // Update state to "parry"
-            //playerStatesDictionary[playerId] = "parry";
-
-            Debug.Log($"Player {playerId} entered parry trigger.");
-
-            //
-            //parryAnticipationLetterText.color = Color.yellow;
-            //parryAnticipationCanvas.SetActive(true);
-
-            if (collider.transform.TryGetComponent(out PlayerSpellParryManager playerSpellParryManager))
-            {
-                playerSpellParryManager.AddOrUpdateParriableSpell(this, playerId, ParryState.PARRIABLE);
-            }
-        }
-    }
-
-    void OnParryTriggerExited(Collider collider)
-    {
-        if (!collider.gameObject.CompareTag("Player")) return;
-
-        if (collider.TryGetComponent<NetworkObject>(out var networkObject))
-        {
-            ulong playerId = networkObject.OwnerClientId;
-
-            Debug.Log($"Player {playerId} exited parry trigger.");
-
-            //parryAnticipationLetterText.color = Color.white;
-            //parryAnticipationCanvas.SetActive(false);
-
-            if (collider.transform.TryGetComponent(out PlayerSpellParryManager playerSpellParryManager))
-            {
-                playerSpellParryManager.RemoveSpellState(this.NetworkObjectId, playerId, ParryState.PARRIABLE);
-            }
+            // Optional: Reset UI
+            parryAnticipationLetterText.color = Color.white;
         }
     }
 
     internal void Parry()
     {
+        Debug.Log($"[ParryHandler {this.NetworkObjectId}]: Parry() called. Invoking OnAnyPlayerPerformedParry event.");
         OnAnyPlayerPerformedParry?.Invoke(this, EventArgs.Empty);
     }
 }

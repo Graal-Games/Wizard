@@ -3,15 +3,14 @@ using Unity.Netcode;
 using UnityEngine;
 using static K_SpellLauncher;
 
-internal class PlayerSpellParryManager : NetworkBehaviour
+public class PlayerSpellParryManager : NetworkBehaviour
 {
     [SerializeField] private ParryLetterAnticipationElement parryLetterAnticipation;
     
     [UDictionary.Split(20, 80)] public DrUiKeys parryUiKeysDictionary;
 
     private Dictionary<ulong, ProjectileParryHandler> spellsParryHandlerDictionary = new Dictionary<ulong, ProjectileParryHandler>();
-    private Dictionary<ulong, HashSet<ProjectileParryHandler.ParryState>> spellParryStateDictionary = new Dictionary<ulong, HashSet<ProjectileParryHandler.ParryState>>();
-
+    private Dictionary<ulong, ProjectileParryHandler.ParryState> spellParryStateDictionary = new Dictionary<ulong, ProjectileParryHandler.ParryState>();
     public override void OnNetworkSpawn()
     {
         if (IsOwner) // Ensure UI is initialized only for the owner
@@ -86,25 +85,16 @@ internal class PlayerSpellParryManager : NetworkBehaviour
 
     #region Handle spell parry and parry keys
 
-    public void AddOrUpdateParriableSpell(ProjectileParryHandler spell, ulong triggeringPlayerId, ProjectileParryHandler.ParryState parryState)
+    public void AddOrUpdateParriableSpell(ProjectileParryHandler spell, ulong triggeringPlayerId, ProjectileParryHandler.ParryState newState)
     {
         if (OwnerClientId != triggeringPlayerId || !IsOwner) return;
 
         ulong spellId = spell.NetworkObjectId;
 
-        // clear spellParryStateDictionary
-        if (!spellsParryHandlerDictionary.ContainsKey(spellId) && spellParryStateDictionary.ContainsKey(spellId))
-        {
-            spellParryStateDictionary.Remove(spellId);
-        }
+        Debug.Log($"[Player {OwnerClientId} Manager]: State Received for Spell {spellId}. New State: {newState}");
 
-        if (!spellsParryHandlerDictionary.ContainsKey(spellId))
-        {
-            spellsParryHandlerDictionary[spellId] = spell;
-            spellParryStateDictionary[spellId] = new HashSet<ProjectileParryHandler.ParryState>();
-        }
-
-        spellParryStateDictionary[spellId].Add(parryState);
+        spellsParryHandlerDictionary[spellId] = spell;
+        spellParryStateDictionary[spellId] = newState; // Just assign the new state directly
 
         UpdateAnticipationSpellParryKeys();
     }
@@ -113,30 +103,8 @@ internal class PlayerSpellParryManager : NetworkBehaviour
     {
         if (OwnerClientId != triggeringPlayerId || !IsOwner) return;
 
-        // Use TryGetValue to safely get the HashSet.
-        if (spellParryStateDictionary.TryGetValue(spellNetworkObjectId, out HashSet<ProjectileParryHandler.ParryState> parryStates))
-        {
-            // If we are here, we know the key exists and 'parryStates' is the corresponding HashSet.
-            parryStates.Remove(parryState);
-
-            // Now, check if the HashSet is empty.
-            if (parryStates.Count == 0)
-            {
-                // If it's empty, remove the spell completely from both dictionaries.
-                RemoveParriableSpell(spellNetworkObjectId);
-            }
-            else
-            {
-                // If it's not empty, just update the UI.
-                UpdateAnticipationSpellParryKeys();
-            }
-        }
-       
-        // This handles potential synchronization issues between your dictionaries.
-        else if (!spellsParryHandlerDictionary.ContainsKey(spellNetworkObjectId))
-        {
-            spellParryStateDictionary.Remove(spellNetworkObjectId);
-        }
+        // We only need to remove the spell completely now, as there are no sub-states to manage
+        RemoveParriableSpell(spellNetworkObjectId);
     }
 
     private void RemoveParriableSpell(ulong spellNetworkObjectId)
@@ -150,79 +118,80 @@ internal class PlayerSpellParryManager : NetworkBehaviour
     private void UpdateAnticipationSpellParryKeys()
     {
         DeactivateSpellParryKeys();
-        foreach (var spellState in spellParryStateDictionary)
+        foreach (var kvp in spellParryStateDictionary)
         {
-            if (!spellsParryHandlerDictionary.ContainsKey(spellState.Key))
-                continue;
-               
+            ulong spellId = kvp.Key;
+            ProjectileParryHandler.ParryState state = kvp.Value;
 
-            if (spellState.Value.Contains(ProjectileParryHandler.ParryState.PARRIABLE))
+            if (!spellsParryHandlerDictionary.ContainsKey(spellId)) continue;
+
+            ProjectileParryHandler handler = spellsParryHandlerDictionary[spellId];
+
+            if (state == ProjectileParryHandler.ParryState.PARRIABLE)
             {
-                ActivateSpellParryKey(spellsParryHandlerDictionary[spellState.Key].ParryLetters);
+                ActivateSpellParryKey(handler.ParryLetters);
             }
-            else
+            else // It must be ANTICIPATION
             {
-                AnticipationSpellParryKey(spellsParryHandlerDictionary[spellState.Key].ParryLetters);
+                AnticipationSpellParryKey(handler.ParryLetters);
             }
         }
     }
 
     public void TryToParry(string inputParryLetters)
     {
+        if (!IsOwner) return;
 
-        HashSet<ulong> parriedSpells = new HashSet<ulong>();
+        Debug.Log($"[Player {OwnerClientId} Manager]: --- PARRY ATTEMPT with key '{inputParryLetters}' ---");
 
-        
-        foreach (var spellState in spellParryStateDictionary) {
+        List<ulong> spellIdsToParry = new List<ulong>();
 
-            if (spellsParryHandlerDictionary.ContainsKey(spellState.Key) && spellState.Value.Contains(ProjectileParryHandler.ParryState.PARRIABLE)) {
-
-                ProjectileParryHandler spell = spellsParryHandlerDictionary[spellState.Key];
-
+        foreach (var kvp in spellParryStateDictionary)
+        {
+            if (kvp.Value == ProjectileParryHandler.ParryState.PARRIABLE)
+            {
+                ProjectileParryHandler spell = spellsParryHandlerDictionary[kvp.Key];
                 if (spell.ParryLetters == inputParryLetters)
                 {
-                    Debug.Log($"Player successfully parried letter => ${inputParryLetters}");
+                    Debug.Log($"Player successfully parried letter => {inputParryLetters}");
                     spell.Parry();
-                    parriedSpells.Add(spellState.Key);
+                    spellIdsToParry.Add(kvp.Key);
                 }
             }
         }
 
-        bool isSuccessfull = parriedSpells.Count != 0;
-
-        if (isSuccessfull)
+        if (spellIdsToParry.Count > 0)
         {
-            foreach (var spellId in parriedSpells)
+            foreach (var spellId in spellIdsToParry)
             {
                 RemoveParriableSpell(spellId);
             }
-            return;
         }
+        else
+        {
+            Debug.Log("Parry failed, no matching projectiles.");
+        }
+    }
 
-        // TODO what do we want to do if not successfull
-        Debug.Log("Parry failed, no matching projectiles.");
+    private void SetupParryKey(string parryLetter, bool isActive)
+    {
+        if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
+        {
+            scKey.invisible = false;
+            scKey.buffered = false;
+            scKey.gameObject.SetActive(true);
+            scKey.SetActive(isActive); // This is the only difference
+        }
     }
 
     private void AnticipationSpellParryKey(string parryLetter)
     {
-        if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
-        {
-            scKey.invisible = false;
-            scKey.buffered = false;
-            scKey.gameObject.SetActive(true);
-            scKey.SetActive(false);
-        }
+        SetupParryKey(parryLetter, false);
     }
 
     private void ActivateSpellParryKey(string parryLetter)
     {
-        if (parryUiKeysDictionary.TryGetValue(parryLetter, out var scKey))
-        {
-            scKey.invisible = false;
-            scKey.buffered = false;
-            scKey.gameObject.SetActive(true);
-            scKey.SetActive(true);
-        }
+        SetupParryKey(parryLetter, true);
     }
 
     private void DeactivateSpellParryKeys()

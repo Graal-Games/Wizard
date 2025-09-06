@@ -6,46 +6,72 @@ using UnityEngine.UIElements;
 
 public class ParryProjectileTest : NetworkBehaviour
 {
-    [SerializeField] GameObject spawnLocation;
-    Transform spawnPosition;
-    AimAtOpposingPlayer aimAtOpposingPlayerScript;
-    GameObject objectToSpawn;
-    [SerializeField] GameObject[] spawnableGameObjects;
+    // Enum to create a dropdown in the Inspector for the spawn behavior
+    public enum SpawnMode { Sequential, Random }
 
+    [Header("Spawning Configuration")]
+    [SerializeField] private GameObject[] spawnableGameObjects; // The array of prefabs to spawn from
+    [SerializeField] private SpawnMode spawnMode = SpawnMode.Sequential; // The selected spawn mode
+    [SerializeField] private float spawnInterval = 5f; // Configurable delay
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        StartCoroutine(Shoot());
-    }
+    [Header("References")]
+    [SerializeField] private GameObject spawnLocation;
+
+    private Transform spawnPosition;
+    private int currentIndex = 0; // Used to track the next spell in Sequential mode
 
     public override void OnNetworkSpawn()
     {
-        spawnPosition = spawnLocation.gameObject.transform;
+        if (spawnLocation != null)
+        {
+            spawnPosition = spawnLocation.transform;
+        }
+
+        // IMPORTANT: Only the server should run the spawning logic.
+        if (!IsServer)
+        {
+            return;
+        }
+
+        StartCoroutine(SpawnLoop());
     }
 
-
-    IEnumerator Shoot()
+    private IEnumerator SpawnLoop()
     {
-        yield return new WaitForSeconds(5);
-        Debug.Log("SpellDataScriptableObject.childPrefab " + spawnableGameObjects[0]);
+        while (true)
+        {
+            yield return new WaitForSeconds(spawnInterval);
 
-        GameObject spellInstance = Instantiate(spawnableGameObjects[0], spawnPosition.position, Quaternion.identity);
+            // Make sure the array isn't empty before trying to spawn
+            if (spawnableGameObjects == null || spawnableGameObjects.Length == 0)
+            {
+                continue; // Skip this loop iteration if there's nothing to spawn
+            }
 
-        NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+            GameObject prefabToSpawn = null;
 
-        netObj.Spawn();
+            // Select the prefab based on the chosen spawn mode
+            switch (spawnMode)
+            {
+                case SpawnMode.Sequential:
+                    prefabToSpawn = spawnableGameObjects[currentIndex];
+                    // Move to the next index, looping back to 0 if we reach the end
+                    currentIndex = (currentIndex + 1) % spawnableGameObjects.Length;
+                    break;
 
-        StartCoroutine(Shoot());
-        //// If a target is available
-        //if (aimAtOpposingPlayerScript.TargetFound)
-        //{
-        //    //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
-        //    Instantiate(spawnableGameObjects[0], spawnPosition.position, Quaternion.identity);
-        //}
-        //else 
-        //{             
-        //    Debug.Log("No target found, cannot spawn projectile."); 
-        //}
+                case SpawnMode.Random:
+                    int randomIndex = Random.Range(0, spawnableGameObjects.Length);
+                    prefabToSpawn = spawnableGameObjects[randomIndex];
+                    break;
+            }
+
+            // Spawn the selected prefab if it's not null
+            if (prefabToSpawn != null && spawnPosition != null)
+            {
+                GameObject spellInstance = Instantiate(prefabToSpawn, spawnPosition.position, Quaternion.identity);
+                NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+                netObj.Spawn();
+            }
+        }
     }
 }

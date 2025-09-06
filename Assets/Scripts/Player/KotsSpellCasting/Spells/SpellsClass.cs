@@ -429,14 +429,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        //.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS {colliderHit.tag}</color>");
+        // Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS tag:{colliderHit.tag},name:{colliderHit.name}</color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
 
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
-            //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
+            Debug.LogFormat($"<color=purple>********************* Handle the player HIT *****************************</color>");
 
             // If player does not have active shield, handle the player hit
             PlayerIsHit(colliderHit.gameObject);
