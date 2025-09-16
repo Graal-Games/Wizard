@@ -11,10 +11,12 @@ public class BarrierClass : SpellsClass, IDamageable
 
         if (other.gameObject.CompareTag("ActiveShield")) 
         {
+            Debug.LogFormat($"<color=purple>BARRIER HAS DETECTED ACTIVE SHIELD</color>");
             HandleIfPlayerHasActiveShield(other.gameObject);
         }   
         else if (other.gameObject.CompareTag("Player"))
         {
+            Debug.LogFormat($"<color=purple>BARRIER HAS DETECTED PLAYER</color>");
             HandleAllInteractions(other);
         }
     }

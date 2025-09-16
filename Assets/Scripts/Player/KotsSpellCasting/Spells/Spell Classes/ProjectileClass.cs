@@ -142,6 +142,15 @@ public class ProjectileClass : SpellsClass
         // Solution 1: Assigned in inspector 
         //if (hasCollided.Value == false)
         //{
+
+        //if (hasCollided.Value == true)
+        //{
+        //    gameObject.GetComponentInChildren<Animator>().hasCollided = true;
+        //    Instantiate(thisAnimation);
+        //}
+
+
+
         HandleAllInteractions(colliderHit);
         //    hasCollided.Value = true;
         //}
