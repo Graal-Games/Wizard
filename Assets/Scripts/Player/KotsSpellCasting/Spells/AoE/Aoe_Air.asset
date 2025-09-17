@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Aoe_Air
   m_EditorClassIdentifier: 
   spellType: 3
-  element: 3
+  element: 4
   spellAttribute: 0
   castProcedure: 3
   periCastLockProcedure: 0

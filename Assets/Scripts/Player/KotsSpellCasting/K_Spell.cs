@@ -6,6 +6,7 @@ using Unity.Collections;
 using System.Collections.Generic;
 using System.Collections;
 using System.Threading.Tasks;
+using DamageOverTimeEffect;
 // This is the spell class
 
 [SelectionBase] // Select parent
@@ -26,6 +27,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     [HideInInspector] public float aliveTimer;
     [HideInInspector] public float dotTickTimer;
 
+    public List<OnCollisionConstantDamageOverTime> currentOnCollisionDoTList = new List<OnCollisionConstantDamageOverTime>();
+
     // Components
     [HideInInspector] public Rigidbody rb;
 
@@ -39,9 +42,13 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
 
     public string SpellName => SpellDataScriptableObject.name;
+    public Element Element => SpellDataScriptableObject.element;
+
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
     public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
+    public float DamageOverTimeAmount => SpellDataScriptableObject.damageOverTimeAmount;
 
+    GameObject otherGO;
 
     // Spell caster
     [HideInInspector] public Transform caster;
@@ -158,7 +165,52 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
                 //AddForce(rb2);
                 rb2.AddForce(spellDataScriptableObject.pushForce * pushDirection.normalized, ForceMode.Impulse);
 
-                canDestroy = true; 
+                canDestroy = true;
+            }
+        }
+
+        // Currently the Sphere Shield is the only spell that receives DoT damage
+        // TO DO: Make barriers get affected by damage over time spells.
+        if (currentOnCollisionDoTList.Count > 0)
+        {
+            // Iterate through the DoT spells the player character is currently affected by
+            for (int i = currentOnCollisionDoTList.Count - 1; i >= 0; i--)
+            {
+                // Get the instance of each of the DoT effect
+                var dot = currentOnCollisionDoTList[i];
+
+
+                // If the spell duration has not yet expired (above)
+                // The method returns 'true' at a specified (per second) time interval and applies damage
+                if (dot.OnCollisionConstantDoTDamageTick())
+                {
+                    Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE - Other IDmg.: {otherGO?.GetComponent<IDamageable>()} IDmg.: {GetComponent<IDamageable>()}</color>");
+
+                    // If the GO is destroyed remove it from the list
+                    // An exception for sphere here is made as when the projectile fire hits it the sphere needs to handle the DoT in its fixed update, instead of the other spell applying damage to it.
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Sphere"))
+                    {
+                        currentOnCollisionDoTList.Remove(dot);
+                        return;
+                    }
+
+                    if (otherGO != null)
+                    {
+                        // Apply damage to the sphere
+                        otherGO.GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+                    }
+                    else
+                    {
+                        GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+
+                    }
+
+
+                    // Activating the blood shader for AoE doesn't work the same way when it is to be fired in succession
+                    //if (shaderActivation != null) shaderActivation(OwnerClientId, "Blood", 1);
+                    // DebuffController.DebuffController cont = new DebuffController.DebuffController(_healthBar.ApplyDamage(dot.DamagePerSecond));
+                }
+
             }
         }
     }
@@ -406,7 +458,20 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         // And DO NOT proceed to apply damage to the related player
         if (other.CompareTag("ActiveShield"))
         {
-            // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+            // to delete comment >> This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+            Debug.LogFormat($"<color=orange> .... FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+            // Technically this is not necessary: GetComponent<ISpell>().
+            if (GetComponent<ISpell>().Element == Element.Fire)
+            {
+                Debug.LogFormat($"<color=orange> XXX FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                otherGO = other.gameObject;
+
+                currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+            }
+
             other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
 
             hasHitShield.Value = true;

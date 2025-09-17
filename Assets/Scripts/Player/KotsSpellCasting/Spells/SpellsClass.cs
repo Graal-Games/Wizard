@@ -1,5 +1,7 @@
+using DamageOverTimeEffect;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
@@ -23,7 +25,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     //private static AssetReferenceGameObject spellsExplosionAR;
 
-
+    NetworkVariable<float> armorPoints = new NetworkVariable<float>(0);
     public K_SpellData SpellDataScriptableObject
     {
         get { return spellDataScriptableObject; }
@@ -37,8 +39,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     // These are being defined in the scriptable object associated to each prefab
     public string SpellName => SpellDataScriptableObject.name;
+    public Element Element => SpellDataScriptableObject.element;
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
     public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
+    public float DamageOverTimeAmount => SpellDataScriptableObject.damageOverTimeAmount;
 
 
 
@@ -50,6 +54,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     protected NetworkVariable<bool> isSpellActive = new NetworkVariable<bool>(false,
     NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Owner);
+
+
+    public List<OnCollisionConstantDamageOverTime> currentOnCollisionDoTList = new List<OnCollisionConstantDamageOverTime>();
+
 
 
     private float spellLifetimeTimer = 0f;
@@ -68,6 +76,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     protected float checkRadius = 2f;    // Match your trigger size
     protected LayerMask triggerLayer;    // Layer for the kill trigger
+    private GameObject otherGO;
+
 
 
     /// <summary>
@@ -101,6 +111,95 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
+    public virtual void FixedUpdate()
+    {
+        if (spellLifetimeActive)
+        {
+            spellLifetimeTimer += Time.fixedDeltaTime;
+
+            if (spellLifetimeTimer >= spellLifetimeDuration)
+            {
+                spellLifetimeActive = false;
+                DestroySpellRpc();
+            }
+        }
+
+
+        if (currentOnCollisionDoTList.Count > 0)
+        {
+            // Iterate through the DoT spells the player character is currently affected by
+            for (int i = currentOnCollisionDoTList.Count - 1; i >= 0; i--)
+            {
+                // Get the instance of each of the DoT effect
+                var dot = currentOnCollisionDoTList[i];
+
+
+                // If the spell duration has not yet expired (above)
+                // The method returns 'true' at a specified (per second) time interval and applies damage
+                if (dot.OnCollisionConstantDoTDamageTick())
+                {
+                    Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE DOT APPLY DAMAGE OTHERGOOOOOOO: {otherGO}</color>");
+
+                    // If the GO is destroyed remove it from the list
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Sphere"))
+                    {
+                        Debug.LogFormat($"<color=purple>222222 SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+
+                        currentOnCollisionDoTList.Remove(dot);
+                        return;
+                    }
+
+                    // If the GO is destroyed remove it from the list
+                    if (otherGO == null && !GetComponent<IDamageable>().ToString().Contains("Barrier"))
+                    {
+                        Debug.LogFormat($"<color=purple>99999 SPSPSPSPSPHEREEEE DOT APPLY DAMAGE</color>");
+
+                        currentOnCollisionDoTList.Remove(dot);
+                        return;
+                    }
+
+                    UnityEngine.Debug.LogFormat($"<color=purple>SPSPSPSPSPHEREEEE other name: {otherGO.name} other nb script: {otherGO.GetComponent<NetworkBehaviour>()}</color>");
+
+
+                    // Apply damage to the player
+                    otherGO.GetComponent<IDamageable>().TakeDamage(dot.DamagePerSecond);
+
+                    // Activating the blood shader for AoE doesn't work the same way when it is to be fired in succession
+                    //if (shaderActivation != null) shaderActivation(OwnerClientId, "Blood", 1);
+                    // DebuffController.DebuffController cont = new DebuffController.DebuffController(_healthBar.ApplyDamage(dot.DamagePerSecond));
+                }
+
+            }
+        }
+    }
+
+
+    public virtual void TakeDamage(float damage)
+    {
+        armorPoints.Value -= damage;
+        Debug.LogFormat($"<color=orange>armorPoints: {armorPoints.Value}</color>");
+
+        TakeDamageRpc(damage);
+
+        //CheckStatus();
+    }
+
+    [Rpc(SendTo.Server)]
+    void TakeDamageRpc(float damage)
+    {
+        armorPoints.Value -= damage;
+        CheckStatus();
+    }
+
+    void CheckStatus()
+    {
+        if (armorPoints.Value <= 0)
+        {
+            Debug.LogFormat($"<color=orange>2!!!!armorPoints: {armorPoints.Value}</color>");
+            DestroySpell(gameObject);
+        }
+    }
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -128,19 +227,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         }
 
 
-        //if (spellsExplosionAR == null)
-        //{
-        //    // Replace the line causing the error with the following code:
-        //    spellsExplosionAR.LoadAssetAsync("Assets/Scripts/Player/KotsSpellCasting/Spells/Charm/Explosive/Explosion.prefab").Completed += ;
 
-        //    Debug.LogFormat($"<color=orange>Spells Explosion GameObject loaded: {spellsExplosionGO}</color>");
-        //}
-
-
-        // if (SpellDataScriptableObject.spellTimeBeforeDeactivation > 0)
-        // {
-        //     StartCoroutine(SpellDeactivation());
-        // }
     }
 
 
@@ -239,20 +326,6 @@ public class SpellsClass : NetworkBehaviour, ISpell
         isSpellActive.Value = false;
     }
 
-    //void ApplyDamageToSpell()
-    //{
-    //    healthPoints.Value -= damage;
-    //    Debug.LogFormat($"<color=orange>armorPoints: {healthPoints}</color>");
-
-    //    if (healthPoints.Value <= 0)
-    //    {
-    //        // DestroyBarrierRpc();
-    //        DestroySpellRpc();
-    //    }
-    //}
-
-
-
 
 
 
@@ -302,7 +375,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
 
 
-
+    // I believe that the EmitPayload is received by all players and processed by all
+    //but only works on the target player through a conditional
     void EmitPayload(PlayerHitPayload spellPayloadParam)
     {
         playerHitEvent?.Invoke(spellPayloadParam);
@@ -368,30 +442,77 @@ public class SpellsClass : NetworkBehaviour, ISpell
             return other.GetComponentInParent<SpellsClass>();
         } else
         {
+            Debug.LogFormat($"<color=orange> !!! SPELLS CLASS SCRIPT IS NULL !!! </color>");
+
             return null;
         }
     }
 
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
-        NewPlayerBehavior playerBehavior = other.GetComponent<NewPlayerBehavior>();
+        Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {SpellsClassScript(other)} </color>");
 
-        if (playerBehavior != null && other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true)
+        //if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true || other.CompareTag("ActiveShield"))
+        if (other.CompareTag("ActiveShield"))
         {
             // If the spell has hit an active shield, change the following value
-            //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");
+            //Debug.LogFormat("<color=orange> ACTIVESHIELD (" + other.name + ")</color>");  
             hasHitShield.Value = true;
-            //other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
-            if (SpellsClassScript(other) != null)
-            {
-                SpellsClass spellsClass = SpellsClassScript(other);
 
-                if (spellsClass.SpellDataScriptableObject.directDamageAmount > 0 || spellsClass.SpellDataScriptableObject.damageOverTimeAmount > 0)
+           Debug.LogFormat($"<color=orange> 1111 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE other name: {other.name} current barrier spell script: {GetComponent<BarrierSpell>()} current spellsClass script: {SpellsClassScript(other)} current ISpell: {GetComponent<ISpell>()} </color>");
+
+
+            if (DamageOverTimeAmount > 0) 
+            {
+                Debug.LogFormat($"<color=orange> XXX FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                otherGO = other.gameObject;
+
+                // Only add a new DoT entry if it hasn't been added before
+                if (!currentOnCollisionDoTList.Any(i => i.NetworkId == GetComponent<NetworkBehaviour>().NetworkBehaviourId))
                 {
-                    // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
-                    other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+                    if (GetComponent<ISpell>().SpellName.Contains("Projectile_Fire"))
+                    {
+                        Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        other.GetComponent<K_SphereSpell>().currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    } else
+                    {
+                        Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    }
                 }
             }
+
+            // TO DO: If the spell is a DoT apply DoT on the spell
+            if (SpellDataScriptableObject.directDamageAmount > 0 || SpellDataScriptableObject.damageOverTimeAmount > 0)
+            {
+                // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+                other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+            }
+
+            //if (SpellsClassScript(other) != null)
+            //{
+            //    SpellsClass spellsClass = SpellsClassScript(other);
+
+            //    Debug.LogFormat($"<color=orange> 222 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {other.gameObject.GetComponent<ISpell>().Element} </color>");
+
+            //    if (other.gameObject.GetComponent<ISpell>().Element == Element.Fire) 
+            //    {
+            //        Debug.LogFormat("<color=orange> 333 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE </color>");
+
+            //    }
+
+            //    // TO DO: If the spell is a DoT apply DoT on the spell
+            //    if (spellsClass.SpellDataScriptableObject.directDamageAmount > 0 || spellsClass.SpellDataScriptableObject.damageOverTimeAmount > 0)
+            //    {
+            //        // This is being called incorrectly from somewhere. Haven't figured out where or what yet.
+            //        other.gameObject.GetComponent<K_SphereSpell>().TakeDamage(spellDataScriptableObject.directDamageAmount);
+            //    }
+            //}
 
 
 
@@ -429,7 +550,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        // Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS tag:{colliderHit.tag},name:{colliderHit.name}</color>");
+        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
 
@@ -482,34 +603,35 @@ public class SpellsClass : NetworkBehaviour, ISpell
     {
         var ISpellComponent = colliderHit.GetComponent<ISpell>();
         var ISpellComponentInParent = colliderHit.GetComponentInParent<ISpell>();
-        //bool isBarrier = ISpellComponent.SpellName.Contains("Barrier");
-        //bool isScepter = ISpellComponent.SpellName.Contains("Scepter");
 
         //Debug.LogFormat("<color=brown> Handle Spell To Spell Interactions (" + colliderHit.name + ")</color>");
 
-        // Collider objectHit = colliderHit;
+
         // If the other object that this gameObject has interacted with is a spell
         //>>handle the behavior of the spell interaction
-        if (colliderHit.CompareTag("Spell"))
+        if (!colliderHit.CompareTag("Spell")) return;
+ 
+        //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
+
+        //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
+
+
+        // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
+        if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
         {
-            //Debug.LogFormat("<color=orange> ()()()()()()() (" + colliderHit.name + ")</color>");
+            //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
 
-            // && colliderHit.GetComponent<ProjectileSpell>().Spell
-
-            //Debug.LogFormat($"<color=green> '''''''''' DISPEL vars: SpellDataScriptableObject.dispel {SpellDataScriptableObject.dispel} AAND IsDispelResistant: {IsDispelResistant} </color>");
-
-
-            // If the spell dispels other spells and the other spell hit is dispellable (or not resistant to dispels) destroy it.
-            if (SpellDataScriptableObject.dispel == true && IsDispelResistant == false && !colliderHit.gameObject.name.Contains("Projectile"))
-            {
-                //Debug.LogFormat("<color=blue> ][][][][] DISPEL TRUU (" + colliderHit.name + ")</color>");
-
-                DestroyOtherSpell(colliderHit);
-            }
+            DestroyOtherSpell(colliderHit);
+        }
 
 
 
-            if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
+        if (ISpellComponent != null && ISpellComponent.SpellName.Contains("Barrier"))
+        {
+            //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
+
+            // IF colliderHit.GetComponent<IDamageable>() != null
+            if (colliderHit.gameObject.GetComponent<BarrierSpell>().SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
             {
                 //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
@@ -544,31 +666,42 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     DestroySpell(gameObject);
                 }
 
+                colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
             }
-            else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
+
+
+            if (DamageOverTimeAmount > 0)
             {
-                //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
+                Debug.LogFormat($"<color=orange> ;;;;;; FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} OTHER: {colliderHit.gameObject}</color>");
 
-                AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
+                otherGO = colliderHit.gameObject;
 
-                if (aoeSpell.SpellDataScriptableObject.health > 1)
+                // Only add a new DoT entry if it hasn't been added before
+                if (!currentOnCollisionDoTList.Any(i => i.NetworkId == GetComponent<NetworkBehaviour>().NetworkBehaviourId))
                 {
-                    aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
+                    // If the spell with DoT effect is destroyed on contact make the spell self handle the DoT 
+                    // else have the other spell handle it.
+                    // TO DO: Could be written differently: if oncollisiondestroy is true
+                    if (GetComponent<ISpell>().SpellName.Contains("Projectile_Fire"))
+                    {
+                        Debug.LogFormat($"<color=orange> YYY FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
 
-                //if (!gameObject.name.Contains("Explosion"))
-                //{
-                //    DestroySpellRpc();
-                //}
+                        colliderHit.GetComponent<BarrierSpell>().currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
 
                 if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
                 {
                     DestroySpell(gameObject);
+                    }
+                    else
+                    {
+                        Debug.LogFormat($"<color=orange> NNN FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {GetComponent<ISpell>().SpellName} </color>");
+
+                        currentOnCollisionDoTList.Add(new OnCollisionConstantDamageOverTime(GetComponent<NetworkBehaviour>().NetworkBehaviourId, GetComponent<ISpell>().Element.ToString(), GetComponent<ISpell>().DamageOverTimeAmount));
+
+                    }
                 }
             }
-        }
-    }
 
 
     //public void ApplyDamage(float one)
@@ -589,11 +722,50 @@ public class SpellsClass : NetworkBehaviour, ISpell
             {
                 spellLifetimeActive = false;
                 DestroySpell(gameObject);
+            if (!gameObject.name.Contains("Explosion"))
+            {
+                DestroySpellRpc();
             }
         }
+        else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Scepter"))
+        {
+            //Debug.LogFormat("<color=orange> Projectile hit SCEPTER (" + colliderHit.name + ")</color>");
+
+            InvocationSpell invocationSpell = colliderHit.gameObject.GetComponentInParent<InvocationSpell>();
+
+            if (invocationSpell.SpellDataScriptableObject.health > 1)
+            {
+                invocationSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+            }
+
+            if (!gameObject.name.Contains("Explosion"))
+            {
+                DestroySpellRpc();
+            }
 
 
+        }
+        else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
+        {
+            //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
+
+            AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
+
+            if (aoeSpell.SpellDataScriptableObject.health > 1)
+            {
+                aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
+            }
+
+            if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
+            {
+                DestroySpellRpc();
+            }
+        }
+        
     }
+
+
+
 
 
     #region Spell Duration handling and destruction
