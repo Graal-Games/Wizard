@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,82 +9,76 @@ public class ProjectileParryHandler : NetworkBehaviour
     [SerializeField] private GameObject parryAnticipationCanvas;
     [SerializeField] private TextMeshProUGUI parryAnticipationLetterText;
 
-    // This event is now only invoked ON THE SERVER.
     public event EventHandler OnAnyPlayerPerformedParry;
 
-    public NetworkVariable<FixedString32Bytes> ParryLetters = new NetworkVariable<FixedString32Bytes>();
+    public string ParryLetters { get; set; }
 
-    public enum ParryState { NONE, ANTICIPATION, PARRIABLE }
+    public enum ParryState
+    {
+        NONE, // Added a default state
+        ANTICIPATION,
+        PARRIABLE
+    }
 
+    // Dictionary to track players and their current parry state for this projectile
     private Dictionary<ulong, ParryState> playerParryStates = new Dictionary<ulong, ParryState>();
 
-    public override void OnNetworkSpawn()
-    {
-        base.OnNetworkSpawn();
-        ParryLetters.OnValueChanged += OnParryLetterChanged;
-        OnParryLetterChanged(default, ParryLetters.Value);
-    }
-
-    private void OnParryLetterChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
-    {
-        if (!string.IsNullOrEmpty(newValue.ToString()))
-        {
-            parryAnticipationLetterText.text = newValue.ToString();
-            parryAnticipationCanvas.SetActive(true);
-        }
-    }
+    // No longer need trigger listeners, so Awake and the trigger methods are removed.
 
     internal void OnProjectileSpawned(string parryLetters)
     {
-        if (!IsServer) return;
-        ParryLetters.Value = parryLetters;
+        parryAnticipationLetterText.text = parryLetters;
+        this.ParryLetters = parryLetters;
+        parryAnticipationCanvas.SetActive(true); // Assuming canvas is always visible when projectile is active
     }
 
+    /// <summary>
+    /// Called by the ProjectileClass to update a player's state based on distance.
+    /// This is the new central method for state management.
+    /// </summary>
     public void UpdatePlayerState(ulong playerId, ParryState newState, PlayerSpellParryManager playerManager)
     {
-        if (!IsServer) return;
+        // Get the current state, defaulting to NONE if the player isn't tracked yet
         playerParryStates.TryGetValue(playerId, out ParryState currentState);
+
+        // If the state hasn't changed, do nothing. This is an important optimization.
         if (currentState == newState) return;
+
+        // Update the state in our dictionary
         playerParryStates[playerId] = newState;
 
+        // Notify the player's manager about the new state
         if (newState == ParryState.ANTICIPATION || newState == ParryState.PARRIABLE)
         {
-            playerManager.Server_UpdateParryStateForPlayer(new NetworkObjectReference(this.NetworkObject), playerId, newState);
-            // Color change is a visual flair, can be client-side if needed, but fine here for now.
+            Debug.Log($"Player {playerId} state updated to {newState}");
+            playerManager.AddOrUpdateParriableSpell(this, playerId, newState);
+
+            // Optional: Update UI visual cues based on the new state
             parryAnticipationLetterText.color = newState == ParryState.PARRIABLE ? Color.yellow : Color.white;
         }
     }
 
+    /// <summary>
+    /// Called by the ProjectileClass when a player is no longer in range.
+    /// </summary>
     public void RemovePlayerFromRange(ulong playerId, PlayerSpellParryManager playerManager)
     {
-        if (!IsServer) return;
         if (playerParryStates.ContainsKey(playerId))
         {
-            playerManager.Server_RemoveParryStateForPlayer(this.NetworkObjectId, playerId);
+            Debug.Log($"Player {playerId} exited range.");
+            // Get the last known state to correctly remove it from the manager
+            ParryState lastState = playerParryStates[playerId];
+            playerManager.RemoveSpellState(this.NetworkObjectId, playerId, lastState);
             playerParryStates.Remove(playerId);
+
+            // Optional: Reset UI
             parryAnticipationLetterText.color = Color.white;
         }
     }
 
-    /// <summary>
-    /// This is called by the CLIENT's PlayerSpellParryManager after a successful local check.
-    /// Its only job is to tell the server about the parry.
-    /// </summary>
     internal void Parry()
     {
-        // This method now securely calls the server to execute the parry.
-        ParryServerRpc();
-    }
-
-    /// <summary>
-    /// This RPC is sent from a client to the server to report a successful parry.
-    /// </summary>
-    [ServerRpc(RequireOwnership = false)]
-    private void ParryServerRpc(ServerRpcParams rpcParams = default)
-    {
-        Debug.Log($"[SERVER ProjectileHandler {NetworkObjectId}]: Received parry request from Client {rpcParams.Receive.SenderClientId}.");
-
-        // Now, on the server, invoke the event that the ProjectileClass is listening for.
+        Debug.Log($"[ParryHandler {this.NetworkObjectId}]: Parry() called. Invoking OnAnyPlayerPerformedParry event.");
         OnAnyPlayerPerformedParry?.Invoke(this, EventArgs.Empty);
     }
 }

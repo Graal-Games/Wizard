@@ -539,12 +539,12 @@ public class K_SpellLauncher : NetworkBehaviour
         //or spell prefab itself
         if (this.spellBuilder.GetIsSpellParriable(spellSequence))
         {
-            SetParryLetterServerRpc();
+            SetParryLetterServerRpc(playerSpellParryManager.GeneratePlayerParryAnticipation(spellSequence));
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SetParryLetterServerRpc()
+    private void SetParryLetterServerRpc(string parryLetter)
     {
         if (!IsServer) // Ensure this runs only on the server
         {
@@ -552,31 +552,8 @@ public class K_SpellLauncher : NetworkBehaviour
             return;
         }
 
-        // 1. Generate the letter directly on the server.
-        System.Random random = new System.Random();
-        int res = random.Next(0, K_SpellKeys.spellTypes.Length);
-        string parryLetter = K_SpellKeys.spellTypes[res].ToString();
-
-        // 2. Set your official NetworkVariable for the projectile.
+        // This method will be executed on the server to set the value of the NetworkVariable
         this.parryLetters.Value = parryLetter;
-
-        // 3. Use the manager's NEW method to show the hint to other players.
-        playerSpellParryManager.Server_ShowCastingHint(parryLetter);
-
-        Debug.Log($"[2 Caster SERVER]: Received letter '{parryLetter}' to set official NetworkVariable.");
-    }
-
-
-    [ServerRpc(RequireOwnership = false)]
-    private void hideCastingHintServerRpc()
-    {
-        if (!IsServer) // Ensure this runs only on the server
-        {
-            Debug.LogError("hideCastingHintServerRpc called on a client! This should only run on the server.");
-            return;
-        }
-
-        playerSpellParryManager.Server_HideCastingHint();
     }
 
     // A spell is only cast here if the sequence contains a spellcast procedure
@@ -873,8 +850,6 @@ public class K_SpellLauncher : NetworkBehaviour
     {
         Debug.Log($"SERVER executing ProjectileSpawnRpc for spell: '{spellSequenceParam}', NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
 
-        Debug.Log($"[SERVER]: ProjectileSpawnRpc received with sequence '{spellSequenceParam}'.");
-
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         // Check if instantiation worked and where it is
@@ -914,13 +889,8 @@ public class K_SpellLauncher : NetworkBehaviour
         {
             Debug.Log($"<color=green>[Server] SUCCESS:</color> '{spellInstance.name}' spawned with OwnerClientId {netObj.OwnerClientId}");
 
-            bool isParriable = this.spellBuilder.GetIsSpellParriable(spellSequenceParam);
-            Debug.Log($"[SERVER]: Checking if spell is parriable... Result: {isParriable}");
-
-            if (isParriable)
+            if (this.spellBuilder.GetIsSpellParriable(spellSequenceParam))
             {
-                Debug.Log($"[3 Projectile SERVER]: Assigning letter '{this.parryLetters.Value}' to projectile.");
-
                 SpellsClass projectile = spellInstance.GetComponent<SpellsClass>();
                 projectile.parryLetters.Value = this.parryLetters.Value;
             }
@@ -1104,7 +1074,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
     public void ResetSpellSequence()
     {
-        hideCastingHintServerRpc();
+        playerSpellParryManager.HidePlayerParryAnticipation();
 
         if (castKey.Anim.GetCurrentAnimatorStateInfo(0).IsName("BufferOnce"))
         {
