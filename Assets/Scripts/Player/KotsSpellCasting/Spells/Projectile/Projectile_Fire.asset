@@ -24,7 +24,7 @@ MonoBehaviour:
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
   moveSpeed: 1
-  spellDuration: 15
+  spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
