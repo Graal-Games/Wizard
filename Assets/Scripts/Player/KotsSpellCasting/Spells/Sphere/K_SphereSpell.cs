@@ -2,7 +2,7 @@ using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
-public class K_SphereSpell : K_Spell
+public class K_SphereSpell : K_Spell, IDamageable
 {
 
     public delegate void ShieldLifeStatus(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehavior, bool status);
@@ -20,8 +20,8 @@ public class K_SphereSpell : K_Spell
 
         base.OnNetworkSpawn();
 
-        Debug.LogFormat($"<color=orange>SPHERE PARENT: {this.gameObject.transform.parent} ID: {OwnerClientId} </color>");
-        Debug.LogFormat($"<color=orange>SPHERE HEALTH: {SpellDataScriptableObject.health} </color>");
+        //Debug.LogFormat($"<color=orange>SPHERE PARENT: {this.gameObject.transform.parent} ID: {OwnerClientId} </color>");
+        //Debug.LogFormat($"<color=orange>SPHERE HEALTH: {SpellDataScriptableObject.health} </color>");
 
 
         armorPoints.Value = SpellDataScriptableObject.health;
@@ -54,7 +54,7 @@ public class K_SphereSpell : K_Spell
     // Add comment!
     void ShieldStatus(bool status)
     {
-        Debug.LogFormat($"<color=orange>statusstatusstatusstatus: {status}</color>");
+        //Debug.LogFormat($"<color=orange>statusstatusstatusstatus: {status}</color>");
 
         if (shieldExists != null) shieldExists(OwnerClientId, this.NetworkObject, this.GetNetworkBehaviour(this.NetworkBehaviourId), status);
     }
@@ -70,9 +70,9 @@ public class K_SphereSpell : K_Spell
         armorPoints.Value -= damage;
         Debug.LogFormat($"<color=orange>armorPoints: {armorPoints.Value}</color>");
 
-        //TakeDamageRpc(damage);
+        TakeDamageRpc(damage);
 
-        CheckStatus();
+        //CheckStatus();
     }
 
     [Rpc(SendTo.Server)]

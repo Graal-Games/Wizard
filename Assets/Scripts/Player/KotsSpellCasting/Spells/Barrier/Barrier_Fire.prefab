@@ -89,7 +89,6 @@ GameObject:
   - component: {fileID: 7190232487596389227}
   - component: {fileID: 4084970538998313656}
   - component: {fileID: 934860316581456473}
-  - component: {fileID: 4227137395399817222}
   - component: {fileID: 3896862310029774220}
   m_Layer: 8
   m_Name: Fire Barrier Model
@@ -211,20 +210,6 @@ Rigidbody:
   m_Interpolate: 2
   m_Constraints: 126
   m_CollisionDetection: 3
---- !u!114 &4227137395399817222
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9142085671545083599}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66cc7dbc68a5b2947ae1f7ee92a91ac2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spellDataScriptableObject: {fileID: 11400000, guid: 45e5e41d3e1a979438681108118bc810, type: 2}
-  secondaryGameObjectToSpawn: {fileID: 0}
 --- !u!114 &3896862310029774220
 MonoBehaviour:
   m_ObjectHideFlags: 0

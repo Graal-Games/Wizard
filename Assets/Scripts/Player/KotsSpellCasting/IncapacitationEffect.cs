@@ -69,7 +69,7 @@ namespace IncapacitationEffect
             {
                 { IncapacitationName.Stun, new IncapacitationInfo(      // STUN
                     IncapacitationType.MovementAndSpellCasting, 
-                    !isMovementAffected, 
+                    isMovementAffected, 
                     !isMovementSlowed, 
                     isStopsMovement, 
                     isSpellCastingAffected) },

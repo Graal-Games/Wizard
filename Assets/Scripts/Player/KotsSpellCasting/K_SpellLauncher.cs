@@ -765,6 +765,7 @@ public class K_SpellLauncher : NetworkBehaviour
     public void DestroyLocalShield()
     {
         Destroy(localSpellInstance);
+        newPlayerBehaviorScript.localSphereShieldActive.Value = false;
     }    
     
     public void HandleDestroyProjectile(FixedString128Bytes spellId)

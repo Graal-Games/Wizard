@@ -2,14 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BarrierClass : SpellsClass
+public class BarrierClass : SpellsClass, IDamageable
 {
     private void OnTriggerEnter(Collider other)
     {
         Debug.LogFormat($"<color=purple>BARRIER OTEN</color>");
 
-        if (other.gameObject.CompareTag("Player"))
+
+        if (other.gameObject.CompareTag("ActiveShield")) 
         {
+            Debug.LogFormat($"<color=purple>BARRIER HAS DETECTED ACTIVE SHIELD</color>");
+            HandleIfPlayerHasActiveShield(other.gameObject);
+        }   
+        else if (other.gameObject.CompareTag("Player"))
+        {
+            Debug.LogFormat($"<color=purple>BARRIER HAS DETECTED PLAYER</color>");
             HandleAllInteractions(other);
         }
     }
@@ -22,5 +29,10 @@ public class BarrierClass : SpellsClass
         {
             HandleAllInteractions(other);
         }
+    }
+
+    public override void TakeDamage(float dmg)
+    {
+        base.TakeDamage(dmg);
     }
 }

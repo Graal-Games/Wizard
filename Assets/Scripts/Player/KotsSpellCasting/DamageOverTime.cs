@@ -2,58 +2,21 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // GPT generated. To clean up
-namespace DamageOverTimeEffect {
+namespace DamageOverTimeEffect 
+{
 
     public class DamageOverTime
     {
-        int networkId;
-        string element;
-        float damagePerSecond;
-        float spellDuration;
+        public int NetworkId { get; private set; }
+        public string Element { get; private set; }
+        public float DamagePerSecond { get; private set; }
+        public float SpellDuration { get; private set; }
 
-        float elapsedTime = 0f;
-        bool timeExpired = false;
-        bool dealDamage = true;
-        int seconds;
-        float timer;
-
-        bool firstEntry = true;
-
-        public int NetworkId
-        {
-            get { return networkId; }
-            private set { networkId = value; }
-        }
-
-        public string Element
-        {
-            get { return element; }
-            private set { element = value; }
-        }
-
-        public float DamagePerSecond
-        {
-            get { return damagePerSecond; }
-            private set { damagePerSecond = value; }
-        }
-
-        public float SpellDuration
-        {
-            get { return spellDuration; }
-            private set { spellDuration = value; }
-        }
-
-        public float ElapsedTime
-        {
-            get { return elapsedTime; }
-            private set { elapsedTime = value; }
-        }
-
-        public bool TimeExpired
-        {
-            get { return timeExpired; }
-            private set { timeExpired = value; }
-        }
+        private float elapsedTime = 0f;
+        private bool dealDamage = true;
+        private int seconds = 0;
+        private float timer = 0f;
+        public bool TimeExpired { get; private set; } = false;
 
 
         // CONSTRUCTOR
@@ -87,7 +50,7 @@ namespace DamageOverTimeEffect {
             // Once the timer duration in seconds reaches the total spellDuration
             // Returns a bool that instructs the method in the PlayerBehavior script
             //to remove the entry of the instance in the Dictionary
-            if (seconds >= spellDuration)
+            if (seconds >= SpellDuration)
             {
                 TimeExpired = true;
                 //Debug.Log(spellDuration + " seconds Elapsed: ");
@@ -97,4 +60,49 @@ namespace DamageOverTimeEffect {
         }
 
     }
+
+    public class OnCollisionConstantDamageOverTime
+    {
+        public int NetworkId { get; private set; }
+        public string Element { get; private set; }
+        public float DamagePerSecond { get; private set; }
+        public float SpellDuration { get; private set; }
+
+        private float elapsedTime = 0f;
+        private bool dealDamage = true;
+        private int seconds = 0;
+        private float timer = 0f;
+        public bool TimeExpired { get; private set; } = false;
+
+
+        public OnCollisionConstantDamageOverTime(int networkId, string spellElement, float dps)
+        {
+            NetworkId = networkId;
+            this.Element = spellElement;
+            DamagePerSecond = dps;
+        }
+
+        public bool OnCollisionConstantDoTDamageTick() // should be activated using parameters that determine its lifetime and the item in the list which it should delete
+        {
+            // chatgpt did this
+            timer += Time.deltaTime; // output is 100+ each second
+
+            // Check if 1 second has elapsed
+            // Each second return a 'true' bool value. Following this return, the PlayerBehaviour script applies damage to the player.
+            if (timer == 0 || timer >= 1f)
+            {
+                seconds += 1;
+
+                // Debug.Log("Elapsed: " + seconds + " Action performed at: " + Time.time);
+
+                // Reset the timer
+                timer = 0f;
+
+                return dealDamage;
+            }
+
+            return !dealDamage;
+        }
+    }
+
 }
