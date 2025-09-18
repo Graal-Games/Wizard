@@ -1078,7 +1078,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1895708736288426739
 Transform:
   m_ObjectHideFlags: 0
@@ -1146,7 +1146,7 @@ VFXRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6591349713948204491}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 0
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
@@ -9023,6 +9023,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 0453542210820d64bb67d70b3c438261, type: 2}
+    - target: {fileID: 3022015864136158657, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3047739891192771687, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_Icon
       value: 
@@ -9086,6 +9090,10 @@ PrefabInstance:
     - target: {fileID: 3828288167708915486, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3828288167708915486, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3836607346887716698, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}
       propertyPath: m_Layer
@@ -10803,6 +10811,7 @@ MonoBehaviour:
     - {fileID: 4509901412679656961}
     - {fileID: 8662805689373273957}
     - {fileID: 1662073464342421548}
+  parryCooldownDuration: 2
 --- !u!1 &4862430053716336212 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3252496362174788737, guid: b838b46c45b5dc6479b4269f0c6d6768, type: 3}

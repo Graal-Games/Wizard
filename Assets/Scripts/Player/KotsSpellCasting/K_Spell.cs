@@ -47,6 +47,8 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
     public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
     public float DamageOverTimeAmount => SpellDataScriptableObject.damageOverTimeAmount;
+    public float Health => SpellDataScriptableObject.health;
+
 
     GameObject otherGO;
 
@@ -515,6 +517,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
         // The below code can nbe simplified
         if (other.gameObject.CompareTag("Spell") && !other.gameObject.CompareTag("Player")) 
         {
+            Debug.LogFormat($" DOT: {other.GetComponent<ISpell>().DamageOverTimeAmount} ");
 
             if (other.GetComponent<ISpell>().SpellName.Contains("Barrier") && other.gameObject.GetComponent<BarrierSpell>() != null)
             {

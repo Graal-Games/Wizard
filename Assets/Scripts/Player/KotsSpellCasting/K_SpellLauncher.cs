@@ -176,8 +176,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
         K_DRKey.onPlayerFailedToSyncInputToBuffer += HandleBufferFailed;
 
-
         K_ProjectileSpell.projectileInstance += HandleDestroyProjectile;
+
 
         newPlayerBehaviorScript = this.GetComponent<NewPlayerBehavior>();
 

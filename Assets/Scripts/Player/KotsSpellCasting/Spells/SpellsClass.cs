@@ -43,6 +43,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public bool IsDispelResistant => SpellDataScriptableObject.isDispelResistant;
     public float DirectDamage => SpellDataScriptableObject.directDamageAmount;
     public float DamageOverTimeAmount => SpellDataScriptableObject.damageOverTimeAmount;
+    public float Health => SpellDataScriptableObject.health;
 
 
 
@@ -690,6 +691,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
                     DestroySpell(gameObject);
                 }
             }
+        }
 
     }
 

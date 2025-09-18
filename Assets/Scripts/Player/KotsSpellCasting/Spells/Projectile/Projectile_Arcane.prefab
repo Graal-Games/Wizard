@@ -199,8 +199,14 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
+  anticipationDistance: 15
+  parryDistance: 7
+  parryAngle: 30
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 0
   projectileParryHandler: {fileID: 0}
-  projectileTrigger: {fileID: -1620195190535921199}
+  projectileSphere: {fileID: 0}
 --- !u!135 &9127425066406725040
 SphereCollider:
   m_ObjectHideFlags: 0

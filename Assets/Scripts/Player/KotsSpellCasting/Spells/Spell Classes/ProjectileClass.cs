@@ -38,12 +38,20 @@ public class ProjectileClass : SpellsClass
 
     NetworkVariable<bool> isHitPlayer = new NetworkVariable<bool>(false);
 
+
+
+
+
+
     public bool CanDestroy
     {
         get { return canDestroy; }
         set { canDestroy = value; }
 
     }
+
+
+
 
 
 
@@ -56,6 +64,11 @@ public class ProjectileClass : SpellsClass
         rb.isKinematic = false;
         rb.useGravity = false;
     }
+
+
+
+
+
 
     public override void OnNetworkSpawn()
     {         
@@ -91,6 +104,11 @@ public class ProjectileClass : SpellsClass
         }
     }
 
+
+
+
+
+
     public override void OnNetworkDespawn()
     {
         base.OnNetworkDespawn();
@@ -112,6 +130,11 @@ public class ProjectileClass : SpellsClass
         }
     }
 
+
+
+
+
+
     // This method is triggered when a player successfully performs a parry
     private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
     {
@@ -129,6 +152,11 @@ public class ProjectileClass : SpellsClass
 
         StartCoroutine(DelayedDestruction());
     }
+
+
+
+
+
 
     // Update is called once per frame
     public override void FixedUpdate()
@@ -155,6 +183,11 @@ public class ProjectileClass : SpellsClass
             StartCoroutine(DelayedDestruction());
         }
     }
+
+
+
+
+
 
     /// <summary>
     /// This new method handles all proximity logic for the parry system.
@@ -220,11 +253,21 @@ public class ProjectileClass : SpellsClass
         playersInRangeLastFrame = playersInRangeThisFrame;
     }
 
+
+
+
+
+
     IEnumerator DelayedDestruction()
     {
         yield return new WaitForSeconds(0.3f); // The value here seems to be working for now for pushback effect. Might need to revise it later.
         DestroySpell(gameObject);
     }
+
+
+
+
+
 
 
     [Rpc(SendTo.Server)]
@@ -268,32 +311,40 @@ public class ProjectileClass : SpellsClass
             // The hit was being registered on exiting a collider instead of upon entering it
             if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
             {
-                if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated??
+                if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated?? //
                 {
                     string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
                     Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
 
                     ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
                     Vector3 hitPosition = hit.point;
+
                     if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                     {
                         isHitPlayer.Value = true;
                         playerHitID.Add(hitPlayerOwnerID, true);
                         HandleCollision(hit.collider, hit.point);
+
                     }
-             }
-             else
-             {
-                    Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+                    else
+                    {
+                        Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
 
-                    //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
+                        //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
-                    HandleCollision(hit.collider, hitPosition);
-              }
-           }
+                        HandleCollision(hit.collider, hitPosition);
+                    }
+                }
+            }
+
+            lastPosition = currentPosition; // Update lastPosition to the current position after the movement
         }
-        lastPosition = currentPosition; // Update lastPosition to the current position after the movement
     }
+
+
+
+
+
 
 
     void HandleCollision(Collider colliderHit, Vector3 hitPosition = default)
@@ -334,6 +385,11 @@ public class ProjectileClass : SpellsClass
     }
 
 
+
+
+
+
+
     [Rpc(SendTo.Server)]
     void SpawnEffectAtTargetLocationRpc(Vector3 position)
     {
@@ -343,10 +399,20 @@ public class ProjectileClass : SpellsClass
         netObj.Spawn();
     }
 
+
+
+
+
+
     void HandleSpecificSpellToSpellInteractions()
     {
         // 
     }
+
+
+
+
+
 
     void HandlePushback()
     {
@@ -378,6 +444,11 @@ public class ProjectileClass : SpellsClass
 
     }
 
+
+
+
+
+
     
     [Rpc(SendTo.Server)]
     void HandlePushbackRpc()
@@ -391,9 +462,11 @@ public class ProjectileClass : SpellsClass
             {
                 // Try to get the NetworkObject and its owner
                 NetworkObject netObj = rb2.GetComponent<NetworkObject>();
+
                 if (netObj != null && !netObj.IsOwnedByServer)
                 {
-                    ApplyPushbackClientRpc(netObj.OwnerClientId, SpellDataScriptableObject.pushForce, pushDirection);                }
+                    ApplyPushbackClientRpc(netObj.OwnerClientId, SpellDataScriptableObject.pushForce, pushDirection);                
+                }
                 else
                 {
                     // Server-owned, apply force directly
@@ -405,6 +478,11 @@ public class ProjectileClass : SpellsClass
             }
         }
     }
+
+
+
+
+
 
     [Rpc(SendTo.Everyone)]
     void ApplyPushbackClientRpc(ulong targetClientId, float pushForce, Vector3 direction, RpcParams rpcParams = default)
@@ -427,41 +505,13 @@ public class ProjectileClass : SpellsClass
         }
     }
 
+
+
+
+
+
     public void ApplyPushbackToTarget(GameObject other)
     {
-        // if (other.gameObject.CompareTag("Player"))
-        // {
-        //     //    if (SpellDataScriptableObject.pushForce > 0)
-        //     //    {
-        //     //        Debug.LogFormat("<color=green>2 Push spell</color>");
-        //     //        // Cache the player's Rigidbody locally
-        //     //        Rigidbody rb = other.GetComponent<Rigidbody>();
-
-        //     //        // Add the rigidbody to the list of rigidbodies to be pushed
-        //     //        if (rb != null)
-        //     //        {
-        //     //            //pullSpellsList.Add(rb);
-        //     //        }
-        //     //    }
-        //     //    else
-        //     //    {
-        //     if (SpellDataScriptableObject.pushForce > 0)
-        //     {
-        //         Debug.LogFormat("<color=blue>2 Push spell</color>");
-
-        //         // Cache the player's Rigidbody locally
-        //         Rigidbody rb2 = other.GetComponent<Rigidbody>();
-
-        //         Debug.LogFormat($"<color=blue>3 Push spell RB: {rb2}</color>");
-
-        //         // Add the rigidbody to the list of rigidbodies to be pushed
-        //         if (rb2 != null)
-        //         {
-        //             pushSpellsList.Add(rb2);
-        //         }
-        //     }
-        //     //}
-        // }
 
         if (other.gameObject.CompareTag("Player"))
         {
@@ -497,6 +547,11 @@ public class ProjectileClass : SpellsClass
             }
         }
     }
+
+
+
+
+
 
     private void OnTriggerEnter(Collider other)
     {

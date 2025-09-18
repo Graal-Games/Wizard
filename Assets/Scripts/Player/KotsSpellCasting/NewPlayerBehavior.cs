@@ -100,6 +100,10 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     [SerializeField] GameObject wandTip2;
 
+
+
+
+
     // This correctly spawns and respawns the player at the spawn point's location
     void SpawnPlayerAtStartingLocation()
     {
@@ -113,6 +117,7 @@ public class NewPlayerBehavior : NetworkBehaviour
     }
 
     
+
 
     // This translates the player's position on the server
     [Rpc(SendTo.Server)]
@@ -154,6 +159,9 @@ public class NewPlayerBehavior : NetworkBehaviour
     }
 
 
+
+
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -184,6 +192,7 @@ public class NewPlayerBehavior : NetworkBehaviour
 
 
 
+
     public void AssignPlayerCenter(NetworkObject netObjParam)
     {
         UnityEngine.Debug.Log("SETTING SPAWN CENTER 222222");
@@ -191,11 +200,16 @@ public class NewPlayerBehavior : NetworkBehaviour
     }
 
 
+
     public void DoSomething()
     {
         UnityEngine.Debug.LogFormat($"<color=blue> 2 NEW DAMAGE APPLICATION / OWNER: {OwnerClientId} </color>");
 
     }
+
+
+
+
 
     [Rpc(SendTo.Server)]
     void SpawnWandRpc()
@@ -206,13 +220,9 @@ public class NewPlayerBehavior : NetworkBehaviour
         netObj.TrySetParent(gameObject.transform);
     }
 
-    //[Rpc(SendTo.Server)]
-    //public void UpdateScoreRpc()
-    //{
-    //    // this will cause a replication over the network
-    //    // and ultimately invoke `OnValueChanged` on receivers
-    //    deathCount.Value += 1;
-    //}
+
+
+
 
     void HandleBeam(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehaviorScript, bool status0)
     {
@@ -234,6 +244,8 @@ public class NewPlayerBehavior : NetworkBehaviour
             UnityEngine.Debug.LogError("Failed to get the NetworkObject from the reference.");
         }
     }
+
+
 
 
 
@@ -350,7 +362,6 @@ public class NewPlayerBehavior : NetworkBehaviour
 
 
 
-
         // There is a delay upon exiting a fire AoE until the DoT tick damage begins to apply
         // Following my investigation, this is likely due to the fact that foreach is based upon an IEnumerator
         //and the delay follows the necessity to create an instance of it. (to investigate)
@@ -382,12 +393,20 @@ public class NewPlayerBehavior : NetworkBehaviour
 
     }
 
+
+
+
+
     // This was initially to revise how damage application is handled 
     // with damage over time spells. To explore again later
     public void ApplyDamageToPlayer(float dmg)
     {
         _healthBar.ApplyDamage(dmg);
     }
+
+
+
+
 
     void HandleIncapacitation(ulong clientId, IncapacitationInfo incapacitation) // IncapacitationInfo is part of the spell payload emitted upon spell>player interaction
     {
@@ -403,6 +422,10 @@ public class NewPlayerBehavior : NetworkBehaviour
         //isImmobilized.Value = incapacitation.StopsMovement;
     }
 
+
+
+
+
     void RemovePersistentDotEntry()
     {
         //Debug.LogFormat($"<color=orange> RemovePersistentDotEntry </color>");
@@ -416,6 +439,10 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         isRemovingPersistentDotEntry = false;
     }
+
+
+
+
 
     private void UpdateScore(int current, int previous)
     {
@@ -514,24 +541,6 @@ public class NewPlayerBehavior : NetworkBehaviour
 
                 // Deal an initial damage amount to player upon spell entry only
                 // Note: This is accessed also on player exit and therefore the below logic handles
-                //the exception of dealing damage only upon player entry 
-                //if (!spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
-                //{
-                //    UnityEngine.Debug.LogFormat($"<color=orange> > ************* ADD </color>");
-
-                //    // Deal an initial amount of damage on spell entry
-                //    DirectDamage(emittedPlayerHitPayload.DamageOverTimeAmount);
-
-                //    spellsTriggeredList.Add(emittedPlayerHitPayload.NetworkId);
-
-                //}
-                //else
-                //{
-                //    UnityEngine.Debug.LogFormat($"<color=orange> > ************* REMOVE </color>");
-
-                //    spellsTriggeredList.Remove(emittedPlayerHitPayload.NetworkId);
-                //}
-
                 if (spellsTriggeredList.Contains(emittedPlayerHitPayload.NetworkId))
                 {
                     UnityEngine.Debug.LogFormat($"<color=orange> > ************* REMOVE </color>");
@@ -576,6 +585,8 @@ public class NewPlayerBehavior : NetworkBehaviour
     }
 
 
+
+
     public void Heal(float healAmount)
     {
         UnityEngine.Debug.LogFormat($"<color=orange> > 1 HEALING method - amount: {healAmount} </color>");
@@ -587,6 +598,8 @@ public class NewPlayerBehavior : NetworkBehaviour
         UnityEngine.Debug.LogFormat($"<color=orange> > 2 HEALING method - amount: {healAmount} </color>");
 
     }
+
+
 
 
     public void DirectDamage(float directDamageAmount)
@@ -603,6 +616,10 @@ public class NewPlayerBehavior : NetworkBehaviour
         // send event for game manager
         UnityEngine.Debug.LogFormat($"<color=orange> >2Direct Damage method - Damage amount: {directDamageAmount} </color>");
     }
+
+
+
+
 
     void DamageOverTimeHandler(int networkId, string element, float damageOverTimeAmount, float damageOverTimeDuration)
     {
@@ -632,6 +649,10 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         UnityEngine.Debug.LogFormat($"<color=orange> >Damage Over Time Method - Damage amount: {damageOverTimeAmount} </color>");
     }
+
+
+
+
 
     void PersistentDamageOverTimeHandler(int networkId, string element, float damageOverTimeAmount, float damageOverTimeDuration)
     {
@@ -691,6 +712,8 @@ public class NewPlayerBehavior : NetworkBehaviour
 
 
 
+
+
     private void OnTriggerEnter(Collider other)
     {
         // Debug.LogFormat($"<color=orange> this gameObject: {gameObject} other: {other.gameObject.name} </color>");
@@ -702,31 +725,9 @@ public class NewPlayerBehavior : NetworkBehaviour
             parryLetterGO.SetActive(true);
             // needs to be a server rpc method to send across the network
         }
-
-
-        /// The below code was used to handle the damage from Projectiles directly on this script
-        //if (other.gameObject.name.Contains("Projectile"))
-        //{
-        //    // This is so that the player cannot hurt himself with his own spell
-        //    if (this.OwnerClientId == other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId) return;
-
-        //    // Make sure that the projectile can apply damage to a player only once
-        //    if (projectileIds.Contains(other.gameObject.GetComponent<NetworkBehaviour>().NetworkObjectId)) return;
-
-        //    //if (other.gameObject)
- 
-        //    // Add the projectile ID to a list and if it is detected twice, ignore it the second time.
-        //    projectileIds.Add(other.gameObject.GetComponent<NetworkBehaviour>().NetworkObjectId);
-
-        //    float dmg = other.gameObject.GetComponent<K_ProjectileSpell>().directDamageAmount.Value;
-        //    // if character owner ID == spell Owner ID >> return;
-        //    // else apply damage etc...
-        //    DirectDamage(dmg);
-
-        //    other.gameObject.GetComponent<K_ProjectileSpell>().DestroySpellRpc();
-        //}
-
     }
+
+
 
     private void OnTriggerExit(Collider other)
     {

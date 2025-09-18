@@ -39,6 +39,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         }
     }
 
+
+
+
+
     public override void OnNetworkDespawn()
     {
         // Clean up the static dictionary when the player despawns
@@ -63,6 +67,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         Client_ShowCastingHintClientRpc(parryLetter);
     }
 
+
+
+
+
     /// <summary>
     /// SERVER-SIDE ENTRY POINT: Called by K_SpellLauncher to hide the casting hint from everyone.
     /// </summary>
@@ -71,6 +79,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         if (!IsServer) return;
         Client_HideCastingHintClientRpc();
     }
+
+
+
+
 
     [ClientRpc]
     private void Client_ShowCastingHintClientRpc(string parryLetter)
@@ -81,6 +93,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         parryLetterAnticipation.showParryLetter(parryLetter);
     }
 
+
+
+
+
     [ClientRpc]
     private void Client_HideCastingHintClientRpc()
     {
@@ -88,10 +104,16 @@ public class PlayerSpellParryManager : NetworkBehaviour
         parryLetterAnticipation.hideParryLetter();
     }
 
+
+
+
     #endregion
 
 
     #region Server-to-Client Communication (The Correct Flow)
+
+
+
 
     /// <summary>
     /// SERVER-SIDE ENTRY POINT: Called by projectiles to update a player's parry state.
@@ -107,6 +129,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         Client_UpdateParryStateClientRpc(spellHandlerRef, newState, clientRpcParams);
     }
 
+
+
+
+
     /// <summary>
     /// SERVER-SIDE ENTRY POINT: Called by projectiles when a player is no longer in range.
     /// </summary>
@@ -121,6 +147,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         Client_RemoveParryStateClientRpc(spellId, clientRpcParams);
     }
 
+
+
+
+
     [ClientRpc]
     private void Client_UpdateParryStateClientRpc(NetworkObjectReference spellHandlerRef, ProjectileParryHandler.ParryState newState, ClientRpcParams clientRpcParams = default)
     {
@@ -134,16 +164,25 @@ public class PlayerSpellParryManager : NetworkBehaviour
         }
     }
 
+
+
+
+
     [ClientRpc]
     private void Client_RemoveParryStateClientRpc(ulong spellId, ClientRpcParams clientRpcParams = default)
     {
         Local_RemoveParriableSpell(spellId);
     }
 
+
+
+
     #endregion
 
 
     #region Local Client Logic (UI and State)
+
+
 
     /// <summary>
     /// Runs on the client to update local dictionaries and refresh the UI.
@@ -160,6 +199,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
         UpdateAnticipationSpellParryKeys();
     }
 
+
+
+
+
     /// <summary>
     /// Runs on the client to remove a spell and refresh the UI.
     /// </summary>
@@ -172,6 +215,10 @@ public class PlayerSpellParryManager : NetworkBehaviour
 
         UpdateAnticipationSpellParryKeys();
     }
+
+
+
+
 
     private void UpdateAnticipationSpellParryKeys()
     {

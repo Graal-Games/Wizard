@@ -30,5 +30,6 @@ public interface IDeactivatable
 
 public interface IDamageable
 {
+    float Health { get; }
     void TakeDamage(float dmg);
 }

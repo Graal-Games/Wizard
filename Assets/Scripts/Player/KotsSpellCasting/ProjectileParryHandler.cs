@@ -19,6 +19,10 @@ public class ProjectileParryHandler : NetworkBehaviour
 
     private Dictionary<ulong, ParryState> playerParryStates = new Dictionary<ulong, ParryState>();
 
+
+
+
+
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
@@ -26,6 +30,11 @@ public class ProjectileParryHandler : NetworkBehaviour
         OnParryLetterChanged(default, ParryLetters.Value);
     }
 
+
+
+
+
+    // Change the displayed letter on top of the gameObject once set or changed
     private void OnParryLetterChanged(FixedString32Bytes previousValue, FixedString32Bytes newValue)
     {
         if (!string.IsNullOrEmpty(newValue.ToString()))
@@ -35,11 +44,20 @@ public class ProjectileParryHandler : NetworkBehaviour
         }
     }
 
+
+
+
+
+
     internal void OnProjectileSpawned(string parryLetters)
     {
         if (!IsServer) return;
         ParryLetters.Value = parryLetters;
     }
+
+
+
+
 
     public void UpdatePlayerState(ulong playerId, ParryState newState, PlayerSpellParryManager playerManager)
     {
@@ -56,6 +74,10 @@ public class ProjectileParryHandler : NetworkBehaviour
         }
     }
 
+
+
+
+
     public void RemovePlayerFromRange(ulong playerId, PlayerSpellParryManager playerManager)
     {
         if (!IsServer) return;
@@ -67,6 +89,10 @@ public class ProjectileParryHandler : NetworkBehaviour
         }
     }
 
+
+
+
+
     /// <summary>
     /// This is called by the CLIENT's PlayerSpellParryManager after a successful local check.
     /// Its only job is to tell the server about the parry.
@@ -76,6 +102,10 @@ public class ProjectileParryHandler : NetworkBehaviour
         // This method now securely calls the server to execute the parry.
         ParryServerRpc();
     }
+
+
+
+
 
     /// <summary>
     /// This RPC is sent from a client to the server to report a successful parry.
