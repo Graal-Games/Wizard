@@ -52,7 +52,7 @@ public class PlayerController : NetworkBehaviour
     private bool movementSlowed;
 
     Vector3 previousMoveDirection;
-    Vector2 currentInputVector;
+    Vector2 previousInputVector;
 
     float startingMoveSpeed = 0f;
     float inertiaDuration = 1f; // seconds
@@ -407,17 +407,41 @@ public class PlayerController : NetworkBehaviour
         Vector2 inputVector = gameInput.GetMovementVector();
         moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
 
+        Vector2 bwd = new Vector2(0,-1);
+        Vector2 fwd = new Vector2(0,1);
+        Vector2 rgt = new Vector2(1,0);
+        Vector2 lft = new Vector2(-1,0);
+        Vector2 fwd_rgt = new Vector2(1,1);
+        Vector2 fwd_lft = new Vector2(-1,1);
+        Vector2 bwd_rgt = new Vector2(1,-1);
+        Vector2 bwd_lft = new Vector2(-1,-1);
+
+
         //Debug.LogFormat($"MOVE DIR {moveDir}");
         //Debug.LogFormat($"Input Vector {inputVector}");
 
         moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
         moveDir.Normalize();
 
-        if (currentInputVector != inputVector) 
+        if ((previousInputVector == bwd && inputVector == fwd))
+        {
+            runUpElapsedDuration = 0f;
+            previousInputVector = inputVector;
+            Debug.LogFormat($"111 Input Vector {inputVector}");
+        } 
+
+        if ((previousInputVector == rgt && inputVector == lft))
+        {
+            runUpElapsedDuration = 0f;
+            previousInputVector = inputVector;
+            Debug.LogFormat($"222 Input Vector {inputVector}");
+        }
+
+        if (previousInputVector != inputVector)
         {
             runUpElapsedDuration = 0.2f;
-            currentInputVector = inputVector;
-            Debug.LogFormat($"Input Vector {inputVector}");
+            previousInputVector = inputVector;
+            Debug.LogFormat($"333 Input Vector {inputVector}");
         }
 
         if (previousMoveDirection == moveDir && moveDir == Vector3.zero)
