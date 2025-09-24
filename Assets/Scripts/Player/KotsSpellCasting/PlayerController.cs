@@ -51,6 +51,17 @@ public class PlayerController : NetworkBehaviour
     private bool movementStopped;
     private bool movementSlowed;
 
+    Vector3 previousMoveDirection;
+    Vector2 currentInputVector;
+
+    float startingMoveSpeed = 0f;
+    float inertiaDuration = 1f; // seconds
+    float runUpElapsedDuration = 0f;
+
+    bool isInertia = false;
+
+    Vector3 moveDir = new Vector3();
+
 
     //#############################################################################################
     //##################################### Below queued for deletion #####################################
@@ -152,6 +163,10 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+
+
+
+
     private void Start()
     {
         if (!IsLocalPlayer) return;
@@ -161,8 +176,11 @@ public class PlayerController : NetworkBehaviour
         gameObject.GetComponentInParent<NewPlayerBehavior>().isSlowed.OnValueChanged += OnCharacterSlowChange;
         K_SpellLauncher.CastModeSpeedChange += HandleOnCastModeStartBehavior;
         BeamSpell.beamStatus += PlayerMoveSpeedOnIsCastingBeam;
-
     }
+
+
+
+
 
     // This method gets called when the application gains or loses focus, meaning when it becomes the active or inactive window.
     private void OnApplicationFocus(bool focus)
@@ -179,6 +197,10 @@ public class PlayerController : NetworkBehaviour
     }
 
 
+
+
+
+
     // Processes events that are emitted when casting beam and slows the movement down 
     //relatively to the existence of the beam
     private void PlayerMoveSpeedOnIsCastingBeam(ulong clientId, NetworkObjectReference spellObj, NetworkBehaviour spellNetBehaviorScript, bool isCastingBeam)
@@ -192,6 +214,10 @@ public class PlayerController : NetworkBehaviour
             CastModeSpeedReset();
         }
     }
+
+
+
+
 
     
     // Processes emitted events when players begins casting to slow down movement
@@ -210,16 +236,28 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+
+
+
+
     private void CastModeSpeedSlow()
     {
         moveSpeed = (_baseMoveSpeedCache / 2);
     }
+
+
+
+
 
     // Resets the player speed back to normal
     private void CastModeSpeedReset()
     {
         moveSpeed = _baseMoveSpeedCache;
     }
+
+
+
+
 
     // Reverts the player speed back to normal after having been slowed
     private void OnCharacterSlowChange(bool previous, bool current)
@@ -249,12 +287,17 @@ public class PlayerController : NetworkBehaviour
 
 
 
+
+
     void HandleStun(ulong clientId, IncapacitationInfo info)
     {
         if (clientId != OwnerClientId) return;
 
         movementStopped = info.AffectsMovement; // The reason the movement incapacitation is made into a variable as such is for scalability, adding more spells with different effects is easier.
     }
+
+
+
 
 
     private void GameInput_OnJumpAction(object sender, EventArgs e)
@@ -270,11 +313,19 @@ public class PlayerController : NetworkBehaviour
 
     }
 
+
+
+
+
     private void ApplyJumpImpulse()
     {
         this.rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         preparingJumpImpulse = false;
     }
+
+
+
+
 
 
     private void Update()
@@ -306,16 +357,17 @@ public class PlayerController : NetworkBehaviour
                         preparingJumpToGround = false;
                     }, jumpToGroundDelay);
                 }
-
             }
         }
         else
         {
             rb.drag = 0;
         }
-
-       
     }
+
+
+
+
 
     private void FixedUpdate()
     {
@@ -327,62 +379,127 @@ public class PlayerController : NetworkBehaviour
         HandleMovement();
     }
 
-    private bool isGrounded()
+
+
+
+    void Inertia()
     {
-        //return Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
-        return Physics.CheckSphere(this.transform.position, 0.2f, whatIsGround);
+        if (runUpElapsedDuration < inertiaDuration)
+        {
+            runUpElapsedDuration += Time.fixedDeltaTime;
+            float t = Mathf.Clamp01(runUpElapsedDuration / inertiaDuration);
+            moveSpeed = Mathf.Lerp(startingMoveSpeed, _baseMoveSpeedCache, t);
+
+            // Debug.Log(moveSpeed);
+        } else
+        {
+            isInertia = true;
+            previousMoveDirection = moveDir;
+        }
     }
 
-    public float getVerticalAxis()
+
+
+
+    private void HandleMovement()
     {
-        return verticalAxis;
+        // This movement logic is already correct from our previous fixes.
+        Vector2 inputVector = gameInput.GetMovementVector();
+        moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
+
+        //Debug.LogFormat($"MOVE DIR {moveDir}");
+        //Debug.LogFormat($"Input Vector {inputVector}");
+
+        moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
+        moveDir.Normalize();
+
+        if (currentInputVector != inputVector) 
+        {
+            runUpElapsedDuration = 0.2f;
+            currentInputVector = inputVector;
+            Debug.LogFormat($"Input Vector {inputVector}");
+        }
+
+        if (previousMoveDirection == moveDir && moveDir == Vector3.zero)
+        {
+            runUpElapsedDuration = 0f;
+        }
+
+
+        if (previousMoveDirection != moveDir)
+        {
+            Inertia();
+        }
+
+        rb.MovePosition(rb.position + moveDir * moveSpeed * Time.fixedDeltaTime);
+
+        Vector3 cameraForward = cameraTransform.forward;
+        cameraForward.y = 0f;
+
+        if (cameraForward != Vector3.zero)
+        {
+            float rotateSpeed = 20f;
+            Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
+            Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
+            rb.MoveRotation(newRotation);
+        }
+
+        Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
+        verticalAxis = localMoveDir.z;
+        horizontalAxis = localMoveDir.x;
     }
 
-    public float getHorizontalAxis()
-    {
-        return horizontalAxis;
-    }
-
-    public bool IsWalking()
-    {
-        return isWalking;
-    }
-
-    public bool IsJumping()
-    {
-        return isJumping;
-    }
 
     // Record input from the player
     // Move the player character locally
     // Broadcast movement to the server
     // CP SR
 
-     private void HandleMovement()
-        {
-            // This movement logic is already correct from our previous fixes.
-            Vector2 inputVector = gameInput.GetMovementVector();
-            Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
 
-            moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
-            moveDir.Normalize();
 
-            rb.MovePosition(rb.position + moveDir * moveSpeed * Time.fixedDeltaTime);
+    private bool isGrounded()
+    {
+        //return Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
+        return Physics.CheckSphere(this.transform.position, 0.2f, whatIsGround);
+    }
 
-            Vector3 cameraForward = cameraTransform.forward;
-            cameraForward.y = 0f;
-            if (cameraForward != Vector3.zero)
-            {
-                float rotateSpeed = 20f;
-                Quaternion targetRotation = Quaternion.LookRotation(cameraForward);
-                Quaternion newRotation = Quaternion.Slerp(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime);
-                rb.MoveRotation(newRotation);
-            }
 
-            Vector3 localMoveDir = transform.InverseTransformDirection(moveDir);
-            verticalAxis = localMoveDir.z;
-            horizontalAxis = localMoveDir.x;
-        }
+
+
+
+    public float getVerticalAxis()
+    {
+        return verticalAxis;
+    }
+
+
+
+
+
+    public float getHorizontalAxis()
+    {
+        return horizontalAxis;
+    }
+
+
+
+
+
+    public bool IsWalking()
+    {
+        return isWalking;
+    }
+
+
+
+
+
+    public bool IsJumping()
+    {
+        return isJumping;
+    }
+
+
 
     private void SpeedControl()
     {
