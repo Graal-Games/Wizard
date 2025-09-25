@@ -315,7 +315,7 @@ public class ProjectileClass : SpellsClass
             // The hit was being registered on exiting a collider instead of upon entering it
             if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
             {
-                Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
+                //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
                 Vector3 hitPosition = hit.point;
 
                 if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated?? //
@@ -342,7 +342,7 @@ public class ProjectileClass : SpellsClass
 
                         //HandleCollision(hit.collider, hitPosition);
                     //}
-                } else
+                } else if (hit.collider.gameObject.name != SpellName)
                 {
                     Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
                     HandleCollision(hit.collider, hitPosition);
