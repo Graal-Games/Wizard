@@ -454,7 +454,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public bool HandleIfPlayerHasActiveShield(GameObject other)
     {
         NewPlayerBehavior playerBehavior = other.GetComponent<NewPlayerBehavior>();
-        Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {SpellsClassScript(other)} </color>");
+        // Debug.LogFormat($"<color=orange> 000 FFFFFFFFFFFFFFFFFFFFFFFFFFFIRE {SpellsClassScript(other)} </color>");
 
         //if (playerBehavior != null && playerBehavior.localSphereShieldActive.Value == true)
         //if (other.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true || other.CompareTag("ActiveShield"))
@@ -535,7 +535,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
+        //Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
 

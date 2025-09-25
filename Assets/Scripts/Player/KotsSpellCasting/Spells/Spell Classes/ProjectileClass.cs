@@ -273,7 +273,7 @@ public class ProjectileClass : SpellsClass
     [Rpc(SendTo.Server)]
     public virtual void MoveAndHitRegRpc()
     {
-        //Debug.LogFormat($"<color=blue>Current Position: {currentPosition}</color>");
+        //Debug.LogFormat($"<color=blue>MOVE AND HIT REG</color>");
         Vector3 currentPosition = transform.position;
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
@@ -295,8 +295,10 @@ public class ProjectileClass : SpellsClass
         Vector3 direction = currentPosition - lastPosition; // Used to be inside the below conditional
 
         // Avoid SphereCast with zero distance/direction, which can cause issues.
-        if (direction.sqrMagnitude > 0.001f)
-        {
+        //if (direction.sqrMagnitude > 0.001f)
+        //{
+
+
             // For a unit sphere mesh (diameter 1, radius 0.5)
             // The following can be made only if the GameObject is a uniformly scaled sphere
             float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
@@ -304,21 +306,27 @@ public class ProjectileClass : SpellsClass
 
             // If the object is moving faster than a specific speed = Use the below method
             // Otherwise, OnTriggerEnter handlles the collision
-            if (SpellDataScriptableObject.moveSpeed < 39) return;
+            //if (SpellDataScriptableObject.moveSpeed < 39) return;
+
+            //Debug.LogFormat($"<color=blue>MOVE AND HIT REG</color>");
 
             // Throw a sphere cast IN FRONT OF the projectile gO
             // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
             // The hit was being registered on exiting a collider instead of upon entering it
             if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
             {
+                Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
+                Vector3 hitPosition = hit.point;
+
                 if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated?? //
                 {
                     string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
                     Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
 
                     ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
-                    Vector3 hitPosition = hit.point;
 
+
+                    // <<< The below code could be simplified
                     if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                     {
                         isHitPlayer.Value = true;
@@ -326,19 +334,24 @@ public class ProjectileClass : SpellsClass
                         HandleCollision(hit.collider, hit.point);
 
                     }
-                    else
-                    {
-                        Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+                    //else
+                    //{
+
 
                         //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
 
-                        HandleCollision(hit.collider, hitPosition);
-                    }
+                        //HandleCollision(hit.collider, hitPosition);
+                    //}
+                } else
+                {
+                    Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+                    HandleCollision(hit.collider, hitPosition);
                 }
+
             }
 
             lastPosition = currentPosition; // Update lastPosition to the current position after the movement
-        }
+        //}
     }
 
 
@@ -359,7 +372,7 @@ public class ProjectileClass : SpellsClass
             hasCollided.Value = true;
         }
 
-        Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
+        // Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
 
         // Method: Spawns something at the end
         // gO to spawn source: Where should the gO be gotten from?
@@ -376,7 +389,7 @@ public class ProjectileClass : SpellsClass
         }
 
         // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.CompareTag("Spell") && !colliderHit.gameObject.name.Contains("Projectile"))
+        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.name.Contains("Projectile"))
         {
             Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
 
@@ -556,9 +569,11 @@ public class ProjectileClass : SpellsClass
     private void OnTriggerEnter(Collider other)
     {
         if (!IsServer) return;
-
+        return;
         if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
         {
+            Debug.LogFormat($"<color=blue>ONNNNNNNN TRIGGER ENTER</color>");
+
             ulong hitPlayerOwnerID = other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
 
             if (!playerHitID.ContainsKey(hitPlayerOwnerID) && isHitPlayer.Value == false)
@@ -572,6 +587,10 @@ public class ProjectileClass : SpellsClass
                 HandleCollision(other, hitPosition);
             }
         }
+        //else
+        //{
+        //    HandleCollision(other, hitPosition);
+        //}
 
     }
 }
