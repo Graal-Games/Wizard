@@ -23,8 +23,8 @@ MonoBehaviour:
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
-  moveSpeed: 110.5
-  spellDuration: 15
+  moveSpeed: 1
+  spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
