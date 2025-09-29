@@ -334,14 +334,6 @@ public class ProjectileClass : SpellsClass
                         HandleCollision(hit.collider, hit.point);
 
                     }
-                    //else
-                    //{
-
-
-                        //Debug.LogFormat($"<color=blue>hit: {hit.collider.gameObject.name}</color>");
-
-                        //HandleCollision(hit.collider, hitPosition);
-                    //}
                 } else if (hit.collider.gameObject.name != SpellName)
                 {
                     Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
