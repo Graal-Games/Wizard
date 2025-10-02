@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: -6807438040463301224}
   - component: {fileID: 3312363828647320927}
   m_Layer: 0
-  m_Name: Sphere 1
+  m_Name: Sphere_Arcane
   m_TagString: ActiveShield
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

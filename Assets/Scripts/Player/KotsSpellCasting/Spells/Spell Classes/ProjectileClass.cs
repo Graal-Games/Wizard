@@ -334,9 +334,9 @@ public class ProjectileClass : SpellsClass
                         HandleCollision(hit.collider, hit.point);
 
                     }
-                } else if (hit.collider.gameObject.name != SpellName)
+                } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
                 {
-                    Debug.LogFormat($"<color=blue>Hit position: {hitPosition}</color>");
+                    Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
                     HandleCollision(hit.collider, hitPosition);
                 }
 
