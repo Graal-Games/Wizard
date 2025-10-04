@@ -899,6 +899,7 @@ public class K_SpellLauncher : NetworkBehaviour
         if (isWithOwnership)
         {
             netObj.SpawnWithOwnership(NetworkManager.LocalClientId);
+
             if (netObj.GetComponent<HealSelf>())
             {
                 netObj.GetComponent<HealSelf>().HealTarget(OwnerClientId);

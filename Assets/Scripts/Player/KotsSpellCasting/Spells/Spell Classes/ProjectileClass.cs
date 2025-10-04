@@ -334,6 +334,7 @@ public class ProjectileClass : SpellsClass
                         HandleCollision(hit.collider, hit.point);
 
                     }
+
                 } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
                 {
                     Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
@@ -380,8 +381,10 @@ public class ProjectileClass : SpellsClass
             ApplyPushbackToTarget(colliderHit.gameObject);
         }
 
+        int layer = LayerMask.NameToLayer("Solid Spell");
+
         // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.name.Contains("Projectile"))
+        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.name.Contains("Area of Effect")) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
         {
             Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
 

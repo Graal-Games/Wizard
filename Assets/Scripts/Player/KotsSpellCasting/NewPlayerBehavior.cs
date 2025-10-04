@@ -473,7 +473,7 @@ public class NewPlayerBehavior : NetworkBehaviour
         localSphereShieldActive.Value = isShieldAvailable;
 
         UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {localSphereShieldActive.Value}  Owner ccc : {OwnerClientId} </color>");
-
+ 
     }
 
 

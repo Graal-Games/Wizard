@@ -348,6 +348,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     [Rpc(SendTo.Everyone)]
     void ApplyDamageToPlayerClientRpc(ulong targetNetworkObjectId)
     {
+        Debug.LogFormat($"<color=orange> 1 Apply Damage to Player 1 </color>");
+
         // OPTIMIZE BELOW
         // Assign the values to the payload to be sent with the event emission upon hitting the player
         if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out NetworkObject netObj))
@@ -382,6 +384,8 @@ public class SpellsClass : NetworkBehaviour, ISpell
     //but only works on the target player through a conditional
     void EmitPayload(PlayerHitPayload spellPayloadParam)
     {
+        Debug.LogFormat($"<color=orange> 2 Apply Damage to Player 2 </color>");
+
         playerHitEvent?.Invoke(spellPayloadParam);
     }
 
@@ -535,14 +539,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        //Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
+        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
 
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
-            //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
+            Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
 
             // If player does not have active shield, handle the player hit
             PlayerIsHit(colliderHit.gameObject);
