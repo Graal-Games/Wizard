@@ -204,10 +204,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -9027141840417597102, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: -1038719287676735608, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: projectileSphere
       value: 
-      objectReference: {fileID: 7556998324026625727}
+      objectReference: {fileID: 4407292101851371025}
     - target: {fileID: -1038719287676735608, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: projectileTrigger
       value: 
@@ -216,6 +220,14 @@ PrefabInstance:
       propertyPath: spellDataScriptableObject
       value: 
       objectReference: {fileID: 11400000, guid: a6748aa5792ad92428fb4b9121e35f91, type: 2}
+    - target: {fileID: 47408901342459051, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3425163843297259102, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4059352729761131061, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: GlobalObjectIdHash
       value: 3968036535
@@ -223,6 +235,14 @@ PrefabInstance:
     - target: {fileID: 4716045805267283745, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: m_Name
       value: Projectile_Arcane_P
+      objectReference: {fileID: 0}
+    - target: {fileID: 4716045805267283745, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7082583855152331130, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8815630753571614258, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: m_Materials.Array.data[0]

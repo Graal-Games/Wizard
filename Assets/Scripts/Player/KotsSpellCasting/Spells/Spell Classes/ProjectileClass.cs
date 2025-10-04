@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem.HID;
@@ -18,7 +19,7 @@ public class ProjectileClass : SpellsClass
 
 
     [SerializeField] private ProjectileParryHandler projectileParryHandler;
-    [SerializeField] private Transform projectileSphere;
+    //[SerializeField] private Transform projectileSphere;
 
     private Vector3 lastPosition;
 
@@ -77,7 +78,7 @@ public class ProjectileClass : SpellsClass
         rb.isKinematic = false;
         rb.useGravity = false;
         pushDirection = transform.forward;
-        lastPosition = projectileSphere.position;
+        //lastPosition = projectileSphere.position;
 
         if (IsParriable())
         {
@@ -174,6 +175,8 @@ public class ProjectileClass : SpellsClass
 
         MoveAndHitRegRpc();
 
+        //CLIENT_SIDE_MoveAndHitReg();
+
         HandlePushback();
 
         if (!IsSpawned) return;
@@ -265,7 +268,37 @@ public class ProjectileClass : SpellsClass
     }
 
 
+    void CLIENT_SIDE_MoveAndHitReg()
+    {
+        Vector3 currentPosition = transform.position;
 
+        float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+        RaycastHit hit;
+        Vector3 direction = currentPosition - lastPosition; // Used to be inside the below conditional
+        float distance = direction.magnitude * Time.fixedDeltaTime; 
+
+        Vector3 forceDirection = transform.forward; // RESET SPEED
+
+        forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+        rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+
+        rb.isKinematic = false; // Stop the rigidbody from moving
+        rb.useGravity = false; // Enable gravity if needed
+
+        if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
+        {
+            //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
+            Vector3 hitPosition = hit.point;
+            Debug.LogFormat($"<color=yellow>>>>>>>>>>>>>>>>>>>SPHERE CAST {hit.collider.gameObject.name}<<<<<<<<<<<<<<<<<<<<</color>");
+
+            if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated?? //
+            {
+                Debug.LogFormat($"<color=orange>>>>>>>>>>>>>>>>>>>Player Hit On Client {hit.collider.gameObject.name}<<<<<<<<<<<<<<<<<<<<</color>");
+            }
+        }
+
+        lastPosition = currentPosition;
+    }
 
 
 
@@ -277,12 +310,6 @@ public class ProjectileClass : SpellsClass
         Vector3 currentPosition = transform.position;
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
-        // Manuel Code below // Not accepted //
-        //Vector3 currentPosition = projectileSphere.position;
-        //rb.velocity = projectileSphere.forward * SpellDataScriptableObject.moveSpeed;
-
-        // rb.AddForce(forceDirection, ForceMode.Force); // or ForceMode.Acceleration
-
         forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
         rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
 
@@ -290,60 +317,55 @@ public class ProjectileClass : SpellsClass
         rb.useGravity = false; // Enable gravity if needed
 
 
+
         RaycastHit hit;
 
         Vector3 direction = currentPosition - lastPosition; // Used to be inside the below conditional
-
-        // Avoid SphereCast with zero distance/direction, which can cause issues.
-        //if (direction.sqrMagnitude > 0.001f)
-        //{
+        float distance = direction.magnitude;
 
 
-            // For a unit sphere mesh (diameter 1, radius 0.5)
-            // The following can be made only if the GameObject is a uniformly scaled sphere
-            float radius = 0.5f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
-            float distance = direction.magnitude;
+        // For a unit sphere mesh (diameter 1, radius 0.5)
+        // The following can be made only if the GameObject is a uniformly scaled sphere
+        float radius = 1f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
 
-            // If the object is moving faster than a specific speed = Use the below method
-            // Otherwise, OnTriggerEnter handlles the collision
-            //if (SpellDataScriptableObject.moveSpeed < 39) return;
+        if (SpellDataScriptableObject.moveSpeed > 40) return;
 
-            //Debug.LogFormat($"<color=blue>MOVE AND HIT REG</color>");
+        // Throw a sphere cast IN FRONT OF the projectile gO
+        // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
+        // The hit was being registered on exiting a collider instead of upon entering it
+        if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
+        {
+            //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
+            Vector3 hitPosition = hit.point;
+            //Debug.LogFormat($"<color=yellow>>>>>>>>>>>>>>>>>>>SPHERE CAST {hit.collider.gameObject.name}<<<<<<<<<<<<<<<<<<<<</color>");
 
-            // Throw a sphere cast IN FRONT OF the projectile gO
-            // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
-            // The hit was being registered on exiting a collider instead of upon entering it
-            if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
+            if (hit.collider.gameObject.tag == "Player") // Can be migrated?? //
             {
-                //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
-                Vector3 hitPosition = hit.point;
+                string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
+                Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
 
-                if (hit.collider.gameObject.CompareTag("Player")) // Can be migrated?? //
+                ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
+
+
+                // <<< The below code could be simplified
+                if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                 {
-                    string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
-                    Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
+                    isHitPlayer.Value = true;
+                    playerHitID.Add(hitPlayerOwnerID, true);
+                    HandleCollision(hit.collider, hit.point);
 
-                    ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
-
-
-                    // <<< The below code could be simplified
-                    if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
-                    {
-                        isHitPlayer.Value = true;
-                        playerHitID.Add(hitPlayerOwnerID, true);
-                        HandleCollision(hit.collider, hit.point);
-
-                    }
-
-                } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
-                {
-                    Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
-                    HandleCollision(hit.collider, hitPosition);
                 }
 
+            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
+            {
+                Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
+                HandleCollision(hit.collider, hitPosition);
             }
 
-            lastPosition = currentPosition; // Update lastPosition to the current position after the movement
+        }
+        //Debug.LogFormat($"<color=red>lastPosition: {lastPosition} && currentPosition: {currentPosition}</color>");
+
+        lastPosition = currentPosition; // Update lastPosition to the current position after the movement
         //}
     }
 
@@ -563,8 +585,8 @@ public class ProjectileClass : SpellsClass
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsServer) return;
-        return;
+        //if (!IsServer) return;
+        //return;
         if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
         {
             Debug.LogFormat($"<color=blue>ONNNNNNNN TRIGGER ENTER</color>");
@@ -582,10 +604,11 @@ public class ProjectileClass : SpellsClass
                 HandleCollision(other, hitPosition);
             }
         }
-        //else
-        //{
-        //    HandleCollision(other, hitPosition);
-        //}
+        else if (other.gameObject.tag == "Spell")
+        {
+            Vector3 hitPosition = other.ClosestPoint(transform.position);
+            HandleCollision(other, hitPosition);
+        }
 
     }
 }

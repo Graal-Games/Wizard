@@ -21,130 +21,17 @@ public class OfflineInvocationSpell : MonoBehaviour
     private void Update()
     {
         spawnPosition = spawnLocation.gameObject.transform;
-
-        //Debug.Log("spawnPositionspawnPositionspawnPositionspawnPosition " + spawnPosition.position.x + spawnPosition.position.y + spawnPosition.position.z);
-
-        
-
-        //AimAtOpposingPlayer(); spellLauncher.prefabReferences[spellSequenceParam]
     }
 
-
-    //public override void OnNetworkSpawn()
-    //{
-    //    base.OnNetworkSpawn();
-    //    aimAtOpposingPlayerScript = GetComponentInChildren<AimAtOpposingPlayer>();
-    //    // InitializeObjectToSpawnPrefab();
-    //    StartCoroutine(Shoot());
-
-    //    StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, gameObject) );
-    //}
-
-    //GameObject InitializeObjectToSpawnPrefab()
-    //{
-    //    Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
-
-
-
-    //    switch (SpellDataScriptableObject.element.ToString())
-    //    {
-    //        case "Arcane":
-    //            Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
-
-    //            objectToSpawn = spawnableGameObjects[0];
-    //            return objectToSpawn;
-    //        case "Water":
-    //            objectToSpawn = spawnableGameObjects[1];
-    //            Debug.Log("Water.WaterWaterWaterWater " + objectToSpawn);
-
-    //            return objectToSpawn;
-
-    //        case "Earth":
-    //            objectToSpawn = spawnableGameObjects[2];
-    //            Debug.Log("EarthEarthEarthEarth " + objectToSpawn);
-
-    //            return objectToSpawn;
-
-    //        case "Fire":
-    //            objectToSpawn = spawnableGameObjects[3];
-    //            Debug.Log("FireFireFireFire " + objectToSpawn);
-
-    //            return objectToSpawn;
-
-    //        case "Air":
-    //            objectToSpawn = spawnableGameObjects[4];
-    //            Debug.Log("AirAirAirAirAir" + objectToSpawn);
-
-    //            return objectToSpawn;
-
-    //        default:
-    //            return null;
-    //    }
-    //}
 
     IEnumerator Shoot()
     {
         yield return new WaitForSeconds(5);
         Debug.Log("SpellDataScriptableObject.childPrefab " + spawnableGameObjects[0]);
-        //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
 
         Instantiate(spawnableGameObjects[0], spawnPosition.position, Quaternion.identity);
 
         StartCoroutine(Shoot());
-        //// If a target is available
-        //if (aimAtOpposingPlayerScript.TargetFound)
-        //{
-        //    //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
-        //    Instantiate(spawnableGameObjects[0], spawnPosition.position, Quaternion.identity);
-        //}
-        //else 
-        //{             
-        //    Debug.Log("No target found, cannot spawn projectile."); 
-        //}
+
     }
-
-
-
-    //public void ApplyDamage(float damage)
-    //{
-    //    localHealth.Value -= damage;
-    //    Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
-
-    //    if (localHealth.Value <= 0)
-    //    {
-    //        // DestroyBarrierRpc();
-    //        DestroySpellRpc();
-    //    }
-    //}
-
-
-
-    //[Rpc(SendTo.Server)]
-    ////void SpawnProjectileRpc(float xPos, float yPos, float zPos)
-    //void SpawnProjectileRpc(float xPos, float yPos, float zPos)
-    //{
-    //    //Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-    //    Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
-    //    Debug.Log("SpellDataScriptableObject.childPrefab " + xPos + yPos + zPos);
-
-    //    // spawnPosition = spawnLocation.gameObject.transform;
-    //    //spawnPosition = aimAtOpposingPlayerScript.GetPlayerGameObject();
-
-
-    //    GameObject spellInstance = Instantiate(InitializeObjectToSpawnPrefab(), new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
-
-    //    NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-    //    // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
-    //    netObj.Spawn();
-
-    //    StartCoroutine(Shoot());
-    //    //netObj.TrySetParent(gameObject.transform);
-    //}
-
-    //public override void Fire()
-    //{
-    //    // Vector3 upRayOrigin = objectToShootFrom.transform.position + objectToShootFrom.transform.up * objectToShootFrom.transform.localScale.y / 2;
-    //    // Vector3 downRayOrigin = objectToShootFrom.transform.position - objectToShootFrom.transform.up * objectToShootFrom.transform.localScale.y / 2;
-
-    //}
 }
