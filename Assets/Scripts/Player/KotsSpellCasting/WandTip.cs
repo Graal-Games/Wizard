@@ -112,10 +112,44 @@ public class WandTip : NetworkBehaviour
                     //Debug.LogFormat($"hit - x:{hit.point.x} - y:{hit.point.y} - z:{hit.point.z}");
                     //spawnLocationIsValid = true;
 
-                    // ?? Does this function need to also be inside update?
-                    AoePlacement();
-                    aoeSpawnPosition = new Vector3(hit.point.x, hit.point.y + 0.0001f, hit.point.z);
-                }
+                    if (hit.transform.name.Contains("Floor") || hit.transform.name.Contains("Stairs"))
+                    {
+                        // ?? Does this function need to also be inside update?
+                        AoePlacement();
+                        aoeSpawnPosition = new Vector3(hit.point.x, hit.point.y + 0.0001f, hit.point.z);
+                    }
+                    else
+                    {
+                        RaycastHit downHit;
+
+                        if (Physics.Raycast(hit.point, Vector3.down, out downHit, Mathf.Infinity))
+                        {
+                            if (downHit.transform.gameObject.name.Contains("Floor") || downHit.transform.gameObject.name.Contains("Stairs"))
+                            {
+                                // Example: offset backward from hit direction
+                                //Vector3 offsetDirection = (hit.point - ray.origin).normalized;
+                                Vector3 offsetDirection = hit.normal;
+
+                                // CALCULATE OFFSET DEPENDING ON DIRECTION AND OBSTACLE POSITION
+                                // ?? Does this function need to also be inside update?
+                                AoePlacement();
+
+                                float offsetDistance = -3f;
+
+                                aoeSpawnPosition = downHit.point - offsetDirection * offsetDistance + Vector3.up * 0.0001f;
+                            }
+
+                        }
+
+
+                    }
+
+                } 
+                //else
+                //{
+                //    AoePlacement();
+                //    aoeSpawnPosition = new Vector3(hit.point.x, hit.point.y + 0.0001f, hit.point.z);
+                //}
 
             }
         }
