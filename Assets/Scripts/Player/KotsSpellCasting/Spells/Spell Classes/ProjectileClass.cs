@@ -39,7 +39,7 @@ public class ProjectileClass : SpellsClass
 
     NetworkVariable<bool> isHitPlayer = new NetworkVariable<bool>(false);
 
-
+    bool hasFoundShield = false;
 
 
 
@@ -328,7 +328,7 @@ public class ProjectileClass : SpellsClass
         // The following can be made only if the GameObject is a uniformly scaled sphere
         float radius = 1f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
 
-        if (SpellDataScriptableObject.moveSpeed > 40) return;
+
 
         // Throw a sphere cast IN FRONT OF the projectile gO
         // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
@@ -338,6 +338,15 @@ public class ProjectileClass : SpellsClass
             //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
             Vector3 hitPosition = hit.point;
             //Debug.LogFormat($"<color=yellow>>>>>>>>>>>>>>>>>>>SPHERE CAST {hit.collider.gameObject.name}<<<<<<<<<<<<<<<<<<<<</color>");
+
+            if (hit.collider.CompareTag("ActiveShield") && hasFoundShield == false)
+            {
+                hasFoundShield = true;
+                HandleCollision(hit.collider, hitPosition);
+                hasFoundShield = false;
+            }
+
+            if (SpellDataScriptableObject.moveSpeed < 40) return;
 
             if (hit.collider.gameObject.tag == "Player") // Can be migrated?? //
             {
@@ -406,7 +415,10 @@ public class ProjectileClass : SpellsClass
         int layer = LayerMask.NameToLayer("Solid Spell");
 
         // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
-        if (SpellDataScriptableObject.destroyOnCollision && !colliderHit.gameObject.name.Contains("Projectile") && !colliderHit.gameObject.name.Contains("Area of Effect")) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
+        if (SpellDataScriptableObject.destroyOnCollision 
+            && !colliderHit.gameObject.name.Contains("Projectile") 
+            && !colliderHit.gameObject.name.Contains("Area of Effect") 
+            && !colliderHit.gameObject.name.Contains("Shaders")) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
         {
             Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
 
@@ -601,10 +613,15 @@ public class ProjectileClass : SpellsClass
 
                 Vector3 hitPosition = other.ClosestPoint(transform.position);
 
-                HandleCollision(other, hitPosition);
+                if (hasFoundShield == false)
+                {
+                    hasFoundShield = true;
+                    HandleCollision(other, hitPosition);
+                    hasFoundShield = false;
+                }
             }
         }
-        else if (other.gameObject.tag == "Spell")
+        else
         {
             Vector3 hitPosition = other.ClosestPoint(transform.position);
             HandleCollision(other, hitPosition);

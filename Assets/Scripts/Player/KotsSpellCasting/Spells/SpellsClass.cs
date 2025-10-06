@@ -221,16 +221,21 @@ public class SpellsClass : NetworkBehaviour, ISpell
         // This is used to apply damage to the spell itself and handle it's (delayed) destruction
         if (SpellDataScriptableObject.health > 0)
         {
-            healthPoints.Value = SpellDataScriptableObject.health;
+            setHelthRpc();
+            
         }
 
         if (SpellDataScriptableObject.spellActivationDelay > 0)
         { 
             SpellActivationDelay(); 
         }
+    }
 
 
-
+    [Rpc(SendTo.Server)]
+    void setHelthRpc()
+    {
+        healthPoints.Value = SpellDataScriptableObject.health;
     }
 
 
@@ -624,7 +629,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
             {
                 //Debug.LogFormat("<color=orange> Projectile hit barrier (" + colliderHit.name + ")</color>");
 
-                colliderHit.gameObject.GetComponent<BarrierSpell>().ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
+                colliderHit.gameObject.GetComponent<BarrierSpell>().TakeDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
 
             }
 

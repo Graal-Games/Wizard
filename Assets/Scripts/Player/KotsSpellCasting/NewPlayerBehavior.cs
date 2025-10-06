@@ -465,6 +465,8 @@ public class NewPlayerBehavior : NetworkBehaviour
 
         UnityEngine.Debug.LogFormat($"<color=brown>ShieldAliveStatus {localSphereShieldActive.Value}  Owner ccc : {OwnerClientId} </color>");
 
+
+        if (!IsOwner) return;
         // Evaluates to true when a shield is spawned and is active on the player character
         //and is thereafter used to check whether or not to deal damage to the player
         // !! This method is further elaborated so that damage to the player is not made at the same time a projectile destroys it (the problem this code is solving)

@@ -525,7 +525,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
 
                 if (barrierScript.SpellDataScriptableObject.health > 1) // 1 is minimum ie. undamageable
                 {
-                    barrierScript.ApplyDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
+                    barrierScript.TakeDamage(SpellDataScriptableObject.directDamageAmount); //This is causing an error. No idea why.
                     //DestroySpellRpc();
                 }
 
