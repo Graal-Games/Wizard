@@ -387,8 +387,12 @@ public class ProjectileClass : SpellsClass
     void HandleCollision(Collider colliderHit, Vector3 hitPosition = default)
     {
         // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
-        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision && !hasCollided.Value &&
-            !colliderHit.gameObject.CompareTag("Spell") && !colliderHit.gameObject.name.Contains("Projectile"))
+        if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision 
+            && !hasCollided.Value 
+            && !colliderHit.gameObject.CompareTag("Spell") 
+            && !colliderHit.gameObject.name.Contains("Projectile")
+            && !colliderHit.gameObject.name.Contains("Area of Effect")
+            && !colliderHit.gameObject.name.Contains("Shaders"))
         {
             Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
             Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
@@ -417,11 +421,13 @@ public class ProjectileClass : SpellsClass
         // Gameobject destroys self after collision if isDestroyOnCollision is ticked in its SO
         if (SpellDataScriptableObject.destroyOnCollision 
             && !colliderHit.gameObject.name.Contains("Projectile") 
-            && !colliderHit.gameObject.name.Contains("Area of Effect") 
-            && !colliderHit.gameObject.name.Contains("Shaders")) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
+            && !colliderHit.gameObject.name.Contains("Area of Effect")  
+            && !colliderHit.gameObject.name.Contains("Shaders")
+            ) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
         {
             Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
 
+            if (!colliderHit.gameObject.name.Contains("Aoe"))
             DestroySpell(gameObject);
         }
     }
@@ -607,6 +613,8 @@ public class ProjectileClass : SpellsClass
 
             if (!playerHitID.ContainsKey(hitPlayerOwnerID) && isHitPlayer.Value == false)
             {
+                Debug.LogFormat($"<color=blue>2222 ONNNNNNNN TRIGGER ENTER</color>");
+
                 isHitPlayer.Value = true;
 
                 playerHitID.Add(hitPlayerOwnerID, true);
@@ -628,4 +636,13 @@ public class ProjectileClass : SpellsClass
         }
 
     }
+
+    //private void OnTriggerExit(Collider other)
+    //{
+    //    if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
+    //    {
+
+    //    }
+    //}
+        
 }

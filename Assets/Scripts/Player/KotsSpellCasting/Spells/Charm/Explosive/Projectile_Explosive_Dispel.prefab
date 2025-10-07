@@ -171,8 +171,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab8471ed9461cbc4faf9b040277efc7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellDataScriptableObject: {fileID: 11400000, guid: 7357c6a31392f7044bbc5fc47ec3d27b, type: 2}
-  explosionGO: {fileID: 4716045805267283745, guid: 3c59ab55972e1a24aa1c736f653117db, type: 3}
+  spellDataScriptableObject: {fileID: 11400000, guid: 31b28a81552b158469ce8794c87ee011, type: 2}
+  secondaryGameObjectToSpawn: {fileID: 0}
+  parryLetters:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
+  anticipationDistance: 15
+  parryDistance: 5
+  parryAngle: 90
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  projectileParryHandler: {fileID: 0}
 --- !u!114 &6514538205735283431
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 4059352729761131061}
   - component: {fileID: 6514538205735283431}
   - component: {fileID: 363308353575362683}
-  - component: {fileID: -7393010020252924649}
+  - component: {fileID: -2242115381440907260}
   m_Layer: 10
   m_Name: Explosion_Dispel
   m_TagString: Spell
@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-7393010020252924649
+--- !u!114 &-2242115381440907260
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -295,11 +295,46 @@ MonoBehaviour:
   m_GameObject: {fileID: 4716045805267283745}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0bcd857f9caf6524cabe450f4ecfba07, type: 3}
+  m_Script: {fileID: 11500000, guid: 511c975ca7e029e48988a619fd643a81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spellDataScriptableObject: {fileID: 11400000, guid: 00126475bb1839947948b26687c5fb90, type: 2}
-  explosionGO: {fileID: 0}
+  secondaryGameObjectToSpawn: {fileID: 0}
+  parryLetters:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
 --- !u!1 &5315532494782453412
 GameObject:
   m_ObjectHideFlags: 0

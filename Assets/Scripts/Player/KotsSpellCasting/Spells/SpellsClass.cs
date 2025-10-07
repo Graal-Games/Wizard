@@ -544,14 +544,14 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
     void HandleSpellToPlayerInteractions(Collider colliderHit)
     {
-        Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
+        //Debug.LogFormat($"<color=purple>SPELL TO PLAYER INTERACTIONS - collider tag: {colliderHit.tag} collider </color>");
 
         if (HandleIfPlayerHasActiveShield(colliderHit.gameObject) == true) return;
 
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
-            Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
+            //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
 
             // If player does not have active shield, handle the player hit
             PlayerIsHit(colliderHit.gameObject);
@@ -745,8 +745,17 @@ public class SpellsClass : NetworkBehaviour, ISpell
     public void DestroySpell(GameObject spellObj)
     {
         NetworkObject netObj = spellObj.GetComponent<NetworkObject>();
+
+        if (netObj == null) netObj = spellObj.GetComponentInChildren<NetworkObject>();
+        if (netObj == null) netObj = spellObj.GetComponentInParent<NetworkObject>();
+
+        Debug.LogFormat("111 DISPELLING SPELL:" + netObj);
+
+
         if (netObj != null && netObj.IsSpawned)
         {
+            Debug.LogFormat("222 DISPELLING SPELL:" + netObj);
+
             DestroySpellRpc(netObj);
         }
     }

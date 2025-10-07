@@ -23,7 +23,7 @@ MonoBehaviour:
   isExplosive: 1
   spawnsSecondaryEffectOnCollision: 1
   castMultiplier: 1
-  moveSpeed: 130
+  moveSpeed: 30
   spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -51,3 +51,4 @@ MonoBehaviour:
   contextTag: Dispel
   prefab: {fileID: 4716045805267283745, guid: 449de674b022d124f845606e5b2c0341, type: 3}
   childPrefab: {fileID: 4716045805267283745, guid: 3c59ab55972e1a24aa1c736f653117db, type: 3}
+  isParriable: 0

@@ -127,7 +127,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8059971878547731150}
   - component: {fileID: 8812790672887212500}
-  m_Layer: 13
+  m_Layer: 0
   m_Name: Area of Effect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
