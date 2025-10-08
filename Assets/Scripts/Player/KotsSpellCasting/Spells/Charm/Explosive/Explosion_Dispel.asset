@@ -19,7 +19,7 @@ MonoBehaviour:
   periCastLockProcedure: 0
   incapacitationName: 0
   visionImpairmentType: 0
-  isDispelResistant: 0
+  isDispelResistant: 1
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
@@ -51,3 +51,4 @@ MonoBehaviour:
   contextTag: Dispel
   prefab: {fileID: 4716045805267283745, guid: 3c59ab55972e1a24aa1c736f653117db, type: 3}
   childPrefab: {fileID: 0}
+  isParriable: 0

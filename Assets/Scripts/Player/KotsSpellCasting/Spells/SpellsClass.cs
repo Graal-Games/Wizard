@@ -551,6 +551,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
         // Check for player hit
         if (colliderHit.CompareTag("Player"))
         {
+            if (colliderHit.gameObject.GetComponent<NewPlayerBehavior>().localSphereShieldActive.Value == true) return;
             //Debug.LogFormat($"<color=purple>HAS SHIELD {colliderHit.tag}</color>");
 
             // If player does not have active shield, handle the player hit
