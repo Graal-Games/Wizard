@@ -27,6 +27,8 @@ public class BarrierClass : SpellsClass, IDamageable
 
         if (other.gameObject.CompareTag("Player"))
         {
+            if (other.gameObject.GetComponent<SpellsClass>().SpellName.Contains("Barrier_Arcane")) return;
+
             HandleAllInteractions(other);
         }
     }

@@ -13,9 +13,12 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-// #if UNITY_EDITOR
-// using ParrelSync;
-//#endif
+
+
+
+
+
+
 public class Matchmaking : MonoBehaviour
 {
     private Lobby _connectedLobby;
@@ -25,7 +28,7 @@ public class Matchmaking : MonoBehaviour
     private const string SceneNameKey = "s";
     private string _playerId;
 
-
+//#if UNITY_SERVER
 
     void Awake() => _transport = FindFirstObjectByType<UnityTransport>();
 
@@ -190,4 +193,5 @@ public class Matchmaking : MonoBehaviour
             Debug.Log($"Error shutting down lobby: {e}");
         }
     }
+//#endif
 }
