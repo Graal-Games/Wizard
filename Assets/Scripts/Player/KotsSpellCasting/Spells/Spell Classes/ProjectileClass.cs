@@ -148,7 +148,7 @@ public class ProjectileClass : SpellsClass
         isParried = true;
         if (rb != null)
         {
-            rb.velocity = Vector3.zero; // Immediately stop all movement
+            rb.linearVelocity = Vector3.zero; // Immediately stop all movement
         }
 
         StartCoroutine(DelayedDestruction());
@@ -280,7 +280,7 @@ public class ProjectileClass : SpellsClass
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
         forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
 
         rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed
@@ -311,7 +311,7 @@ public class ProjectileClass : SpellsClass
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
         forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        rb.velocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
 
         rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed

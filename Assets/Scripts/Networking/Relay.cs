@@ -40,7 +40,7 @@ public class Relay : MonoBehaviour
             Debug.Log(joinCode);
 
             // Get the relayserver data to funnel into the network manager info
-            RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
+            var relayServerData = AllocationUtils.ToRelayServerData(allocation, "dtls");
 
             // Inject the relay server data
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
@@ -69,7 +69,7 @@ public class Relay : MonoBehaviour
             Debug.Log("Joining Relay with " + joinCode);
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
-            RelayServerData relayServerData = new RelayServerData(joinAllocation, "dtls");
+            var relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "dtls");
 
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 

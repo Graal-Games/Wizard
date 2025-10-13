@@ -27,7 +27,7 @@ public class Matchmaking : MonoBehaviour
 
 
 
-    void Awake() => _transport = FindObjectOfType<UnityTransport>();
+    void Awake() => _transport = FindFirstObjectByType<UnityTransport>();
 
 
 
@@ -74,7 +74,7 @@ public class Matchmaking : MonoBehaviour
     private async Task<Lobby> QuickJoinLobby()
     {
         try {
-            var lobby = await Lobbies.Instance.QuickJoinLobbyAsync();
+            var lobby = await LobbyService.Instance.QuickJoinLobbyAsync();
 
             var a = await RelayService.Instance.JoinAllocationAsync(lobby.Data[JoinCodeKey].Value);
 
@@ -118,13 +118,14 @@ public class Matchmaking : MonoBehaviour
                 }
             };
             // 7 - Create the lobby with the lobby options specified 
-            var lobby = await Lobbies.Instance.CreateLobbyAsync("Lobby name", maxPlayers, options);
+            var lobby = await LobbyService.Instance.CreateLobbyAsync("Lobby name", maxPlayers, options);
 
             // 8 - Set a heartbeat coroutine to keep the lobby alive for more than 30 seconds
             StartCoroutine(HeartbeatLobbyCoroutine(lobby.Id, 15));
 
             // 9 - Set this variable to hold all the rlay data
-            RelayServerData relayServerData = new RelayServerData(a, "dtls");
+            var relayServerData = AllocationUtils.ToRelayServerData(a, "dtls");
+            //RelayServerData relayServerData = new RelayServerData(a, "dtls");
 
             // 10 - Pass the relay data to the Network manager
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
@@ -170,20 +171,20 @@ public class Matchmaking : MonoBehaviour
     {
         var delay = new WaitForSecondsRealtime(waitTimeSeconds);
         while (true) {
-            Lobbies.Instance.SendHeartbeatPingAsync(lobbyId);
+            LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
             yield return delay;
         }
     }
 
 
 
-    private void Ondestroy() {
+    private void OnDestroy() {
         try {
             StopAllCoroutines();
             if (_connectedLobby != null)
             {
-                if (_connectedLobby.HostId == _playerId) Lobbies.Instance.DeleteLobbyAsync(_connectedLobby.Id);
-                else Lobbies.Instance.RemovePlayerAsync(_connectedLobby.Id, _playerId);
+                if (_connectedLobby.HostId == _playerId) LobbyService.Instance.DeleteLobbyAsync(_connectedLobby.Id);
+                else LobbyService.Instance.RemovePlayerAsync(_connectedLobby.Id, _playerId);
             }
         } catch (Exception e) {
             Debug.Log($"Error shutting down lobby: {e}");

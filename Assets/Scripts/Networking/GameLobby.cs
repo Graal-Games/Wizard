@@ -2,14 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using Unity.Networking;
-using Unity.Netcode;
-using System;
 using IngameDebugConsole;
 using Singletons;
+using Unity.Multiplayer;
+using Unity.Services.Lobbies;
+using Unity.Services.Multiplayer;
+using Unity.Services.Lobbies.Models; 
 
 public class GameLobby : Singleton<GameLobby>
 {
@@ -98,7 +97,8 @@ public class GameLobby : Singleton<GameLobby>
             };
 
             // Query available lobbies
-            QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync();
+            //QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync();
+            QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync();
 
             Debug.Log("Lobbies found: " + queryResponse.Results.Count);
 
@@ -118,9 +118,9 @@ public class GameLobby : Singleton<GameLobby>
     {
         try {
 
-            QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync();
+            QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync();
             
-            await Lobbies.Instance.JoinLobbyByIdAsync(queryResponse.Results[0].Id);
+            await LobbyService.Instance.JoinLobbyByIdAsync(queryResponse.Results[0].Id);
 
             Debug.Log("Joined Lobby: " + queryResponse.Results[0].Id);
 
