@@ -319,7 +319,4 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   m_TextureMipmapLimitGroupNames: []
-  m_PerPlatformDefaultQuality:
-    Android: 0
-    Server: 4
-    Standalone: 4
+  m_PerPlatformDefaultQuality: {}

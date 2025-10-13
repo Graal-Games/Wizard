@@ -19,7 +19,7 @@ MonoBehaviour:
     <CorrespondingNodeId>k__BackingField: 
     m_Nodes: []
     m_PlayerTag: 
-    m_InitialScene: {fileID: 102900000, guid: f9b9f71a1a5eae741b03257ee16abaeb, type: 3}
+    m_InitialScene: {fileID: 102900000, guid: 6c79d5116fb92f64aa33854db952271e, type: 3}
   m_EditorInstances: []
   m_LocalInstances: []
   m_RemoteInstances:
@@ -29,7 +29,7 @@ MonoBehaviour:
     m_BuildProfile: {fileID: 11400000, guid: cb0e5c8a21dd5ab418fdc30db2aea9c3, type: 2}
     advancedConfiguration:
       m_Identifier: SecondServer
-      m_FleetRegion: North America
+      m_FleetRegion: Europe
       m_InstanceAmountOfCores: 1
       m_InstanceAmountOfMemoryMB: 800
       m_InstanceCpuFrequencyMHz: 750

@@ -16,10 +16,10 @@ MonoBehaviour:
   - title: Main core
     position:
       serializedVersion: 2
-      x: 22054
-      y: 1890
-      width: 483
-      height: 2706
+      x: 22059
+      y: 1891
+      width: 478
+      height: 2708
     contents:
     - model: {fileID: 8926484042661614608}
       id: 0
@@ -40,7 +40,7 @@ MonoBehaviour:
     x: 20454
     y: 1888
     width: 2083
-    height: 2707
+    height: 2711
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -103,7 +103,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Fire_projectile2_3rd_phase
+  m_Name: Fire_projectile_3rd_phase
   m_Graph: {fileID: 114350483966674976}
   m_Infos:
     m_RendererSettings:
@@ -776,7 +776,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614661}
   - {fileID: 8926484042661614682}
   - {fileID: 8926484042661614685}
-  m_UIPosition: {x: 22080, y: 3114}
+  m_UIPosition: {x: 22088, y: 3082}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
