@@ -1,3 +1,4 @@
+using NUnit.Framework.Constraints;
 using Singletons;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,6 +27,8 @@ public class AimAtOpposingPlayer : NetworkBehaviour
         // Start a coroutine to ask for the target.
         // This is better than a direct call in case the other player takes a moment to connect.
         StartCoroutine(RequestTargetWithDelay());
+
+        StartCoroutine(CheckForRigidbodiesInArea());
     }
 
     private IEnumerator RequestTargetWithDelay()
@@ -45,7 +48,7 @@ public class AimAtOpposingPlayer : NetworkBehaviour
     //        radius = capsuleCollider.radius;
     //        Debug.Log("CapsuleCollider radius: " + radius);
     //    }
-    //}
+    //} 
 
     // Update is called once per frame
     void Update()
@@ -60,12 +63,15 @@ public class AimAtOpposingPlayer : NetworkBehaviour
             // Your aiming logic remains the same.
             targetPositionWithOffset = targetTransform.position + new Vector3(0.20f, 0.5f, 0);
             transform.LookAt(targetPositionWithOffset);
+
+            Debug.LogFormat($"<color=purple>TAREGETING {targetPositionWithOffset}</color>");
+
         }
 
     }
 
-    [ServerRpc]
-    private void AskForTargetServerRpc(ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server)]
+    private void AskForTargetServerRpc(RpcParams rpcParams = default)
     {
         ulong requestingClientId = rpcParams.Receive.SenderClientId;
         ulong targetClientId = ulong.MaxValue;
@@ -90,9 +96,12 @@ public class AimAtOpposingPlayer : NetworkBehaviour
                     Send = new ClientRpcSendParams
                     {
                         TargetClientIds = new ulong[] { requestingClientId }
+                        
+
                     }
                 };
 
+                Debug.LogFormat($"<color=purple>INVOCATION TAREGET {requestingClientId}</color>");
                 SetTargetClientRpc(targetNetObject.NetworkObjectId, clientRpcParams);
             }
         }
@@ -115,35 +124,36 @@ public class AimAtOpposingPlayer : NetworkBehaviour
         }
     }
 
-    //void CheckForRigidbodiesInArea()
-    //{
-    //    // Define a search radius and position (center of the collider)
-    //    //float searchRadius = 5f;
+    IEnumerator CheckForRigidbodiesInArea()
+    {
+        yield return new WaitForSeconds(0.5f);
+        // Define a search radius and position (center of the collider)
+        //float searchRadius = 5f;
 
-    //    Vector3 centerPosition = transform.position;
+        Vector3 centerPosition = transform.position;
 
-    //    // Find all colliders within the sphere
-    //    Collider[] colliders = Physics.OverlapSphere(centerPosition, radius);
+        // Find all colliders within the sphere
+        Collider[] colliders = Physics.OverlapSphere(centerPosition, radius);
 
-    //    foreach (Collider collider in colliders)
-    //    {
-    //        // Check if the object has a Rigidbody
-    //        Rigidbody rb = collider.GetComponent<Rigidbody>();
+        foreach (Collider collider in colliders)
+        {
+            // Check if the object has a Rigidbody
+            Rigidbody rb = collider.GetComponent<Rigidbody>();
 
 
-    //        if (rb != null)
-    //        {
-    //            Debug.Log("Rigidbody found inside the area: " + rb.name);
-    //            clientId = rb.gameObject.GetComponent<NetworkObject>().OwnerClientId;
+            if (rb != null)
+            {
+                Debug.Log("Rigidbody found inside the area: " + rb.name);
+                clientId = rb.gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
-    //            if (OwnerClientId != clientId)
-    //            {
-    //                TargetFound = true;
-    //                targetTransform = rb.gameObject.transform;
-    //            }
-    //        }
-    //    }
-    //}
+                if (OwnerClientId != clientId)
+                {
+                    //TargetFound = true;
+                    targetTransform = rb.gameObject.transform;
+                }
+            }
+        }
+    }
 
     private void OnTriggerEnter(Collider other)
     {

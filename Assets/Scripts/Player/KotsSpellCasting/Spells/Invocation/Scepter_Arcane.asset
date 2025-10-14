@@ -50,4 +50,5 @@ MonoBehaviour:
   pushback: 0
   contextTag: Scepter
   prefab: {fileID: 705924895072455061, guid: ff8d567ee1bdd844984032f2fe396a5c, type: 3}
-  childPrefab: {fileID: 4716045805267283745, guid: 0c7b844635adad749ba02e1813749bb7, type: 3}
+  childPrefab: {fileID: 276730528237925260, guid: b1812fff0a3277646bd86b66ab5dbb49, type: 3}
+  isParriable: 0
