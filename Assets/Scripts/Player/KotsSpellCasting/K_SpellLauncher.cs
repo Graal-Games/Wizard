@@ -260,7 +260,7 @@ public class K_SpellLauncher : NetworkBehaviour
         // (not sure) This handles if the player can cast or is required
         // to enter a DR sequence for a specific spell category
         // this might be incorrect
-        if (!canCast)
+        if (!canCast) // Rename??
             return;
 
 
@@ -296,7 +296,7 @@ public class K_SpellLauncher : NetworkBehaviour
         ///
         if (inSpellCastModeOrWaitingSpellCategory) // This is when the player already is in cast mode
         {
-            // SPELL FIRING
+            // SPELL xxFIRINGxx casting
             if (Input.GetKeyUp(K_SpellKeys.cast))
             {
                 // To do: Slow down player character by 50% - Here <<<<<<
@@ -1146,7 +1146,7 @@ public class K_SpellLauncher : NetworkBehaviour
     private void UpdateDynamicNextKeysUI()
     {
         // Do not show dynamic spell-casting hints while in DR or SpellCharging modes
-        if (isInDRLockMode || isInSpellChargingMode)
+        if (isInDRLockMode || isInSpellChargingMode) // Requires revision
         {
             HideAllDynamicNextKeys();
             return;
