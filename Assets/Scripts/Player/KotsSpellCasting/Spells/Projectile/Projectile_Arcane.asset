@@ -44,7 +44,7 @@ MonoBehaviour:
   collisionLayers:
     serializedVersion: 2
     m_Bits: 128
-  destroyOnCollision: 1
+  destroyOnCollision: 0
   destroyOnPlayerCollision: 0
   friendlyFire: 0
   pushback: 0
