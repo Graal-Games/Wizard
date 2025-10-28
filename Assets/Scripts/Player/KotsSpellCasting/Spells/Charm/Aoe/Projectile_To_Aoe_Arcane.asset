@@ -23,7 +23,7 @@ MonoBehaviour:
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 1
   castMultiplier: 1
-  moveSpeed: 140
+  moveSpeed: 25
   spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -49,5 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Aoe
-  prefab: {fileID: 4716045805267283745, guid: 4d4a1bd6bfee68648a2b5d93cc9cd69c, type: 3}
+  prefab: {fileID: 9129265231466498142, guid: 63c2968736c80a6428a3f6236ed2e6f3, type: 3}
   childPrefab: {fileID: 4454155518266441410, guid: e838861e4e3e7c843944008093c37b25, type: 3}
+  isParriable: 0
