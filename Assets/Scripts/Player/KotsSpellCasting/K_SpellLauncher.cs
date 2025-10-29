@@ -791,7 +791,15 @@ public class K_SpellLauncher : NetworkBehaviour
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        netObj.SpawnWithOwnership(OwnerClientId);
+        //netObj.SpawnWithOwnership(OwnerClientId);
+        netObj.Spawn();
+
+        if (netObj.name.Contains("Scepter"))
+        {
+            Debug.Log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+
+            netObj.GetComponentInChildren<AimAtOpposingPlayer>().friendlyPlayerId.Value = OwnerClientId;
+        }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 

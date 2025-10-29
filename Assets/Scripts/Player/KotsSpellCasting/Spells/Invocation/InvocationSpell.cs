@@ -89,18 +89,22 @@ public class InvocationSpell : K_Spell
     IEnumerator Shoot()
     {
         yield return new WaitForSeconds(5);
-        // Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
+        Debug.Log("SSSSSSSSSSSSSSSSSSHOOOT");
         //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
 
         // If a target is available
-        if (aimAtOpposingPlayerScript.TargetFound)
+        if (aimAtOpposingPlayerScript.TargetFound.Value)
         {
             SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
+            yield return null;
         }
         else 
         {             
-            Debug.Log("No target found, cannot spawn projectile."); 
+            Debug.Log("No target found, cannot spawn projectile.");
+            StartCoroutine(Shoot());
         }
+
+        
     }
 
 

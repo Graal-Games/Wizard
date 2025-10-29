@@ -4,7 +4,7 @@ using Unity.Netcode;
 using UnityEngine;
 using static K_SpellBuilder;
 
-// CURRENTLY HEALS ALL PLAYERS IN ITS TRIGGER. TO MAKE IT SO THAT ONLY THE FIRST PLAYER IN IT IS HEALED
+// CURRENTLY HEALS ALL PLAYERS IN ITS TRIGGER. TO MAKE IT SO THAT ONLY THE FIRST PLAYER IN IT IS HEALED??? - on second thoughts maybe not
 // NOT CURRENTLY A PRIORITY <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 public class HealTargetScepter : SpellsClass
 {
@@ -27,6 +27,10 @@ public class HealTargetScepter : SpellsClass
         CheckIfPlayerInsideTrigger();
     }
 
+
+
+
+
     void OnDrawGizmos()
     {
         if (triggerZone != null)
@@ -40,6 +44,10 @@ public class HealTargetScepter : SpellsClass
         }
     }
 
+
+
+
+
     void CheckIfPlayerInsideTrigger()
     {
         Collider[] colliders = Physics.OverlapSphere(triggerZone.bounds.center, triggerZone.bounds.extents.magnitude);
@@ -47,20 +55,6 @@ public class HealTargetScepter : SpellsClass
         foreach (Collider collider in colliders) 
         {
             Debug.Log("colliders: " + collider);
-
-
-            //if (collider == null)
-            //{
-            //    Debug.Log("REMOVE DICT ENTRIES!");
-
-            //    // remove all entries inside the dictionary
-            //    playersInTrigger.Clear();
-            //}
-
-            //if (!playersInTrigger.ContainsKey(collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId))
-            //{
-            //    playersInTrigger.Remove(collider.gameObject.GetComponent<NewPlayerBehavior>().OwnerClientId);
-            //}
 
             if (collider.gameObject.name.Contains("Player") && playersInTrigger.Count < 1)
             {
@@ -72,16 +66,14 @@ public class HealTargetScepter : SpellsClass
                     playersInTrigger.Add(playerOwnerId, collider.gameObject);
                     return;
                 }
-                //else
-                //{
-                //    Debug.Log("Player is already inside the trigger on spawn!");
-                //    playersInTrigger.Remove(playerOwnerId);
-                //    return;
-                //}
             }
         }
         Debug.Log("Player is not inside the trigger on spawn.");
     }
+
+
+
+
 
     public override void FixedUpdate()
     {
@@ -119,6 +111,10 @@ public class HealTargetScepter : SpellsClass
         }
     }
 
+
+
+
+
     void OnTriggerEnter(Collider other)
     {
         Debug.Log($"ENTERED trigger: {other.name}");
@@ -130,6 +126,10 @@ public class HealTargetScepter : SpellsClass
             playersInTrigger.Add(playerOwnerId, other.gameObject);
         }
     }
+
+
+
+
 
     void OnTriggerExit(Collider other)
     {
