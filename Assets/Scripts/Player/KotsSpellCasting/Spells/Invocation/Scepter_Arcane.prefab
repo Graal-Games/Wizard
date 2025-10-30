@@ -275,6 +275,8 @@ MonoBehaviour:
     m_InternalValue: 0
   friendlyPlayerId:
     m_InternalValue: 0
+  isEnemyPlayerBehindCover:
+    m_InternalValue: 0
 --- !u!114 &806206242781380167
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -340,8 +342,8 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 13.0777855
-  m_Height: 26.155571
+  m_Radius: 20
+  m_Height: 40
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6317612075275692916

@@ -18,9 +18,9 @@ public class AimAtOpposingPlayer : NetworkBehaviour
     InvocationSpell invocationSpellScript;
 
 
-    public Transform shootOrigin;  
-    public float range = 100f;   
-    public LayerMask hitMask;      
+    //Transform shootOrigin;  
+    //float range = 100f;   
+    //LayerMask hitMask;      
 
 
     // Instead of a variable, it now simply checks if the targetTransform has been successfully assigned.
@@ -60,31 +60,31 @@ public class AimAtOpposingPlayer : NetworkBehaviour
         }
 
         // If a target is found, shoot a ray at it to check whether or not he is hiding behind a wall or not
-        if (TargetFound.Value)
-            CheckIfTargetBehindWallOrBarrier();
+        //if (TargetFound.Value)
+        //    CheckIfTargetBehindWallOrBarrier();
     }
 
 
     // OPTIONAL: Make the scepter shoot the player only if he is visible and not behind cover
-    void CheckIfTargetBehindWallOrBarrier()
-    {
-        Ray ray = new Ray(targetTransform.position, targetTransform.forward);
+    //void CheckIfTargetBehindWallOrBarrier()
+    //{
+    //    Ray ray = new Ray(targetTransform.position, targetTransform.forward);
 
-        RaycastHit hit;
+    //    RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, range, hitMask))
-        {
-            Debug.Log($"Hit {hit.collider.name} at {hit.point}");
+    //    if (Physics.Raycast(ray, out hit, range, hitMask))
+    //    {
+    //        Debug.Log($"Hit {hit.collider.name} at {hit.point}");
             
-        }
-        else
-        {
-            Debug.Log("Missed");
-        }
+    //    }
+    //    else
+    //    {
+    //        Debug.Log("Missed");
+    //    }
 
-        // Optional: draw ray in scene view for debugging
-        Debug.DrawRay(shootOrigin.position, shootOrigin.forward * range, Color.red, 1f);
-    }
+    //    // Optional: draw ray in scene view for debugging
+    //    Debug.DrawRay(shootOrigin.position, shootOrigin.forward * range, Color.red, 1f);
+    //}
 
 
 
@@ -97,11 +97,11 @@ public class AimAtOpposingPlayer : NetworkBehaviour
 
 
 
-    [Rpc(SendTo.Server)]
-    void IsEnemyPlayerBehindCover(bool value)
-    {
-        isEnemyPlayerBehindCover.Value = value;
-    }
+    //[Rpc(SendTo.Server)]
+    //void IsEnemyPlayerBehindCover(bool value)
+    //{
+    //    isEnemyPlayerBehindCover.Value = value;
+    //}
 
 
 

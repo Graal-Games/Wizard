@@ -423,9 +423,10 @@ public class ProjectileClass : SpellsClass
             && !colliderHit.gameObject.name.Contains("Projectile") 
             && !colliderHit.gameObject.name.Contains("Area of Effect")  
             && !colliderHit.gameObject.name.Contains("Shaders")
+            && !colliderHit.gameObject.name.Contains("Spawn Location")
             ) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
         {
-            Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
+            Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name} (HARDCODED)</color>");
 
             if (!colliderHit.gameObject.name.Contains("Aoe"))
             DestroySpell(gameObject);

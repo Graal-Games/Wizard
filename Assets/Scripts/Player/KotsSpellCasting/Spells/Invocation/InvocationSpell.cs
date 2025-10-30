@@ -8,6 +8,7 @@ public class InvocationSpell : K_Spell
     [SerializeField] GameObject spawnLocation;
     Transform spawnPosition;
     AimAtOpposingPlayer aimAtOpposingPlayerScript;
+
     GameObject objectToSpawn;
     [SerializeField] GameObject[] spawnableGameObjects;
     NetworkVariable<float> localHealth = new NetworkVariable<float>();
@@ -32,47 +33,48 @@ public class InvocationSpell : K_Spell
         StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, gameObject) );
     }
 
-    GameObject InitializeObjectToSpawnPrefab()
-    {
-        Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
+
+    //GameObject InitializeObjectToSpawnPrefab()
+    //{
+    //    Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
 
 
 
-        switch (SpellDataScriptableObject.element.ToString())
-        {
-            case "Arcane":
-                //Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
+    //    switch (SpellDataScriptableObject.element.ToString())
+    //    {
+    //        case "Arcane":
+    //            Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
 
-                objectToSpawn = spawnableGameObjects[0];
-                return objectToSpawn;
-            case "Water":
-                objectToSpawn = spawnableGameObjects[1];
-                Debug.Log("Water.WaterWaterWaterWater " + objectToSpawn);
+    //            objectToSpawn = spawnableGameObjects[0];
+    //            return objectToSpawn;
+    //        case "Water":
+    //            objectToSpawn = spawnableGameObjects[1];
+    //            Debug.Log("Water.WaterWaterWaterWater " + objectToSpawn);
 
-                return objectToSpawn;
+    //            return objectToSpawn;
 
-            case "Earth":
-                objectToSpawn = spawnableGameObjects[2];
-                Debug.Log("EarthEarthEarthEarth " + objectToSpawn);
+    //        case "Earth":
+    //            objectToSpawn = spawnableGameObjects[2];
+    //            Debug.Log("EarthEarthEarthEarth " + objectToSpawn);
 
-                return objectToSpawn;
+    //            return objectToSpawn;
 
-            case "Fire":
-                objectToSpawn = spawnableGameObjects[3];
-                Debug.Log("FireFireFireFire " + objectToSpawn);
+    //        case "Fire":
+    //            objectToSpawn = spawnableGameObjects[3];
+    //            Debug.Log("FireFireFireFire " + objectToSpawn);
 
-                return objectToSpawn;
+    //            return objectToSpawn;
 
-            case "Air":
-                objectToSpawn = spawnableGameObjects[4];
-                Debug.Log("AirAirAirAirAir" + objectToSpawn);
+    //        case "Air":
+    //            objectToSpawn = spawnableGameObjects[4];
+    //            Debug.Log("AirAirAirAirAir" + objectToSpawn);
 
-                return objectToSpawn;
+    //            return objectToSpawn;
 
-            default:
-                return null;
-        }
-    }
+    //        default:
+    //            return null;
+    //    }
+    //}
 
 
 
@@ -100,7 +102,7 @@ public class InvocationSpell : K_Spell
     void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     {
 
-        GameObject spellInstance = Instantiate(InitializeObjectToSpawnPrefab(), new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
+        GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab.gameObject, new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
         netObj.Spawn();

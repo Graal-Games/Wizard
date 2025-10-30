@@ -49,6 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Earth
-  prefab: {fileID: 705924895072455061, guid: c0a2e1fea99c3224b90c796661cf55b9, type: 3}
-  childPrefab: {fileID: 4716045805267283745, guid: 20172c3301cb46c4cb1a95500dc68d0f, type: 3}
+  prefab: {fileID: 705924895072455061, guid: e54a9fe22e88a564f8e28f8b8024c403, type: 3}
+  childPrefab: {fileID: 2626502478987842554, guid: fbc49fc8dbd267d488ea0a6c9f1946a0, type: 3}
   isParriable: 0

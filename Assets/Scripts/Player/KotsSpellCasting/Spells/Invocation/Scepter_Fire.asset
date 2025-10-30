@@ -49,6 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Fire
-  prefab: {fileID: 705924895072455061, guid: 095f8d559820a27459f132fa643a53c4, type: 3}
-  childPrefab: {fileID: 4716045805267283745, guid: 5737c32e9d7692244986f19a522a26f8, type: 3}
+  prefab: {fileID: 705924895072455061, guid: ac1a37bf3b4b0e64cb24eeada2821faf, type: 3}
+  childPrefab: {fileID: 8574651727622105880, guid: 1377af28590d363449204ae812cca92d, type: 3}
   isParriable: 0

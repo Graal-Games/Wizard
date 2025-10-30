@@ -49,6 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Air
-  prefab: {fileID: 705924895072455061, guid: df7a705659de33b4eb8f6d5c937d1a93, type: 3}
-  childPrefab: {fileID: 4716045805267283745, guid: c174efd721ec6f94194bb87c373d2990, type: 3}
+  prefab: {fileID: 705924895072455061, guid: 432e8c5d133717b4e92afd638ab94939, type: 3}
+  childPrefab: {fileID: 8899761816857630871, guid: 1bb3860e3a8b84e4b83aab8009222e9d, type: 3}
   isParriable: 0
