@@ -13,33 +13,21 @@ public class InvocationSpell : K_Spell
     NetworkVariable<float> localHealth = new NetworkVariable<float>();
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        if (!IsOwner) { return; }
-
-
-
-    }
-
-    private void Update()
+    private void Update() // To Do: This should be changed to FixedUpdate for correct performance
     {
         spawnPosition = spawnLocation.gameObject.transform;
-
-        //Debug.Log("spawnPositionspawnPositionspawnPositionspawnPosition " + spawnPosition.position.x + spawnPosition.position.y + spawnPosition.position.z);
-
-
-
-        //AimAtOpposingPlayer(); spellLauncher.prefabReferences[spellSequenceParam]
     }
 
 
     public override void OnNetworkSpawn()
     {
+        if (!IsOwner) return;
+
         base.OnNetworkSpawn();
         aimAtOpposingPlayerScript = GetComponentInChildren<AimAtOpposingPlayer>();
-        // InitializeObjectToSpawnPrefab();
-        StartCoroutine(Shoot());
+
+        if (aimAtOpposingPlayerScript.TargetFound.Value)
+            StartCoroutine(Shoot());
 
         StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, gameObject) );
     }
@@ -86,11 +74,12 @@ public class InvocationSpell : K_Spell
         }
     }
 
-    IEnumerator Shoot()
+
+
+    public IEnumerator Shoot()
     {
         yield return new WaitForSeconds(5);
         Debug.Log("SSSSSSSSSSSSSSSSSSHOOOT");
-        //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
 
         // If a target is available
         if (aimAtOpposingPlayerScript.TargetFound.Value)
@@ -101,48 +90,22 @@ public class InvocationSpell : K_Spell
         else 
         {             
             Debug.Log("No target found, cannot spawn projectile.");
-            StartCoroutine(Shoot());
+            //StartCoroutine(Shoot());
         }
-
-        
     }
 
 
 
-    //public void ApplyDamage(float damage)
-    //{
-    //    localHealth.Value -= damage;
-    //    Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
-
-    //    if (localHealth.Value <= 0)
-    //    {
-    //        // DestroyBarrierRpc();
-    //        DestroySpellRpc(gameObject);
-    //    }
-    //}
-
-
-
     [Rpc(SendTo.Server)]
-    //void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     {
-        //Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-        //Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
-        //Debug.Log("SpellDataScriptableObject.childPrefab " + xPos + yPos + zPos);
-
-        // spawnPosition = spawnLocation.gameObject.transform;
-        //spawnPosition = aimAtOpposingPlayerScript.GetPlayerGameObject();
-
 
         GameObject spellInstance = Instantiate(InitializeObjectToSpawnPrefab(), new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
-
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
+
         netObj.Spawn();
 
         StartCoroutine(Shoot());
-        //netObj.TrySetParent(gameObject.transform);
     }
 
     public override void Fire()
