@@ -333,7 +333,7 @@ public abstract class K_Spell : NetworkBehaviour, ISpell
     [Rpc(SendTo.Server)]
     public void DestroySpellRpc(NetworkObjectReference spellObjRef)
     {
-        Debug.LogFormat($"<color=purple>222gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
+        //Debug.LogFormat($"<color=purple>222gameObjectgameObjectgameObject {gameObjectToDestroy}</color>");
 
         Destroy(gameObjectToDestroy);
 

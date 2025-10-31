@@ -245,7 +245,7 @@ public class SpellsClass : NetworkBehaviour, ISpell
 
         // Unsubscribe from the player hit event // To remember to do this where applicable 
         //playerHitEvent -= EmitPayload;
-        Debug.LogFormat("<color=orange>Spell despawned</color>", gameObject.name);
+        //Debug.LogFormat("<color=orange>Spell despawned</color>", gameObject.name);
     }
 
 
@@ -750,12 +750,12 @@ public class SpellsClass : NetworkBehaviour, ISpell
         if (netObj == null) netObj = spellObj.GetComponentInChildren<NetworkObject>();
         if (netObj == null) netObj = spellObj.GetComponentInParent<NetworkObject>();
 
-        Debug.LogFormat("111 DISPELLING SPELL:" + netObj);
+        //Debug.LogFormat("111 DISPELLING SPELL:" + netObj);
 
 
         if (netObj != null && netObj.IsSpawned)
         {
-            Debug.LogFormat("222 DISPELLING SPELL:" + netObj);
+            //Debug.LogFormat("222 DISPELLING SPELL:" + netObj);
 
             DestroySpellRpc(netObj);
         }
@@ -791,17 +791,17 @@ public class SpellsClass : NetworkBehaviour, ISpell
             // Check if the object still exists and is spawned before trying to despawn it.
             if (netObjToDestroy != null && netObjToDestroy.IsSpawned)
             {
-                Debug.LogFormat($"<color=orange>Server is despawning {netObjToDestroy.name}</color>");
+                //Debug.LogFormat($"<color=orange>Server is despawning {netObjToDestroy.name}</color>");
                 netObjToDestroy.Despawn();
             }
             else
             {
-                Debug.LogWarning($"Server received DestroySpellRpc, but the object was already destroyed or despawned.");
+                //Debug.LogWarning($"Server received DestroySpellRpc, but the object was already destroyed or despawned.");
             }
         }
         else
         {
-            Debug.LogWarning($"Server could not find the NetworkObject from the reference in DestroySpellRpc.");
+            //Debug.LogWarning($"Server could not find the NetworkObject from the reference in DestroySpellRpc.");
         }
     }
     #endregion

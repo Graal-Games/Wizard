@@ -151,13 +151,13 @@ public class AimAtOpposingPlayer : NetworkBehaviour
     {
         if (other.name.Contains("Player"))
         {
-            //Debug.Log("SCEPTER 1- AIM AT PLAYER: " + other.name);
+            Debug.Log("SCEPTER 1- AIM AT PLAYER: " + other.name);
 
             clientId = other.gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
             if (friendlyPlayerId.Value != clientId)
             {
-                //Debug.Log("SCEPTER 2- AIM AT PLAYER: " + OwnerClientId);
+                Debug.Log("SCEPTER 2- AIM AT PLAYER: " + OwnerClientId);
 
                 targetTransform = other.gameObject.transform;
 
@@ -178,18 +178,19 @@ public class AimAtOpposingPlayer : NetworkBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        //Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
 
         if (other.name.Contains("Player"))
-        {
+        {        
+            Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
+
             clientId = other.gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
-            if (friendlyPlayerId.Value != clientId)
-            {
-                targetTransform = null;
-                TargetFoundRpc(false);
-                //Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
-            }
+            //if (friendlyPlayerId.Value != clientId)
+            //{
+            //    targetTransform = null;
+            //    TargetFoundRpc(false);
+            //    Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
+            //}
         }
     }
 }

@@ -83,6 +83,9 @@ public class InvocationSpell : K_Spell
         yield return new WaitForSeconds(5);
         Debug.Log("SSSSSSSSSSSSSSSSSSHOOOT");
 
+
+        if (aimAtOpposingPlayerScript == null)
+            aimAtOpposingPlayerScript.GetComponentInChildren<AimAtOpposingPlayer>();
         // If a target is available
         if (aimAtOpposingPlayerScript.TargetFound.Value)
         {
