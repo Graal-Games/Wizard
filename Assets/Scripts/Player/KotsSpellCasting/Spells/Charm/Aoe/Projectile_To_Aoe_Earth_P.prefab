@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -1038719287676735608, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: spellDataScriptableObject
       value: 
-      objectReference: {fileID: 11400000, guid: 964239518da98624fb93d983416522c5, type: 2}
+      objectReference: {fileID: 11400000, guid: dddfcfee4f642994d8998093b5e9d2e3, type: 2}
     - target: {fileID: -1038719287676735608, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: secondaryGameObjectToSpawn
       value: 

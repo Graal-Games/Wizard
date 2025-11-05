@@ -357,6 +357,7 @@ public class ProjectileClass : SpellsClass
 
 
                 // <<< The below code could be simplified
+                // If the playerID with which this gameobject has collided is not present in the list, add it then handle the collision.
                 if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                 {
                     isHitPlayer.Value = true;
@@ -365,7 +366,7 @@ public class ProjectileClass : SpellsClass
 
                 }
 
-            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
+            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString())) // If the gameObject is hitting itself (for whateer reason - like the projectile for example) ignore the collision.
             {
                 //Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
                 HandleCollision(hit.collider, hitPosition);
@@ -394,7 +395,7 @@ public class ProjectileClass : SpellsClass
             && !colliderHit.gameObject.name.Contains("Area of Effect")
             && !colliderHit.gameObject.name.Contains("Shaders"))
         {
-            //Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
+            Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
             //Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
             SpawnEffectAtTargetLocationRpc(hitPosition);
             hasCollided.Value = true;
