@@ -23,7 +23,7 @@ MonoBehaviour:
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 1
   castMultiplier: 1
-  moveSpeed: 140
+  moveSpeed: 25
   spellDuration: 20
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
@@ -49,5 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Earth
-  prefab: {fileID: 4716045805267283745, guid: 6bd7ff29d2e7a484d8dc8b0a2dec6064, type: 3}
+  prefab: {fileID: 9063911642591200041, guid: 2552229464a82dc428d6260c1d3ac8d1, type: 3}
   childPrefab: {fileID: 4454155518266441410, guid: b457492cb03d57a44abd093c20883af9, type: 3}
+  isParriable: 0
