@@ -45,6 +45,7 @@ public class PlayerController : NetworkBehaviour
     private bool isUsingMouseToMoveForward = false;
     bool lmb_pressed = false;
     bool rmb_pressed = false;
+    Vector2 inputVector;
 
 
 
@@ -188,7 +189,6 @@ public class PlayerController : NetworkBehaviour
             CastModeSpeedReset();
         }
     }
-
 
 
 
@@ -351,54 +351,43 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        playerInputActions.PlayerMovement.Enable();
-        playerInputActions.PlayerMovement.Movement.performed += OnMovementPerformed;
-    }
-
-
+    // Handles logic to move forward with mouse LMB+RMB.
     private void OnMovementPerformed(InputAction.CallbackContext context)
     {
-
-        if (context.control.displayName.Contains("Left"))
+        // If the button pressed or released is the LMB handle the bool relatively.
+        if (context.control.displayName.Contains("Left Button"))
         {
             lmb_pressed = !lmb_pressed;
             Debug.Log($"<color=orange>[LBM]: </color> {lmb_pressed}");
         }
 
-        if (context.control.displayName.Contains("Right"))
+        // If the button pressed or released is the RMB handle the bool relatively.
+        if (context.control.displayName.Contains("Right Button"))
         {
             rmb_pressed = !rmb_pressed;
             Debug.Log($"<color=blue>[RBM]: </color> {rmb_pressed}");
 
         }
 
-        if (rmb_pressed == true && lmb_pressed == true)
-        {
-            isUsingMouseToMoveForward = true;
-        } 
-        else if (rmb_pressed == false && lmb_pressed == false)
-        {
-            isUsingMouseToMoveForward = false;
-        }
+        // If both left and right mouse button are pressed resolve to true. Otherwise, resolve to false.
+        isUsingMouseToMoveForward = lmb_pressed && rmb_pressed; 
 
-            // Here’s your button info
-            Debug.Log($"Pressed: {context.control.displayName} | Path: {context.control.path}");
+        // Here’s your button info
+        Debug.Log($"Pressed: {context.control.displayName} | Path: {context.control.path}");
     }
 
 
     private void HandleMovement()
     {
         // This movement logic is already correct from our previous fixes.
-        Vector2 inputVector = gameInput.GetMovementVector();
+        inputVector = gameInput.GetMovementVector(); // The movement vector is set using the PlayerInput file inside the project assets.
 
+        // If both the LMB and RBM and pressed together, move the charater forward.
         if (isUsingMouseToMoveForward == true)
         {
             moveDir = new Vector3(0f, 0f, 1f);
         } else
         {
-            //isUsingMouseToMoveForward = false;
             moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
         }
 
@@ -417,15 +406,7 @@ public class PlayerController : NetworkBehaviour
         moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
         moveDir.Normalize();
 
-
-
-        //if (isUsingMouseToMoveForward != true)
-        //{
-
-        //}
-
-
-
+        // If the player is running in a different direction, add slow for run-up
         if (previousInputVector != inputVector)
         {
             runUpElapsedDuration = 0.2f;
