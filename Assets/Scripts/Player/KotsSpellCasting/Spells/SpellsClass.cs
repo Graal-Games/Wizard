@@ -687,19 +687,10 @@ public class SpellsClass : NetworkBehaviour, ISpell
             }
             else if (ISpellComponentInParent != null && ISpellComponentInParent.SpellName.Contains("Aoe"))
             {
-                //Debug.LogFormat("<color=orange> hit AOE (" + colliderHit.name + ")</color>");
-
-                AoeSpell aoeSpell = colliderHit.gameObject.GetComponentInParent<AoeSpell>();
-
-                if (aoeSpell.SpellDataScriptableObject.health > 1)
-                {
-                    aoeSpell.ApplyDamage(SpellDataScriptableObject.directDamageAmount);
-                }
-
-                if (!gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.dispel && !gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject.spawnsSecondaryEffectOnCollision)
-                {
+                K_SpellData so = gameObject.GetComponent<SpellsClass>().SpellDataScriptableObject;
+                
+                if (!so.dispel && !so.spawnsSecondaryEffectOnCollision)
                     DestroySpell(gameObject);
-                }
             }
         }
 

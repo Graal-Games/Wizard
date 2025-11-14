@@ -1,0 +1,18 @@
+﻿<Solution>
+  <Project Path="Meryel.CodeAssist.Editor.csproj" />
+  <Project Path="Networking.csproj" />
+  <Project Path="Player.csproj" />
+  <Project Path="PlayerUi.csproj" />
+  <Project Path="Spells.csproj" />
+  <Project Path="Managers.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="IngameDebugConsole.Runtime.csproj" />
+  <Project Path="PlayerControls.csproj" />
+  <Project Path="VFXGraph.OutputEventHandlers.Editor.csproj" />
+  <Project Path="ParrelSync.csproj" />
+  <Project Path="VFXGraph.OutputEventHandlers.csproj" />
+  <Project Path="Overlays.csproj" />
+  <Project Path="Singleton.csproj" />
+  <Project Path="PlayerCastPoints.csproj" />
+  <Project Path="IngameDebugConsole.Editor.csproj" />
+</Solution>

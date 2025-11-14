@@ -49,5 +49,6 @@ MonoBehaviour:
   friendlyFire: 0
   pushback: 0
   contextTag: Aoe
-  prefab: {fileID: 4454155518266441410, guid: e838861e4e3e7c843944008093c37b25, type: 3}
+  prefab: {fileID: 4454155518266441410, guid: d48ab4d0934c5bd6c9db52894a3e7c60, type: 3}
   childPrefab: {fileID: 0}
+  isParriable: 0
