@@ -313,10 +313,18 @@ public class ProjectileClass : SpellsClass
         Vector3 currentPosition = transform.position;
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
-        forceDirection = flightDirection * SpellDataScriptableObject.moveSpeed;
-        rb.linearVelocity = flightDirection * SpellDataScriptableObject.moveSpeed;
+        if (flightDirection != Vector3.zero)
+        {
+            forceDirection = flightDirection * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = flightDirection * SpellDataScriptableObject.moveSpeed;
+        } else
+        {
+            forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        }
 
-        rb.isKinematic = false; // Stop the rigidbody from moving
+
+            rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed
 
 
