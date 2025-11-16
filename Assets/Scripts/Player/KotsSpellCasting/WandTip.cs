@@ -32,12 +32,17 @@ public class WandTip : NetworkBehaviour
 
     private Transform cameraTransform;
 
+    public LayerMask aimMask;
+
 
     public NetworkVariable<Vector3> wandTipPosition = new NetworkVariable<Vector3>(default,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     public NetworkVariable<Quaternion> wandTipRotation = new NetworkVariable<Quaternion>(default,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
+    public NetworkVariable<Vector3> aimDirection = new NetworkVariable<Vector3>(
+    writePerm: NetworkVariableWritePermission.Owner);
 
 
 
@@ -59,6 +64,12 @@ public class WandTip : NetworkBehaviour
         //newRotation = Quaternion.Euler(0, yRotation, 0);
     }
 
+    private void FixedUpdate()
+    {
+        if (!IsOwner) return;
+
+        aimDirection.Value = GetCenterScreenAimDirection();
+    }
 
     void UpdateRotAndPos()
     {
@@ -206,13 +217,19 @@ public class WandTip : NetworkBehaviour
 
         // 3. Determine world target
         Vector3 targetPoint;
-        if (Physics.Raycast(ray, out RaycastHit hit, 2000f))
-            targetPoint = hit.point; // hit something in the world
-        else
-            targetPoint = ray.GetPoint(2000f); // just shoot straight ahead infinitely
+        if (Physics.Raycast(ray, out RaycastHit hit, 2000f, aimMask, QueryTriggerInteraction.Ignore))
+        {
+            targetPoint = ray.GetPoint(30f); // just shoot straight ahead infinitely
+            targetPoint = hit.point; // just shoot straight ahead infinitely
 
-        // 4. Direction from wand to that target
-        return (targetPoint - transform.position).normalized;
+        } else
+        {
+            targetPoint = ray.GetPoint(30f);
+        }
+
+            // 4. Direction from wand to that target
+            return (targetPoint - transform.position).normalized;
+
     }
 
 

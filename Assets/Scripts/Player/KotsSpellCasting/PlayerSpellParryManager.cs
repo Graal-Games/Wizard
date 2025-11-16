@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem.LowLevel;
 using static K_SpellLauncher;
 
 public class PlayerSpellParryManager : NetworkBehaviour
@@ -114,6 +115,51 @@ public class PlayerSpellParryManager : NetworkBehaviour
 
 
 
+    //// Emits a client rpc payload to all players that is then locally digested to invoke associated methods
+    //[Rpc(SendTo.Everyone)]
+    //void ApplyDamageToPlayerClientRpc(ulong targetNetworkObjectId)
+    //{
+    //    Debug.LogFormat($"<color=orange> 1 Apply Damage to Player 1 </color>");
+
+    //    // OPTIMIZE BELOW
+    //    // Assign the values to the payload to be sent with the event emission upon hitting the player
+    //    if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetNetworkObjectId, out NetworkObject netObj))
+    //    {
+    //        GameObject other = netObj.gameObject;
+
+    //        PlayerHitPayload spellPayload = new PlayerHitPayload
+    //        (
+    //            this.gameObject.GetInstanceID(),
+    //            other.GetComponent<NetworkObject>().OwnerClientId,
+    //            spellDataScriptableObject.element.ToString(),
+    //            spellDataScriptableObject.incapacitationName,
+    //            spellDataScriptableObject.incapacitationDuration,
+    //            spellDataScriptableObject.visionImpairmentType,
+    //            spellDataScriptableObject.visionImpairmentDuration,
+    //            spellDataScriptableObject.directDamageAmount,
+    //            spellDataScriptableObject.damageOverTimeAmount,
+    //            spellDataScriptableObject.damageOverTimeDuration,
+    //            spellDataScriptableObject.healAmount,
+    //            spellDataScriptableObject.healOverTimeAmount,
+    //            spellDataScriptableObject.spellAttribute,
+    //            spellDataScriptableObject.pushback
+    //        );
+
+    //        EmitPayload(spellPayload);
+    //    }
+    //}
+
+
+    //// I believe that the EmitPayload is received by all players and processed by all
+    ////but only works on the target player through a conditional
+    //void EmitPayload(PlayerHitPayload spellPayloadParam)
+    //{
+    //    Debug.LogFormat($"<color=orange> 2 Apply Damage to Player 2 </color>");
+
+    //    playerHitEvent?.Invoke(spellPayloadParam);
+    //}
+
+
 
     /// <summary>
     /// SERVER-SIDE ENTRY POINT: Called by projectiles to update a player's parry state.
@@ -126,11 +172,27 @@ public class PlayerSpellParryManager : NetworkBehaviour
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { targetPlayerId } }
         };
+
+        
+
         Client_UpdateParryStateClientRpc(spellHandlerRef, newState, clientRpcParams);
     }
 
 
+    public void AddOrUpdateParriableSpell(NetworkObjectReference spellHandlerRef, ulong targetPlayerId, ProjectileParryHandler.ParryState newState)
+    {
+        if (spellHandlerRef.TryGet(out NetworkObject spellNetworkObject))
+        {
+            ProjectileParryHandler handler = spellNetworkObject.GetComponent<ProjectileParryHandler>();
 
+            if (handler != null)
+            {
+                Local_AddOrUpdateParriableSpell(handler, newState);
+            }
+        }
+
+        //Local_AddOrUpdateParriableSpell(handler, newState);
+    }
 
 
     /// <summary>

@@ -214,6 +214,22 @@ PrefabInstance:
       propertyPath: m_CollisionDetection
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: -6202330306136399576, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: AuthorityMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6202330306136399576, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: SyncRotAngleX
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6202330306136399576, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: SyncRotAngleY
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6202330306136399576, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: SyncRotAngleZ
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -1038719287676735608, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: projectileSphere
       value: 

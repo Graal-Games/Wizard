@@ -61,13 +61,14 @@ public class ProjectileParryHandler : NetworkBehaviour
 
     public void UpdatePlayerState(ulong playerId, ParryState newState, PlayerSpellParryManager playerManager)
     {
-        if (!IsServer) return;
+        if (!IsOwner) return;
         playerParryStates.TryGetValue(playerId, out ParryState currentState);
         if (currentState == newState) return;
         playerParryStates[playerId] = newState;
 
         if (newState == ParryState.ANTICIPATION || newState == ParryState.PARRIABLE)
         {
+            // playerManager.AddOrUpdateParriableSpell(new NetworkObjectReference(this.NetworkObject), playerId, newState);
             playerManager.Server_UpdateParryStateForPlayer(new NetworkObjectReference(this.NetworkObject), playerId, newState);
             // Color change is a visual flair, can be client-side if needed, but fine here for now.
             parryAnticipationLetterText.color = newState == ParryState.PARRIABLE ? Color.yellow : Color.white;

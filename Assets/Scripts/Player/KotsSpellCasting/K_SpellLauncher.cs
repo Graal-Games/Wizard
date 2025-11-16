@@ -136,6 +136,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
     GameObject localSpellInstance;
+    GameObject localProjectileInstance;
 
     // public Dictionary<string, K_SpellData> spellDictionary = new Dictionary<string, K_SpellData>();
     public Dictionary<FixedString128Bytes, GameObject> localSpellInstances = new Dictionary<FixedString128Bytes, GameObject>();
@@ -693,6 +694,7 @@ public class K_SpellLauncher : NetworkBehaviour
         switch (spellBuilder.GetSpellType(sequenceToCast))
         {
             case "Projectile":
+                //localProjectileInstance = Instantiate(spellPrefabsReferences[sequenceToCast], wandTip.transform.position, wandTip.transform.rotation);
 
                 ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position);
                 break;
@@ -877,7 +879,7 @@ public class K_SpellLauncher : NetworkBehaviour
 
         Debug.Log($"[SERVER]: ProjectileSpawnRpc received with sequence '{spellSequenceParam}'.");
 
-        Vector3 flightDirection = wandTip.GetComponent<WandTip>().GetCenterScreenAimDirection();
+        Vector3 flightDirection = wandTip.GetComponent<WandTip>().aimDirection.Value;
 
         Debug.Log($"[FLIGHT Direction]: '{flightDirection}'.");
 
@@ -916,7 +918,12 @@ public class K_SpellLauncher : NetworkBehaviour
         }
         else
         {
+            // Projectile spawns on the server here
             netObj.Spawn();
+
+            //// If you created a local visual instance earlier for the caster,
+            //// hide the networked mesh for the owner so the local visual remains:
+            //HideForOwnerRpc(netObj);
         }
 
         // Check if the spawn was successful

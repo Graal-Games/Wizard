@@ -59,15 +59,13 @@ public class ProjectileClass : SpellsClass
     private void Start()
     {
         lastPosition = transform.position;
+        pushDirection = transform.forward;
 
         rb = GetComponent<Rigidbody>();
 
         rb.isKinematic = false;
         rb.useGravity = false;
     }
-
-
-
 
 
 
@@ -155,7 +153,11 @@ public class ProjectileClass : SpellsClass
 
 
 
-
+    //private void Update()
+    //{
+    //    if (IsSpawned) return;
+    //    LocalMoveAndHitReg();
+    //}
 
 
     // Update is called once per frame
@@ -168,11 +170,20 @@ public class ProjectileClass : SpellsClass
 
         // The parry logic should run before movement to give the player the most time to react.
         if (IsServer && IsParriable())
+
+        if (IsParriable())
         {
             HandleParryProximityCheck();
         }
 
-        MoveAndHitRegRpc();
+        if (IsSpawned)
+        {
+            MoveAndHitRegRpc();
+        } else
+        {
+            
+        }
+        
 
         //CLIENT_SIDE_MoveAndHitReg();
 
@@ -325,6 +336,90 @@ public class ProjectileClass : SpellsClass
 
 
             rb.isKinematic = false; // Stop the rigidbody from moving
+        rb.useGravity = false; // Enable gravity if needed
+
+
+
+        RaycastHit hit;
+
+        Vector3 direction = currentPosition - lastPosition; // Used to be inside the below conditional
+        float distance = direction.magnitude;
+
+
+        // For a unit sphere mesh (diameter 1, radius 0.5)
+        // The following can be made only if the GameObject is a uniformly scaled sphere
+        float radius = 1f * Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+
+
+
+        // Throw a sphere cast IN FRONT OF the projectile gO
+        // previously: the sphere cast was being thrown behind the projectile causing issues with collisions
+        // The hit was being registered on exiting a collider instead of upon entering it
+        if (Physics.SphereCast(lastPosition, radius, direction.normalized, out hit, distance))
+        {
+            //Debug.Log($"<color=lime>Projectile something hit: '{hit.collider.gameObject}'");
+            Vector3 hitPosition = hit.point;
+            //Debug.LogFormat($"<color=yellow>>>>>>>>>>>>>>>>>>>SPHERE CAST {hit.collider.gameObject.name}<<<<<<<<<<<<<<<<<<<<</color>");
+
+            if (hit.collider.CompareTag("ActiveShield") && hasFoundShield == false)
+            {
+                hasFoundShield = true;
+                HandleCollision(hit.collider, hitPosition);
+                hasFoundShield = false;
+            }
+
+            if (SpellDataScriptableObject.moveSpeed < 40) return;
+
+            if (hit.collider.gameObject.tag == "Player") // Can be migrated?? //
+            {
+                string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
+                //Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
+
+                ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
+
+
+                // <<< The below code could be simplified
+                // If the playerID with which this gameobject has collided is not present in the list, add it then handle the collision.
+                if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
+                {
+                    isHitPlayer.Value = true;
+                    playerHitID.Add(hitPlayerOwnerID, true);
+                    HandleCollision(hit.collider, hit.point);
+
+                }
+
+            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString())) // If the gameObject is hitting itself (for whateer reason - like the projectile for example) ignore the collision.
+            {
+                //Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
+                HandleCollision(hit.collider, hitPosition);
+            }
+
+        }
+        //Debug.LogFormat($"<color=red>lastPosition: {lastPosition} && currentPosition: {currentPosition}</color>");
+
+        lastPosition = currentPosition; // Update lastPosition to the current position after the movement
+        //}
+    }
+
+
+    public void LocalMoveAndHitReg()
+    {
+        // Debug.LogFormat($"<color=blue>MOVE AND HIT REG {SpellDataScriptableObject.moveSpeed} rb: {rb} </color>");
+        Vector3 currentPosition = transform.position;
+        Vector3 forceDirection = transform.forward; // RESET SPEED
+
+        if (flightDirection != Vector3.zero)
+        {
+            forceDirection = flightDirection * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = flightDirection * SpellDataScriptableObject.moveSpeed;
+        } else
+        {
+            forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        }
+
+
+        rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed
 
 

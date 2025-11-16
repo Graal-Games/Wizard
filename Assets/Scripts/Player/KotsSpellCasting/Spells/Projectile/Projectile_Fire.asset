@@ -29,8 +29,8 @@ MonoBehaviour:
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 8
-  damageOverTimeAmount: 8
+  directDamageAmount: 125
+  damageOverTimeAmount: 33
   damageOverTimeDuration: 5
   pushForce: 0
   pullForce: 0
