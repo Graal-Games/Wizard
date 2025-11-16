@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Projectile_To_Aoe_Fire
   m_EditorClassIdentifier: 
   spellType: 0
-  element: 0
+  element: 3
   spellAttribute: 9
   castProcedure: 1
   periCastLockProcedure: 0

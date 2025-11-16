@@ -195,6 +195,28 @@ public class WandTip : NetworkBehaviour
     }
 
 
+    // Returns the world-space direction from the wand to the dot in the center of the screen
+    public Vector3 GetCenterScreenAimDirection()
+    {
+        // 1. Screen center
+        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f);
+
+        // 2. Ray from camera through screen center
+        Ray ray = Camera.main.ScreenPointToRay(screenCenter);
+
+        // 3. Determine world target
+        Vector3 targetPoint;
+        if (Physics.Raycast(ray, out RaycastHit hit, 2000f))
+            targetPoint = hit.point; // hit something in the world
+        else
+            targetPoint = ray.GetPoint(2000f); // just shoot straight ahead infinitely
+
+        // 4. Direction from wand to that target
+        return (targetPoint - transform.position).normalized;
+    }
+
+
+
     public void ActivateAoePlacementVisualizer()
     {
         //Debug.Log("PLACEMENT METHOD ENTRY");

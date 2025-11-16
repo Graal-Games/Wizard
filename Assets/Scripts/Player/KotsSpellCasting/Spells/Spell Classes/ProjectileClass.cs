@@ -41,7 +41,7 @@ public class ProjectileClass : SpellsClass
 
     bool hasFoundShield = false;
 
-
+    public Vector3 flightDirection;
 
 
     public bool CanDestroy
@@ -78,7 +78,6 @@ public class ProjectileClass : SpellsClass
         rb.isKinematic = false;
         rb.useGravity = false;
         pushDirection = transform.forward;
-        //lastPosition = projectileSphere.position;
 
         if (IsParriable())
         {
@@ -268,6 +267,9 @@ public class ProjectileClass : SpellsClass
     }
 
 
+
+
+
     void CLIENT_SIDE_MoveAndHitReg()
     {
         Vector3 currentPosition = transform.position;
@@ -303,6 +305,7 @@ public class ProjectileClass : SpellsClass
 
 
 
+
     [Rpc(SendTo.Server)]
     public virtual void MoveAndHitRegRpc()
     {
@@ -310,8 +313,8 @@ public class ProjectileClass : SpellsClass
         Vector3 currentPosition = transform.position;
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
-        forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        forceDirection = flightDirection * SpellDataScriptableObject.moveSpeed;
+        rb.linearVelocity = flightDirection * SpellDataScriptableObject.moveSpeed;
 
         rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed
@@ -389,8 +392,8 @@ public class ProjectileClass : SpellsClass
     {
         // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
         if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision 
-            && !hasCollided.Value 
-            && !colliderHit.gameObject.CompareTag("Spell") 
+            && !hasCollided.Value
+            && !colliderHit.gameObject.CompareTag("Spell")
             && !colliderHit.gameObject.name.Contains("Projectile")
             && !colliderHit.gameObject.name.Contains("Area of Effect")
             && !colliderHit.gameObject.name.Contains("Shaders"))

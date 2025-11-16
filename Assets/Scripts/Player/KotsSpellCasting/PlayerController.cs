@@ -379,8 +379,7 @@ public class PlayerController : NetworkBehaviour
 
     private void HandleMovement()
     {
-        // This movement logic is already correct from our previous fixes.
-        inputVector = gameInput.GetMovementVector(); // The movement vector is set using the PlayerInput file inside the project assets.
+
 
         // If both the LMB and RBM and pressed together, move the charater forward.
         if (isUsingMouseToMoveForward == true)
@@ -388,6 +387,8 @@ public class PlayerController : NetworkBehaviour
             moveDir = new Vector3(0f, 0f, 1f);
         } else
         {
+            // This movement logic is already correct from our previous fixes.
+            inputVector = gameInput.GetMovementVector(); // The movement vector is set using the PlayerInput file inside the project assets.
             moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
         }
 

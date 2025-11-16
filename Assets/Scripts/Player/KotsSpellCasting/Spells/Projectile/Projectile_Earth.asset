@@ -23,13 +23,13 @@ MonoBehaviour:
   isExplosive: 0
   spawnsSecondaryEffectOnCollision: 0
   castMultiplier: 1
-  moveSpeed: 25
+  moveSpeed: 15
   spellDuration: 15
   spellActivationDelay: 0
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 3
   visionImpairmentDuration: 0
-  directDamageAmount: 44
+  directDamageAmount: 250
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0
