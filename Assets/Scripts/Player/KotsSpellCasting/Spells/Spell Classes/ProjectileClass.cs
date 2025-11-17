@@ -153,11 +153,11 @@ public class ProjectileClass : SpellsClass
 
 
 
-    //private void Update()
-    //{
-    //    if (IsSpawned) return;
-    //    LocalMoveAndHitReg();
-    //}
+    private void Update()
+    {
+        if (IsSpawned) return;
+        LocalMoveAndHitReg();
+    }
 
 
     // Update is called once per frame

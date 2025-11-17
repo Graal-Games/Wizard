@@ -330,6 +330,8 @@ public class PlayerSpellParryManager : NetworkBehaviour
                 if (spell.ParryLetters.Value.ToString() == inputParryLetters)
                 {
                     spellToParry = spell;
+
+                    spell.gameObject.SetActive(false);
                     break;
                 }
             }
@@ -347,6 +349,9 @@ public class PlayerSpellParryManager : NetworkBehaviour
             StartCoroutine(ParryCooldownCoroutine());
         }
     }
+
+
+
 
     /// <summary>
     /// A coroutine to handle the 2-second parry cooldown on the client.
@@ -367,6 +372,9 @@ public class PlayerSpellParryManager : NetworkBehaviour
         // for projectiles that are still in range.
         UpdateAnticipationSpellParryKeys();
     }
+
+
+
 
     private void SetupParryKey(string parryLetter, bool isActive)
     {

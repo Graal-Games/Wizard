@@ -149,19 +149,9 @@ public class WandTip : NetworkBehaviour
 
                                 aoeSpawnPosition = downHit.point - offsetDirection * offsetDistance + Vector3.up * 0.0001f;
                             }
-
                         }
-
-
                     }
-
                 } 
-                //else
-                //{
-                //    AoePlacement();
-                //    aoeSpawnPosition = new Vector3(hit.point.x, hit.point.y + 0.0001f, hit.point.z);
-                //}
-
             }
         }
     }
@@ -169,32 +159,17 @@ public class WandTip : NetworkBehaviour
     // This handles the AoE placement, which is the visualization of where the spell will be placed
     void AoePlacement()
     {
-
-        //if (isAoeVisualizationActive)
-        //{
-            if (aoePlacementInstance != null) Destroy(aoePlacementInstance);
+        if (aoePlacementInstance != null) Destroy(aoePlacementInstance);
 
 
-            aoePlacementInstance = Instantiate(aoePlacementGO, aoeSpawnPosition, newRotation);
-            //isAoeVisualizationActive = false;
+        aoePlacementInstance = Instantiate(aoePlacementGO, aoeSpawnPosition, newRotation);
+        //isAoeVisualizationActive = false;
 
-            if (aoePlacementInstance != null)
-            {
-                aoePlacementInstance.transform.position = aoeSpawnPosition;
-                aoePlacementInstance.transform.rotation = aoeSpawnRotation;
-            }
-        //}
-
-        //// This is what makes sure that the placement object is spawned where the raycast hits the floor, respectively
-        //if (isAoeVisualizationActive == false)
-        //{
-        //    Debug.LogFormat($"isAoeVisualizationActive - {isAoeVisualizationActive}");
-
-        //    aoePlacementInstance.transform.position = aoeSpawnPosition;
-        //    aoePlacementInstance.transform.rotation = aoeSpawnRotation;
-
-        //    isAoeVisualizationActive = true;
-        //}
+        if (aoePlacementInstance != null)
+        {
+            aoePlacementInstance.transform.position = aoeSpawnPosition;
+            aoePlacementInstance.transform.rotation = aoeSpawnRotation;
+        }
     }
 
     // This Moves the object from which discharge spells are cast
@@ -227,8 +202,8 @@ public class WandTip : NetworkBehaviour
             targetPoint = ray.GetPoint(30f);
         }
 
-            // 4. Direction from wand to that target
-            return (targetPoint - transform.position).normalized;
+        // 4. Direction from wand to that target
+        return (targetPoint - transform.position).normalized;
 
     }
 

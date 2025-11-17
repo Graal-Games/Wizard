@@ -694,7 +694,11 @@ public class K_SpellLauncher : NetworkBehaviour
         switch (spellBuilder.GetSpellType(sequenceToCast))
         {
             case "Projectile":
+                //Vector3 flightDirection = wandTip.GetComponent<WandTip>().aimDirection.Value;
+                
                 //localProjectileInstance = Instantiate(spellPrefabsReferences[sequenceToCast], wandTip.transform.position, wandTip.transform.rotation);
+
+                //localProjectileInstance.GetComponent<ProjectileClass>().flightDirection = flightDirection;
 
                 ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position);
                 break;
