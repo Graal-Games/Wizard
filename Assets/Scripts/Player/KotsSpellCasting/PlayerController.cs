@@ -42,6 +42,8 @@ public class PlayerController : NetworkBehaviour
     private float runUpElapsedDuration = 0f;
     private bool isInertia = false;
 
+    private bool isCasting = false;
+
     private bool isUsingMouseToMoveForward = false;
     bool lmb_pressed = false;
     bool rmb_pressed = false;
@@ -195,7 +197,8 @@ public class PlayerController : NetworkBehaviour
 
     private void CastModeSpeedSlow()
     {
-        moveSpeed = (_baseMoveSpeedCache / 2);
+        isCasting = true;
+        moveSpeed = (_baseMoveSpeedCache / 4);
     }
 
 
@@ -205,6 +208,7 @@ public class PlayerController : NetworkBehaviour
     // Resets the player speed back to normal
     private void CastModeSpeedReset()
     {
+        isCasting = false;
         moveSpeed = _baseMoveSpeedCache;
     }
 
@@ -224,7 +228,7 @@ public class PlayerController : NetworkBehaviour
         if (previous == true && current == false)
         {
             Debug.LogFormat($"<color=brown> NORMALIZE SPEED {moveSpeed}</color>");
-            
+
             moveSpeed *= 2; // Of course the value is being halved atm and changes could be made here for more elaborate slow.
 
             isSlowedByIncapacitation = false;
@@ -341,7 +345,10 @@ public class PlayerController : NetworkBehaviour
         {
             runUpElapsedDuration += Time.fixedDeltaTime;
             float t = Mathf.Clamp01(runUpElapsedDuration / inertiaDuration);
-            moveSpeed = Mathf.Lerp(startingMoveSpeed, _baseMoveSpeedCache, t);
+            if (isCasting == false)
+            {
+                moveSpeed = Mathf.Lerp(startingMoveSpeed, _baseMoveSpeedCache, t);
+            } 
 
             // Debug.Log(moveSpeed);
         } else
