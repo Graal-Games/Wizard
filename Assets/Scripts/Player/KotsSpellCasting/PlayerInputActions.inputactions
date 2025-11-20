@@ -203,6 +203,45 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Spell Casting",
+            "id": "f0c8efdb-f7d6-416d-97c2-1ab045f20192",
+            "actions": [
+                {
+                    "name": "Spell Cast Action",
+                    "type": "Button",
+                    "id": "46900b3c-c218-4adf-9fd5-07cafd78762d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "26f4ea6d-8ec7-4e4d-a954-b6cd2bece526",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Spell Cast Action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2ae9f1b7-4c70-4d9c-8727-fe4afdea7c3f",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Spell Cast Action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

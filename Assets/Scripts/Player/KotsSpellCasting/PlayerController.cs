@@ -24,7 +24,7 @@ public class PlayerController : NetworkBehaviour
     private PlayerInputActions playerInputActions;
 
     [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 5f;
+    private float moveSpeed = 4f;
     [SerializeField] private float groundDrag = 5f;
     [SerializeField] private int jumpForce = 5;
     [SerializeField] private float playerHeight = 2f;
@@ -200,8 +200,6 @@ public class PlayerController : NetworkBehaviour
         isCasting = true;
         moveSpeed = (_baseMoveSpeedCache / 4);
     }
-
-
 
 
 

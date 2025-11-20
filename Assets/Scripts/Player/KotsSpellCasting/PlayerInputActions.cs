@@ -289,6 +289,45 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Spell Casting"",
+            ""id"": ""f0c8efdb-f7d6-416d-97c2-1ab045f20192"",
+            ""actions"": [
+                {
+                    ""name"": ""Spell Cast Action"",
+                    ""type"": ""Button"",
+                    ""id"": ""46900b3c-c218-4adf-9fd5-07cafd78762d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""26f4ea6d-8ec7-4e4d-a954-b6cd2bece526"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Spell Cast Action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2ae9f1b7-4c70-4d9c-8727-fe4afdea7c3f"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Spell Cast Action"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -297,11 +336,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_PlayerMovement = asset.FindActionMap("Player Movement", throwIfNotFound: true);
         m_PlayerMovement_Movement = m_PlayerMovement.FindAction("Movement", throwIfNotFound: true);
         m_PlayerMovement_Jump = m_PlayerMovement.FindAction("Jump", throwIfNotFound: true);
+        // Spell Casting
+        m_SpellCasting = asset.FindActionMap("Spell Casting", throwIfNotFound: true);
+        m_SpellCasting_SpellCastAction = m_SpellCasting.FindAction("Spell Cast Action", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
     {
         UnityEngine.Debug.Assert(!m_PlayerMovement.enabled, "This will cause a leak and performance issues, PlayerInputActions.PlayerMovement.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_SpellCasting.enabled, "This will cause a leak and performance issues, PlayerInputActions.SpellCasting.Disable() has not been called.");
     }
 
     /// <summary>
@@ -480,6 +523,102 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="PlayerMovementActions" /> instance referencing this action map.
     /// </summary>
     public PlayerMovementActions @PlayerMovement => new PlayerMovementActions(this);
+
+    // Spell Casting
+    private readonly InputActionMap m_SpellCasting;
+    private List<ISpellCastingActions> m_SpellCastingActionsCallbackInterfaces = new List<ISpellCastingActions>();
+    private readonly InputAction m_SpellCasting_SpellCastAction;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Spell Casting".
+    /// </summary>
+    public struct SpellCastingActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public SpellCastingActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "SpellCasting/SpellCastAction".
+        /// </summary>
+        public InputAction @SpellCastAction => m_Wrapper.m_SpellCasting_SpellCastAction;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_SpellCasting; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="SpellCastingActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(SpellCastingActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="SpellCastingActions" />
+        public void AddCallbacks(ISpellCastingActions instance)
+        {
+            if (instance == null || m_Wrapper.m_SpellCastingActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_SpellCastingActionsCallbackInterfaces.Add(instance);
+            @SpellCastAction.started += instance.OnSpellCastAction;
+            @SpellCastAction.performed += instance.OnSpellCastAction;
+            @SpellCastAction.canceled += instance.OnSpellCastAction;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="SpellCastingActions" />
+        private void UnregisterCallbacks(ISpellCastingActions instance)
+        {
+            @SpellCastAction.started -= instance.OnSpellCastAction;
+            @SpellCastAction.performed -= instance.OnSpellCastAction;
+            @SpellCastAction.canceled -= instance.OnSpellCastAction;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="SpellCastingActions.UnregisterCallbacks(ISpellCastingActions)" />.
+        /// </summary>
+        /// <seealso cref="SpellCastingActions.UnregisterCallbacks(ISpellCastingActions)" />
+        public void RemoveCallbacks(ISpellCastingActions instance)
+        {
+            if (m_Wrapper.m_SpellCastingActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="SpellCastingActions.AddCallbacks(ISpellCastingActions)" />
+        /// <seealso cref="SpellCastingActions.RemoveCallbacks(ISpellCastingActions)" />
+        /// <seealso cref="SpellCastingActions.UnregisterCallbacks(ISpellCastingActions)" />
+        public void SetCallbacks(ISpellCastingActions instance)
+        {
+            foreach (var item in m_Wrapper.m_SpellCastingActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_SpellCastingActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="SpellCastingActions" /> instance referencing this action map.
+    /// </summary>
+    public SpellCastingActions @SpellCasting => new SpellCastingActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Movement" which allows adding and removing callbacks.
     /// </summary>
@@ -501,5 +640,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Spell Casting" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="SpellCastingActions.AddCallbacks(ISpellCastingActions)" />
+    /// <seealso cref="SpellCastingActions.RemoveCallbacks(ISpellCastingActions)" />
+    public interface ISpellCastingActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Spell Cast Action" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSpellCastAction(InputAction.CallbackContext context);
     }
 }
