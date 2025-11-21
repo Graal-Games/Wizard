@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4136860605945321164}
   - component: {fileID: 1684295835947142849}
   - component: {fileID: 1513814435959068965}
+  - component: {fileID: 3124841105863099622}
   m_Layer: 8
   m_Name: Aoe_Air
   m_TagString: Spell
@@ -61,6 +62,11 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -82,6 +88,7 @@ MeshRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
@@ -98,8 +105,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2859773305
+  GlobalObjectIdHash: 2193360098
   InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -107,6 +116,58 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &3124841105863099622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4454155518266441410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c87f6999182a9710b9ac611ac6af681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Player::AoeSpell
+  ShowTopMostFoldoutHeaderGroup: 1
+  spellDataScriptableObject: {fileID: 11400000, guid: 46a726d90ca9a874f9a4a946fa4bb567, type: 2}
+  secondaryGameObjectToSpawn: {fileID: 0}
+  parryLetters:
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0016: 0
+        byte0017: 0
+        byte0018: 0
+        byte0019: 0
+        byte0020: 0
+        byte0021: 0
+        byte0022: 0
+        byte0023: 0
+        byte0024: 0
+        byte0025: 0
+        byte0026: 0
+        byte0027: 0
+        byte0028: 0
+        byte0029: 0
 --- !u!1 &7955049999358090926
 GameObject:
   m_ObjectHideFlags: 0
@@ -152,7 +213,6 @@ GameObject:
   - component: {fileID: 2590770762478301990}
   - component: {fileID: 1876719959553731786}
   - component: {fileID: 7503732090603866062}
-  - component: {fileID: 7681971691645855385}
   - component: {fileID: 4513372139580424627}
   m_Layer: 8
   m_Name: Area of effect
@@ -214,10 +274,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8069646027640666876}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -246,6 +306,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
   SyncPositionY: 1
@@ -263,6 +337,7 @@ MonoBehaviour:
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
 --- !u!114 &7503732090603866062
@@ -277,27 +352,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &7681971691645855385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8069646027640666876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fceaa310a59559149b6f1d8ac08b3059, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  materialDictionary:
-    keys: 
-    values: []
-  spellData: {fileID: 0}
-  aliveTimer: 0
-  dotTickTimer: 0
-  rb: {fileID: 0}
-  caster: {fileID: 0}
-  spellDataScriptableObject: {fileID: 11400000, guid: 46a726d90ca9a874f9a4a946fa4bb567, type: 2}
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkRigidbodyBaseExpanded: 0
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 1
+  AutoSetKinematicOnDespawn: 1
 --- !u!114 &4513372139580424627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -310,6 +369,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f601a362750b178468e6ce399ed50c21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   materialDictionary:
     keys: 
     values: []
