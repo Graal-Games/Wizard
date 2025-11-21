@@ -8,137 +8,109 @@ public class InvocationSpell : K_Spell
     [SerializeField] GameObject spawnLocation;
     Transform spawnPosition;
     AimAtOpposingPlayer aimAtOpposingPlayerScript;
+
     GameObject objectToSpawn;
     [SerializeField] GameObject[] spawnableGameObjects;
     NetworkVariable<float> localHealth = new NetworkVariable<float>();
 
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        if (!IsOwner) { return; }
-
-
-
-    }
-
-    private void Update()
+    private void Update() // To Do: This should be changed to FixedUpdate for correct performance
     {
         spawnPosition = spawnLocation.gameObject.transform;
-
-        //Debug.Log("spawnPositionspawnPositionspawnPositionspawnPosition " + spawnPosition.position.x + spawnPosition.position.y + spawnPosition.position.z);
-
-
-
-        //AimAtOpposingPlayer(); spellLauncher.prefabReferences[spellSequenceParam]
     }
 
 
     public override void OnNetworkSpawn()
     {
+        if (!IsOwner) return;
+
         base.OnNetworkSpawn();
         aimAtOpposingPlayerScript = GetComponentInChildren<AimAtOpposingPlayer>();
-        // InitializeObjectToSpawnPrefab();
-        StartCoroutine(Shoot());
+
+        if (aimAtOpposingPlayerScript.TargetFound.Value)
+            StartCoroutine(Shoot());
 
         StartCoroutine(LifeTime(SpellDataScriptableObject.spellDuration, gameObject) );
     }
 
-    GameObject InitializeObjectToSpawnPrefab()
-    {
-        Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
 
-
-
-        switch (SpellDataScriptableObject.element.ToString())
-        {
-            case "Arcane":
-                //Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
-
-                objectToSpawn = spawnableGameObjects[0];
-                return objectToSpawn;
-            case "Water":
-                objectToSpawn = spawnableGameObjects[1];
-                Debug.Log("Water.WaterWaterWaterWater " + objectToSpawn);
-
-                return objectToSpawn;
-
-            case "Earth":
-                objectToSpawn = spawnableGameObjects[2];
-                Debug.Log("EarthEarthEarthEarth " + objectToSpawn);
-
-                return objectToSpawn;
-
-            case "Fire":
-                objectToSpawn = spawnableGameObjects[3];
-                Debug.Log("FireFireFireFire " + objectToSpawn);
-
-                return objectToSpawn;
-
-            case "Air":
-                objectToSpawn = spawnableGameObjects[4];
-                Debug.Log("AirAirAirAirAir" + objectToSpawn);
-
-                return objectToSpawn;
-
-            default:
-                return null;
-        }
-    }
-
-    IEnumerator Shoot()
-    {
-        yield return new WaitForSeconds(5);
-        // Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
-        //SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y, spawnPosition.position.z);
-
-        // If a target is available
-        if (aimAtOpposingPlayerScript.TargetFound)
-        {
-            SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
-        }
-        else 
-        {             
-            Debug.Log("No target found, cannot spawn projectile."); 
-        }
-    }
-
-
-
-    //public void ApplyDamage(float damage)
+    //GameObject InitializeObjectToSpawnPrefab()
     //{
-    //    localHealth.Value -= damage;
-    //    Debug.LogFormat($"<color=orange>armorPoints: {localHealth}</color>");
+    //    Debug.Log("SpellDataScriptableObject.element.ToString() " + SpellDataScriptableObject.element.ToString());
 
-    //    if (localHealth.Value <= 0)
+
+
+    //    switch (SpellDataScriptableObject.element.ToString())
     //    {
-    //        // DestroyBarrierRpc();
-    //        DestroySpellRpc(gameObject);
+    //        case "Arcane":
+    //            Debug.Log("SpellDataScriptableObject.childPrefab " + objectToSpawn);
+
+    //            objectToSpawn = spawnableGameObjects[0];
+    //            return objectToSpawn;
+    //        case "Water":
+    //            objectToSpawn = spawnableGameObjects[1];
+    //            Debug.Log("Water.WaterWaterWaterWater " + objectToSpawn);
+
+    //            return objectToSpawn;
+
+    //        case "Earth":
+    //            objectToSpawn = spawnableGameObjects[2];
+    //            Debug.Log("EarthEarthEarthEarth " + objectToSpawn);
+
+    //            return objectToSpawn;
+
+    //        case "Fire":
+    //            objectToSpawn = spawnableGameObjects[3];
+    //            Debug.Log("FireFireFireFire " + objectToSpawn);
+
+    //            return objectToSpawn;
+
+    //        case "Air":
+    //            objectToSpawn = spawnableGameObjects[4];
+    //            Debug.Log("AirAirAirAirAir" + objectToSpawn);
+
+    //            return objectToSpawn;
+
+    //        default:
+    //            return null;
     //    }
     //}
 
 
 
+    public IEnumerator Shoot()
+    {
+        yield return new WaitForSeconds(5);
+        Debug.Log("SSSSSSSSSSSSSSSSSSHOOOT");
+
+
+        if (aimAtOpposingPlayerScript == null)
+            aimAtOpposingPlayerScript.GetComponentInChildren<AimAtOpposingPlayer>();
+        // If a target is available
+        if (aimAtOpposingPlayerScript.TargetFound.Value)
+        {
+            SpawnProjectileRpc(spawnPosition.position.x, spawnPosition.position.y - 0.2f, spawnPosition.position.z);
+            yield return null;
+        }
+        else 
+        {             
+            Debug.Log("No target found, cannot spawn projectile.");
+            //StartCoroutine(Shoot());
+        }
+    }
+
+
+
     [Rpc(SendTo.Server)]
-    //void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     void SpawnProjectileRpc(float xPos, float yPos, float zPos)
     {
-        //Debug.Log("NetworkManager.LocalClientId (" + NetworkManager.LocalClient.ClientId + ")");
-        //Debug.Log("SpellDataScriptableObject.childPrefab " + SpellDataScriptableObject.childPrefab);
-        //Debug.Log("SpellDataScriptableObject.childPrefab " + xPos + yPos + zPos);
 
-        // spawnPosition = spawnLocation.gameObject.transform;
-        //spawnPosition = aimAtOpposingPlayerScript.GetPlayerGameObject();
-
-
-        GameObject spellInstance = Instantiate(InitializeObjectToSpawnPrefab(), new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
-
+        GameObject spellInstance = Instantiate(SpellDataScriptableObject.childPrefab.gameObject, new Vector3(xPos, yPos, zPos), spawnPosition.rotation);
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
-        // netObj.SpawnWithOwnership(NetworkManager.LocalClient.ClientId);
+
         netObj.Spawn();
 
         StartCoroutine(Shoot());
-        //netObj.TrySetParent(gameObject.transform);
     }
 
     public override void Fire()

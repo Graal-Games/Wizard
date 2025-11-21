@@ -8,108 +8,45 @@ using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 public class PlayerController : NetworkBehaviour
 {
 
+    [Header("References")]
     [Tooltip("The Cinemachine FreeLook camera for this player.")]
-    public CinemachineFreeLook freeLookCamera;
-
-    [SerializeField] private GameInput gameInput; 
-    // [SerializeField] private Incapacitation incapacitationScript; 
-
+    [SerializeField] private CinemachineFreeLook freeLookCamera;
+    [SerializeField] private GameInput gameInput;
     [SerializeField] private Transform cameraTransform;
-
     [SerializeField] private Transform followTarget;
-
     private Rigidbody rb;
+    private PlayerInputActions playerInputActions;
 
-    [Header("Movement")]
-    [SerializeField] private float moveSpeed;
-    [SerializeField] private float groundDrag;
-    [SerializeField] private int jumpForce;
-
-    private float _baseMoveSpeedCache;
-
-    private bool isSlowedByIncapacitation = false;
-
-    private bool playerIsInCastMode = false;
-
-    private bool isWalking;
-    private bool isJumping;
-    private bool preparingJumpImpulse;
-    private bool preparingJumpToGround;
-
-    private float verticalAxis = 0f;
-    private float horizontalAxis = 0f;
-
-    [Header("Ground Check")]
+    [Header("Movement Settings")]
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float groundDrag = 5f;
+    [SerializeField] private int jumpForce = 5;
     [SerializeField] private float playerHeight = 2f;
     [SerializeField] private LayerMask whatIsGround;
-    private bool grounded;
 
-    private bool movementStopped;
-    private bool movementSlowed;
+    private float _baseMoveSpeedCache;
+    private bool isWalking, isJumping, preparingJumpImpulse, preparingJumpToGround;
+    private bool grounded, movementStopped, isSlowedByIncapacitation, playerIsInCastMode;
+    private float verticalAxis, horizontalAxis;
 
-    Vector3 previousMoveDirection;
-    Vector2 previousInputVector;
+    private Vector3 moveDir, previousMoveDirection;
+    private Vector2 previousInputVector;
+    private float startingMoveSpeed = 0f;
+    private float inertiaDuration = 1f;
+    private float runUpElapsedDuration = 0f;
+    private bool isInertia = false;
 
-    float startingMoveSpeed = 0f;
-    float inertiaDuration = 1f; // seconds
-    float runUpElapsedDuration = 0f;
+    private bool isUsingMouseToMoveForward = false;
+    bool lmb_pressed = false;
+    bool rmb_pressed = false;
+    Vector2 inputVector;
 
-    bool isInertia = false;
-
-    Vector3 moveDir = new Vector3();
-
-
-    //#############################################################################################
-    //##################################### Below queued for deletion #####################################
-    //#############################################################################################
-    //public override void OnNetworkSpawn()
-    //{
-    //    if (!IsServer && IsOwner) //Only send an RPC to the server on the client that owns the NetworkObject that owns this NetworkBehaviour instance
-    //    {
-    //        TestServerRpc(0, NetworkObjectId);
-    //    }
-    //}
-
-    //[Rpc(SendTo.Server)]
-    //void TestServerRpc(int value, ulong sourceNetworkObjectId)
-    //{
-    //    Debug.Log($"Server Received the RPC #{value} on NetworkObject #{sourceNetworkObjectId}");
-    //    //TestClientRpc(value, sourceNetworkObjectId);
-    //}
-
-    //private void Awake()
-    //{
-    //    //if (!IsLocalPlayer) return;
-    //    Debug.LogFormat("1 - IsClient: " + IsClient);
-    //    Debug.LogFormat("1 - IsLocalPlayer: " + IsLocalPlayer);
-
-    //    if (Instance != null)
-    //    {
-    //        Debug.LogError("There is more than one Player instance");
-    //    }
-    //    Instance = this;
-
-    //    this.rb = GetComponent<Rigidbody>();
-
-    //    if (gameInput == null)
-    //        gameInput = FindObjectOfType<GameInput>();
-
-    //    if (cameraTransform == null)
-    //    {
-    //        cameraTransform = FindObjectOfType<Camera>()?.transform;
-
-    //        CinemachineFreeLook freeLook = FindObjectOfType<CinemachineFreeLook>();
-    //        freeLook.Follow = followTarget;
-    //        freeLook.LookAt = followTarget;
-    //    }
-    //}
-    //#############################################################################################
-    //##################################### Above queued for deletion #####################################
-    //#############################################################################################
 
 
     public override void OnNetworkSpawn()
@@ -143,6 +80,23 @@ public class PlayerController : NetworkBehaviour
         // It's still better to assign GameInput and Camera via the inspector if possible
         if (gameInput == null)
             gameInput = FindObjectOfType<GameInput>();
+
+
+
+        playerInputActions = new PlayerInputActions();
+        playerInputActions.PlayerMovement.Enable();
+        playerInputActions.PlayerMovement.Movement.performed += OnMovementPerformed;
+        playerInputActions.PlayerMovement.Movement.canceled += OnMovementPerformed;
+
+        //// Subscribe to mouse button events
+        //playerInputActions.PlayerMovement.Movement. += OnLeftMouseDown;
+        //playerInputActions.PlayerMovement.LeftClick.canceled += OnLeftMouseUp;
+
+        //playerInputActions.PlayerMovement.RightClick.performed += OnRightMouseDown;
+        //playerInputActions.PlayerMovement.RightClick.canceled += OnRightMouseUp;
+
+
+
 
         // This is the new, reliable way to set up the camera
         if (freeLookCamera != null)
@@ -182,19 +136,19 @@ public class PlayerController : NetworkBehaviour
 
 
 
-    // This method gets called when the application gains or loses focus, meaning when it becomes the active or inactive window.
-    private void OnApplicationFocus(bool focus)
-    {
-        if (focus)
-        {
-            // Change below to locked to hide cursor
-            Cursor.lockState = CursorLockMode.None;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.None;
-        }
-    }
+    //// This method gets called when the application gains or loses focus, meaning when it becomes the active or inactive window.
+    //private void OnApplicationFocus(bool focus)
+    //{
+    //    if (focus)
+    //    {
+    //        // Change below to locked to hide cursor
+    //        Cursor.lockState = CursorLockMode.None;
+    //    }
+    //    else
+    //    {
+    //        Cursor.lockState = CursorLockMode.None;
+    //    }
+    //}
 
 
 
@@ -235,7 +189,6 @@ public class PlayerController : NetworkBehaviour
             CastModeSpeedReset();
         }
     }
-
 
 
 
@@ -398,29 +351,63 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    // Handles logic to move forward with mouse LMB+RMB.
+    private void OnMovementPerformed(InputAction.CallbackContext context)
+    {
+        // If the button pressed or released is the LMB handle the bool relatively.
+        if (context.control.displayName.Contains("Left Button"))
+        {
+            lmb_pressed = !lmb_pressed;
+            Debug.Log($"<color=orange>[LBM]: </color> {lmb_pressed}");
+        }
 
+        // If the button pressed or released is the RMB handle the bool relatively.
+        if (context.control.displayName.Contains("Right Button"))
+        {
+            rmb_pressed = !rmb_pressed;
+            Debug.Log($"<color=blue>[RBM]: </color> {rmb_pressed}");
+
+        }
+
+        // If both left and right mouse button are pressed resolve to true. Otherwise, resolve to false.
+        isUsingMouseToMoveForward = lmb_pressed && rmb_pressed; 
+
+        // Here’s your button info
+        Debug.Log($"Pressed: {context.control.displayName} | Path: {context.control.path}");
+    }
 
 
     private void HandleMovement()
     {
-        // This movement logic is already correct from our previous fixes.
-        Vector2 inputVector = gameInput.GetMovementVector();
-        moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
 
-        //Vector2 bwd = new Vector2(0,-1).normalized;
-        //Vector2 fwd = new Vector2(0,1).normalized;
-        //Vector2 rgt = new Vector2(1,0).normalized;
-        //Vector2 lft = new Vector2(-1,0).normalized;
-        //Vector2 fwd_rgt = new Vector2(1,1).normalized;
-        //Vector2 fwd_lft = new Vector2(-1,1).normalized;
-        //Vector2 bwd_rgt = new Vector2(1,-1).normalized;
-        //Vector2 bwd_lft = new Vector2(-1,-1).normalized;
+
+        // If both the LMB and RBM and pressed together, move the charater forward.
+        if (isUsingMouseToMoveForward == true)
+        {
+            moveDir = new Vector3(0f, 0f, 1f);
+        } else
+        {
+            // This movement logic is already correct from our previous fixes.
+            inputVector = gameInput.GetMovementVector(); // The movement vector is set using the PlayerInput file inside the project assets.
+            moveDir = new Vector3(inputVector.x, 0f, inputVector.y); // 1, 0, 0 LEFT // -1,0,0 Right // 0,0,1 forward // 0,0,-1 backward
+        }
+
+        // Vector2 bwd = new Vector2(0,-1).normalized;
+        // Vector2 fwd = new Vector2(0,1).normalized;
+        // Vector2 rgt = new Vector2(1,0).normalized;
+        // Vector2 lft = new Vector2(-1,0).normalized;
+        // Vector2 fwd_rgt = new Vector2(1,1).normalized;
+        // Vector2 fwd_lft = new Vector2(-1,1).normalized;
+        // Vector2 bwd_rgt = new Vector2(1,-1).normalized;
+        // Vector2 bwd_lft = new Vector2(-1,-1).normalized;
+
+        // Debug.LogFormat($"IIIIIIII 2222 Input Vector {inputVector}");
 
 
         moveDir = Quaternion.AngleAxis(cameraTransform.rotation.eulerAngles.y, Vector3.up) * moveDir;
         moveDir.Normalize();
 
-
+        // If the player is running in a different direction, add slow for run-up
         if (previousInputVector != inputVector)
         {
             runUpElapsedDuration = 0.2f;

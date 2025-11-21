@@ -230,6 +230,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1810049160539922072, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3425163843297259102, guid: 2bf45ef3c59fa4741b93b4bae95e9e8c, type: 3}
       propertyPath: m_Layer
       value: 0
@@ -331,7 +335,7 @@ SphereCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Radius: 0.7325568
   m_Center: {x: -0.011682436, y: 0, z: 0}

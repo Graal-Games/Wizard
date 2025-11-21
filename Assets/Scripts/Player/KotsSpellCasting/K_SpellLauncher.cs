@@ -693,13 +693,7 @@ public class K_SpellLauncher : NetworkBehaviour
         switch (spellBuilder.GetSpellType(sequenceToCast))
         {
             case "Projectile":
-                //localSpellInstance = Instantiate(spellPrefabsReferences[spellSequence], wandTip.transform.position, wandTip.transform.rotation);
 
-                //var localSpellId = localSpellInstance.GetComponent<K_ProjectileSpell>().localSpellId;
-
-                //localSpellInstances.Add(localSpellId, localSpellInstance);
-
-                //ProjectileSpawnRpc(spellSequence, wandTip.transform.rotation, wandTip.transform.position, localSpellId);
                 ProjectileSpawnRpc(sequenceToCast, wandTip.transform.rotation, wandTip.transform.position);
                 break;
             case "Sphere":
@@ -791,7 +785,15 @@ public class K_SpellLauncher : NetworkBehaviour
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
 
-        netObj.SpawnWithOwnership(OwnerClientId);
+        //netObj.SpawnWithOwnership(OwnerClientId);
+        netObj.Spawn();
+
+        if (netObj.name.Contains("Scepter"))
+        {
+            Debug.Log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+
+            netObj.GetComponentInChildren<AimAtOpposingPlayer>().friendlyPlayerId.Value = OwnerClientId;
+        }
 
         ResetPlayerCastStateAndDRRPC(currentSpellType.ToString());
 
@@ -875,6 +877,11 @@ public class K_SpellLauncher : NetworkBehaviour
 
         Debug.Log($"[SERVER]: ProjectileSpawnRpc received with sequence '{spellSequenceParam}'.");
 
+        Vector3 flightDirection = wandTip.GetComponent<WandTip>().GetCenterScreenAimDirection();
+
+        Debug.Log($"[FLIGHT Direction]: '{flightDirection}'.");
+
+
         GameObject spellInstance = Instantiate(spellPrefabsReferences[spellSequenceParam], position, rotation);
 
         // Check if instantiation worked and where it is
@@ -888,6 +895,8 @@ public class K_SpellLauncher : NetworkBehaviour
 
 
         NetworkObject netObj = spellInstance.GetComponent<NetworkObject>();
+
+        spellInstance.GetComponent<ProjectileClass>().flightDirection = flightDirection;
 
         if (netObj == null)
         {

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spellType: 5
   element: 1
-  spellAttribute: 2
+  spellAttribute: 9
   castProcedure: 1
   periCastLockProcedure: 0
   incapacitationName: 0
@@ -29,7 +29,7 @@ MonoBehaviour:
   spellTimeBeforeDeactivation: 0
   incapacitationDuration: 0
   visionImpairmentDuration: 0
-  directDamageAmount: 15
+  directDamageAmount: 0
   damageOverTimeAmount: 0
   damageOverTimeDuration: 0
   pushForce: 0

@@ -13,180 +13,184 @@ public class AimAtOpposingPlayer : NetworkBehaviour
     Collider gOCollider;
     float radius;
 
+    Collider triggerZone;
+
+    InvocationSpell invocationSpellScript;
+
+
+    //Transform shootOrigin;  
+    //float range = 100f;   
+    //LayerMask hitMask;      
+
+
     // Instead of a variable, it now simply checks if the targetTransform has been successfully assigned.
     // This is much more reliable.
-    public bool TargetFound => targetTransform != null;
+    public NetworkVariable<bool> TargetFound = new NetworkVariable<bool>(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner); //=> targetTransform != null;
+
+    public NetworkVariable<ulong> friendlyPlayerId = new NetworkVariable<ulong>(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner); //=> targetTransform != null;
+
+    public NetworkVariable<bool> isEnemyPlayerBehindCover = new NetworkVariable<bool>(default,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner); //=> targetTransform != null;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         Debug.LogFormat($"<color=blue>{OwnerClientId}</color>");
 
-        if (!IsOwner) return;
+        invocationSpellScript = GetComponentInParent<InvocationSpell>();
 
-        // Start a coroutine to ask for the target.
-        // This is better than a direct call in case the other player takes a moment to connect.
-        StartCoroutine(RequestTargetWithDelay());
-
-        StartCoroutine(CheckForRigidbodiesInArea());
-    }
-
-    private IEnumerator RequestTargetWithDelay()
-    {
-        // Wait a very short moment to allow the network to settle.
-        yield return new WaitForSeconds(0.5f);
-        // Ask the server to find our target.
-        AskForTargetServerRpc();
+        CheckIfPlayerInsideTrigger();
     }
 
 
-    //void GetColliderRadius()
-    //{
-    //    if (gOCollider is CapsuleCollider capsuleCollider)
-    //    {
-    //        // CapsuleCollider has a radius property
-    //        radius = capsuleCollider.radius;
-    //        Debug.Log("CapsuleCollider radius: " + radius);
-    //    }
-    //} 
+
+
 
     // Update is called once per frame
     void Update()
     {
-
-        // Get the target transform (second child of PlayerObject)
-        //Transform targetTransform = NetworkManager.Singleton.ConnectedClients[0].PlayerObject.gameObject.transform.GetChild(1);
-        //CheckForRigidbodiesInArea();
-
         if (targetTransform != null)
         {
-            // Your aiming logic remains the same.
-            targetPositionWithOffset = targetTransform.position + new Vector3(0.20f, 0.5f, 0);
+            targetPositionWithOffset = targetTransform.position + new Vector3(0f, 1.5f, 0); // adding offset to hit the player center exactly.
             transform.LookAt(targetPositionWithOffset);
 
-            Debug.LogFormat($"<color=purple>TAREGETING {targetPositionWithOffset}</color>");
-
+            //Debug.LogFormat($"<color=purple>TAREGETING {targetPositionWithOffset}</color>");
         }
 
+        // If a target is found, shoot a ray at it to check whether or not he is hiding behind a wall or not
+        //if (TargetFound.Value)
+        //    CheckIfTargetBehindWallOrBarrier();
     }
+
+
+    // OPTIONAL: Make the scepter shoot the player only if he is visible and not behind cover
+    //void CheckIfTargetBehindWallOrBarrier()
+    //{
+    //    Ray ray = new Ray(targetTransform.position, targetTransform.forward);
+
+    //    RaycastHit hit;
+
+    //    if (Physics.Raycast(ray, out hit, range, hitMask))
+    //    {
+    //        Debug.Log($"Hit {hit.collider.name} at {hit.point}");
+            
+    //    }
+    //    else
+    //    {
+    //        Debug.Log("Missed");
+    //    }
+
+    //    // Optional: draw ray in scene view for debugging
+    //    Debug.DrawRay(shootOrigin.position, shootOrigin.forward * range, Color.red, 1f);
+    //}
+
+
 
     [Rpc(SendTo.Server)]
-    private void AskForTargetServerRpc(RpcParams rpcParams = default)
+    void TargetFoundRpc(bool value)
     {
-        ulong requestingClientId = rpcParams.Receive.SenderClientId;
-        ulong targetClientId = ulong.MaxValue;
-
-        foreach (var clientId in NetworkManager.Singleton.ConnectedClientsIds)
-        {
-            if (clientId != requestingClientId)
-            {
-                targetClientId = clientId;
-                break;
-            }
-        }
-
-        if (targetClientId != ulong.MaxValue)
-        {
-            NetworkObject targetNetObject = NetworkManager.Singleton.ConnectedClients[targetClientId].PlayerObject;
-
-            if (targetNetObject != null)
-            {
-                ClientRpcParams clientRpcParams = new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams
-                    {
-                        TargetClientIds = new ulong[] { requestingClientId }
-                        
-
-                    }
-                };
-
-                Debug.LogFormat($"<color=purple>INVOCATION TAREGET {requestingClientId}</color>");
-                SetTargetClientRpc(targetNetObject.NetworkObjectId, clientRpcParams);
-            }
-        }
-        else
-        {
-            Debug.LogWarning($"Server could not find a target for client {requestingClientId}");
-        }
+        TargetFound.Value = value;
     }
 
-    [ClientRpc]
-    private void SetTargetClientRpc(ulong targetId, ClientRpcParams rpcParams = default)
+
+
+
+    //[Rpc(SendTo.Server)]
+    //void IsEnemyPlayerBehindCover(bool value)
+    //{
+    //    isEnemyPlayerBehindCover.Value = value;
+    //}
+
+
+
+
+
+
+    void CheckIfPlayerInsideTrigger()
     {
-        if (NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(targetId, out NetworkObject targetNetObject))
-        {
-            if (targetNetObject.transform.childCount > 1)
-            {
-                targetTransform = targetNetObject.transform.GetChild(1);
-                Debug.Log($"Target set to: {targetTransform.name}");
-            }
-        }
-    }
+        //Debug.LogFormat($"<color>11colliders</color>");
 
-    IEnumerator CheckForRigidbodiesInArea()
-    {
-        yield return new WaitForSeconds(0.5f);
-        // Define a search radius and position (center of the collider)
-        //float searchRadius = 5f;
-
-        Vector3 centerPosition = transform.position;
-
-        // Find all colliders within the sphere
-        Collider[] colliders = Physics.OverlapSphere(centerPosition, radius);
+        Collider[] colliders = Physics.OverlapSphere(triggerZone.bounds.center, triggerZone.bounds.extents.magnitude);
 
         foreach (Collider collider in colliders)
         {
-            // Check if the object has a Rigidbody
-            Rigidbody rb = collider.GetComponent<Rigidbody>();
+            //Debug.LogFormat($"<color>22colliders: {collider}</color>");
 
-
-            if (rb != null)
+            if (collider.gameObject.name.Contains("Player"))
             {
-                Debug.Log("Rigidbody found inside the area: " + rb.name);
-                clientId = rb.gameObject.GetComponent<NetworkObject>().OwnerClientId;
+                ulong playerOwnerId = collider.GetComponent<NewPlayerBehavior>().OwnerClientId;
 
-                if (OwnerClientId != clientId)
+                // Check if the ID of the player character that was found is different from the id of the player character that casted the spell
+                if (friendlyPlayerId.Value != playerOwnerId)
                 {
-                    //TargetFound = true;
-                    targetTransform = rb.gameObject.transform;
+                    //Debug.Log("Player is already inside the trigger on spawn!");
+                    targetTransform = collider.GetComponent<Rigidbody>().transform;
+
+                    // To not duplicate the shoot call make a check if a target was found first
+                    if (TargetFound.Value == false)
+                    {
+                        TargetFoundRpc(true);
+
+                        StartCoroutine(invocationSpellScript.Shoot());
+                    }
+                    return;
+                }
+            }
+        }
+        //Debug.Log("Player is not inside the trigger on spawn.");
+    }
+
+
+
+
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.name.Contains("Player"))
+        {
+            Debug.Log("SCEPTER 1- AIM AT PLAYER: " + other.name);
+
+            clientId = other.gameObject.GetComponent<NetworkObject>().OwnerClientId;
+
+            if (friendlyPlayerId.Value != clientId)
+            {
+                Debug.Log("SCEPTER 2- AIM AT PLAYER: " + OwnerClientId);
+
+                targetTransform = other.gameObject.transform;
+
+                if (TargetFound.Value == false)
+                {
+                    TargetFoundRpc(true);
+
+                    StartCoroutine(invocationSpellScript.Shoot());
                 }
             }
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        Debug.Log("other.nameother.nameother.nameother.name: " + other.name);
 
-        if (other.name.Contains("Player"))
-        {
-            Debug.Log("other.nameother.nameother.nameother.name: " + other.name);
 
-            clientId = other.gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
-            if (OwnerClientId != clientId)
-            {
-                Debug.Log("OwnerClientIdOwnerClientIdOwnerClientId: " + OwnerClientId);
 
-                targetTransform = other.gameObject.transform;
-            }
-        }
-    }
 
     private void OnTriggerExit(Collider other)
     {
-        Debug.Log("other.nameother.nameother.nameother.name: " + other.name);
-
 
         if (other.name.Contains("Player"))
-        {
+        {        
+            Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
+
             clientId = other.gameObject.GetComponent<NetworkObject>().OwnerClientId;
 
-            if (OwnerClientId != clientId)
-            {
-                targetTransform = null;
-            }
+            //if (friendlyPlayerId.Value != clientId)
+            //{
+            //    targetTransform = null;
+            //    TargetFoundRpc(false);
+            //    Debug.Log("SCEPTER 4- RELEASE AIM AT PLAYER: " + other.name);
+            //}
         }
     }
 }

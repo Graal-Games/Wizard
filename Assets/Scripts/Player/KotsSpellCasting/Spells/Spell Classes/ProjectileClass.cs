@@ -41,7 +41,7 @@ public class ProjectileClass : SpellsClass
 
     bool hasFoundShield = false;
 
-
+    public Vector3 flightDirection;
 
 
     public bool CanDestroy
@@ -78,7 +78,6 @@ public class ProjectileClass : SpellsClass
         rb.isKinematic = false;
         rb.useGravity = false;
         pushDirection = transform.forward;
-        //lastPosition = projectileSphere.position;
 
         if (IsParriable())
         {
@@ -91,7 +90,7 @@ public class ProjectileClass : SpellsClass
                 // This code will run when the parry letter is set or changed.
                 if (!string.IsNullOrEmpty(newValue.ToString()))
                 {
-                    Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter initialized to '{newValue}'.");
+                    //Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter initialized to '{newValue}'.");
                     projectileParryHandler.OnProjectileSpawned(newValue.ToString());
                 }
             };
@@ -99,7 +98,7 @@ public class ProjectileClass : SpellsClass
             // Also handle the case where the value might already be set when we spawn
             if (!string.IsNullOrEmpty(parryLetters.Value.ToString()))
             {
-                Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter was already '{parryLetters.Value}'. Initializing immediately.");
+                //Debug.Log($"[Projectile {NetworkObjectId}]: Parry letter was already '{parryLetters.Value}'. Initializing immediately.");
                 projectileParryHandler.OnProjectileSpawned(parryLetters.Value.ToString());
             }
         }
@@ -139,11 +138,11 @@ public class ProjectileClass : SpellsClass
     // This method is triggered when a player successfully performs a parry
     private void ProjectileParryHandler_OnAnyPlayerPerformedParry(object sender, System.EventArgs e)
     {
-        Debug.Log($"<color=cyan>[SERVER Projectile {NetworkObjectId}]:</color> OnAnyPlayerPerformedParry event received! Proceeding with neutralization logic.");
+        //Debug.Log($"<color=cyan>[SERVER Projectile {NetworkObjectId}]:</color> OnAnyPlayerPerformedParry event received! Proceeding with neutralization logic.");
 
         if (!IsServer || isParried) return; // Also prevent this from running more than once
 
-        Debug.Log($"<color=cyan>[Projectile {this.NetworkObjectId}]: Parry event received! Neutralizing projectile.</color>");
+        //Debug.Log($"<color=cyan>[Projectile {this.NetworkObjectId}]: Parry event received! Neutralizing projectile.</color>");
 
         isParried = true;
         if (rb != null)
@@ -268,6 +267,9 @@ public class ProjectileClass : SpellsClass
     }
 
 
+
+
+
     void CLIENT_SIDE_MoveAndHitReg()
     {
         Vector3 currentPosition = transform.position;
@@ -303,6 +305,7 @@ public class ProjectileClass : SpellsClass
 
 
 
+
     [Rpc(SendTo.Server)]
     public virtual void MoveAndHitRegRpc()
     {
@@ -310,10 +313,18 @@ public class ProjectileClass : SpellsClass
         Vector3 currentPosition = transform.position;
         Vector3 forceDirection = transform.forward; // RESET SPEED
 
-        forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
-        rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        if (flightDirection != Vector3.zero)
+        {
+            forceDirection = flightDirection * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = flightDirection * SpellDataScriptableObject.moveSpeed;
+        } else
+        {
+            forceDirection = transform.forward * SpellDataScriptableObject.moveSpeed;
+            rb.linearVelocity = transform.forward * SpellDataScriptableObject.moveSpeed;
+        }
 
-        rb.isKinematic = false; // Stop the rigidbody from moving
+
+            rb.isKinematic = false; // Stop the rigidbody from moving
         rb.useGravity = false; // Enable gravity if needed
 
 
@@ -351,12 +362,13 @@ public class ProjectileClass : SpellsClass
             if (hit.collider.gameObject.tag == "Player") // Can be migrated?? //
             {
                 string actualLayerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
-                Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
+                //Debug.Log($"<color=lime>!!! PLAYER HIT !!!</color> The player's actual runtime layer is: '{actualLayerName}'");
 
                 ulong hitPlayerOwnerID = hit.collider.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
 
 
                 // <<< The below code could be simplified
+                // If the playerID with which this gameobject has collided is not present in the list, add it then handle the collision.
                 if (!playerHitID.ContainsKey(hitPlayerOwnerID) && !isHitPlayer.Value)
                 {
                     isHitPlayer.Value = true;
@@ -365,9 +377,9 @@ public class ProjectileClass : SpellsClass
 
                 }
 
-            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString()))
+            } else if (!hit.collider.gameObject.name.Contains(SpellName.ToString())) // If the gameObject is hitting itself (for whateer reason - like the projectile for example) ignore the collision.
             {
-                Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
+                //Debug.LogFormat($"<color=blue>hit.collider.gameObject.name: {hit.collider.gameObject.name} && SpellName: {SpellName}</color>");
                 HandleCollision(hit.collider, hitPosition);
             }
 
@@ -388,14 +400,14 @@ public class ProjectileClass : SpellsClass
     {
         // If the projectile produces a secondary effect on collision, handle the spawning and prevent the spell from doing so again
         if (SpellDataScriptableObject.spawnsSecondaryEffectOnCollision 
-            && !hasCollided.Value 
-            && !colliderHit.gameObject.CompareTag("Spell") 
+            && !hasCollided.Value
+            && !colliderHit.gameObject.CompareTag("Spell")
             && !colliderHit.gameObject.name.Contains("Projectile")
             && !colliderHit.gameObject.name.Contains("Area of Effect")
             && !colliderHit.gameObject.name.Contains("Shaders"))
         {
             Debug.LogFormat($"<color=green> COLLIDER HIT: {colliderHit.gameObject.name}</color>");
-            Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
+            //Debug.LogFormat($"<color=green> CHILD GO: {SpellDataScriptableObject.childPrefab}</color>");
             SpawnEffectAtTargetLocationRpc(hitPosition);
             hasCollided.Value = true;
         }
@@ -423,9 +435,10 @@ public class ProjectileClass : SpellsClass
             && !colliderHit.gameObject.name.Contains("Projectile") 
             && !colliderHit.gameObject.name.Contains("Area of Effect")  
             && !colliderHit.gameObject.name.Contains("Shaders")
+            && !colliderHit.gameObject.name.Contains("Spawn Location")
             ) // Add bool that checks whether the other spell (colliderHit) should be considered a solid surface
         {
-            Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name}</color>");
+            //Debug.LogFormat($"<color=green> COLLISION DESTROY: {colliderHit.gameObject.name} (HARDCODED)</color>");
 
             if (!colliderHit.gameObject.name.Contains("Aoe"))
             DestroySpell(gameObject);
@@ -607,13 +620,13 @@ public class ProjectileClass : SpellsClass
         //return;
         if (other.gameObject.CompareTag("Player") && SpellDataScriptableObject.moveSpeed < 40)
         {
-            Debug.LogFormat($"<color=blue>ONNNNNNNN TRIGGER ENTER</color>");
+            //Debug.LogFormat($"<color=blue>ONNNNNNNN TRIGGER ENTER</color>");
 
             ulong hitPlayerOwnerID = other.gameObject.GetComponent<NetworkBehaviour>().OwnerClientId;
 
             if (!playerHitID.ContainsKey(hitPlayerOwnerID) && isHitPlayer.Value == false)
             {
-                Debug.LogFormat($"<color=blue>2222 ONNNNNNNN TRIGGER ENTER</color>");
+                //Debug.LogFormat($"<color=blue>2222 ONNNNNNNN TRIGGER ENTER</color>");
 
                 isHitPlayer.Value = true;
 
